@@ -67,6 +67,28 @@ A new cache layer must justify its ~200–500 ms per-run cache-API roundtrip. Do
 
 The per-(host × target) cross-tool cache (Wave 2.1 of zackees/soldr#514) is only activated when `cross-targets` is non-empty — non-cross-compiling consumers pay zero extra cache-API roundtrips. Each declared target is one independent tiny slot keyed on its toolset versions, so bumping one tool only invalidates the affected lanes. Slot key shape: `tool-<host>-<target>-<toolsHash>-soldr<ver>` (see `crossToolCacheKeyFor` in `src/lib/cache-keys.ts`).
 
+### Cook capture boundary: save at cook time, inventory-limited after
+
+The cook base/delta payload must be captured immediately after `soldr cook`
+returns — before the consumer's first-party build mutates `target/`. A
+deferred (post-step) capture snapshots post-build state; that is how
+cook-base entries reached ~1 GB in this repository's self-test lane while
+dependency-only lanes sat at 78–344 MB (#513).
+
+- `src/main.ts` measures a cook-time inventory (file count + bytes) right
+  after cook and performs the layered save during the setup phase;
+  `src/post.ts` skips re-capture when the setup-phase save completed.
+- Any fallback (deferred) save passes inventory × 1.05 as `maxFileCount`
+  to `saveLayeredCookCache`, which refuses oversized archives BEFORE
+  upload — the same pre-upload rejection family as the #511 zero-byte
+  guards. Nothing above the inventory may reach an immutable exact key.
+- Seed validation jobs assert the `cook-cache-save-report-json` output
+  mid-job: a regression back to deferred capture yields an empty report
+  (the post step cannot write setup-step outputs) and fails validation.
+- Capture-semantics changes bump the layer keys (`cook-base-v3`,
+  `cook-delta-v3`) so previously-saved fat entries cannot silently
+  satisfy new exact keys.
+
 ### Detect-then-cache: only save the delta
 
 Before saving a cache, snapshot what the runner image already provides; cache only what setup-soldr added on top.

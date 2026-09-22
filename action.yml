@@ -1027,6 +1027,12 @@ outputs:
     description: Dependency-rematerialization transport status (disabled, miss, base-hit, hit, or covered-by-target-cache).
   cook-cache-load-report-json:
     description: JSON load diagnostics for the base and delta archives, including restored-file and mtime replay counters.
+  cook-cache-save-report-json:
+    description: >
+      JSON cook-time inventory vs uploaded save report (#513): layer, save
+      status, saved file count and archive bytes against the inventory
+      measured immediately after `soldr cook`. Empty object when no cook
+      save ran.
   cargo-registry-cache-hit:
     description: Whether the Cargo registry/git source half of the dependency-rematerialization closure restored an exact cache key.
   build-cache-hit:

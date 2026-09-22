@@ -94,6 +94,22 @@ def test_reusable_workflow_proves_a_clean_job_loaded_the_cook_base() -> None:
     assert '"$RUNNER_TEMP/${{ inputs.cache_key }}-metadata.json"' in build["run"]
     assert "assert_no_external_rebuild.py" in build["run"]
 
+    # #513 P0: the cold seed must prove the cook base was captured at cook
+    # time, bounded by the cook-time inventory, before any consumer build.
+    inventory = next(
+        step
+        for step in jobs["seed"]["steps"]
+        if step.get("name") == "Assert the cook save stayed inside the cook-time inventory"
+    )
+    assert inventory["shell"] == "bash"
+    assert (
+        inventory["env"]["SAVE_REPORT"]
+        == "${{ steps.setup.outputs.cook-cache-save-report-json }}"
+    )
+    assert '(.layer == "base")' in inventory["run"]
+    assert "inventoryFileCount" in inventory["run"]
+    assert "1.05" in inventory["run"]
+
 
 def test_reusable_workflow_serializes_cold_release_cooks() -> None:
     workflow = _load(REUSABLE)

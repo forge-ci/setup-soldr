@@ -50430,7 +50430,8 @@ exports.FOUNDATION_PREFIXES = [
     // protection lets our controlled eviction skip these, while
     // GitHub's own LRU still evicts stale entries that no run
     // accesses for ~7 days.
-    "cook-base-v2-", // ~300 MB per platform, skips ~200 s cold cook
+    "cook-base-v3-", // existing foundation entries remain protected
+    "cook-base-v4-", // ~300 MB per platform, skips ~200 s cold cook
     "setup-soldr-prepare-v1-",
     "setup-soldr-prepare-v2-",
     "setup-soldr-prepare-v3-", // cross compiler/SDK archives; avoids repeated LFS downloads
@@ -52377,6 +52378,7 @@ exports.restoreCookCache = restoreCookCache;
 exports.restoreLayeredCookCacheArchives = restoreLayeredCookCacheArchives;
 exports.loadLayeredCookCache = loadLayeredCookCache;
 exports.saveCookCache = saveCookCache;
+exports.measureDirInventory = measureDirInventory;
 exports.saveLayeredCookCache = saveLayeredCookCache;
 exports.parseCookFlags = parseCookFlags;
 exports.canonicalizeCookFlags = canonicalizeCookFlags;
@@ -52414,8 +52416,8 @@ function selectCookSaveLayer(cookRan, baseReady, deltaEnabled) {
     return deltaEnabled ? "delta" : "none";
 }
 const COOK_KEY_PREFIX = "cook";
-const COOK_BASE_KEY_PREFIX = "cook-base-v3";
-const COOK_DELTA_KEY_PREFIX = "cook-delta-v2";
+const COOK_BASE_KEY_PREFIX = "cook-base-v4";
+const COOK_DELTA_KEY_PREFIX = "cook-delta-v3";
 exports.LAYERED_COOK_MIN_SOLDR_VERSION = "0.7.38";
 const COOK_MODE = "soldr-cook";
 const LEGACY_COOK_MODE = "cargo-chef";
@@ -53004,6 +53006,48 @@ function saveReport(payload) {
         archiveBytes: numField(payload, "archive_bytes"),
     };
 }
+/**
+ * #513: count files and bytes under a directory. Measured immediately after
+ * `soldr cook` returns, this is the cook-time inventory — the ceiling any
+ * save of the dependency closure may upload (see `maxFileCount`). Entries
+ * that vanish mid-walk are skipped; a missing root yields an empty
+ * inventory rather than throwing, so inventory failure never fails the
+ * action itself.
+ */
+async function measureDirInventory(dir) {
+    let fileCount = 0;
+    let bytes = 0;
+    const walk = async (current) => {
+        let entries;
+        try {
+            entries = await fsp.readdir(current, { withFileTypes: true });
+        }
+        catch {
+            return;
+        }
+        await Promise.all(entries.map(async (entry) => {
+            const entryPath = path.join(current, entry.name);
+            if (entry.isDirectory()) {
+                await walk(entryPath);
+                return;
+            }
+            try {
+                // stat() follows symlinks so a link to a file counts once with
+                // its target's size; broken links throw and are skipped.
+                const stat = await fsp.stat(entryPath);
+                if (stat.isFile()) {
+                    fileCount += 1;
+                    bytes += stat.size;
+                }
+            }
+            catch {
+                /* racing deletion — not part of the inventory */
+            }
+        }));
+    };
+    await walk(dir);
+    return { fileCount, bytes };
+}
 async function saveLayeredCookCache(opts) {
     const { soldrBinary, projectRoot, targetDir, exactKey, archivePath, layer, zstdLevel, log } = opts;
     if (!(0, save_policy_js_1.allowCacheSave)(`cook-cache-${layer}`, log))
@@ -53039,6 +53083,16 @@ async function saveLayeredCookCache(opts) {
             if (soldrSave.code !== 0)
                 throw new Error(`soldr save ${layer} exited ${soldrSave.code}`);
             const report = saveReport(soldrSave.payload);
+            // #513: the cook-time inventory is the upload ceiling. A deferred save
+            // that outgrew it captured post-cook mutation (first-party build
+            // output) — refusing here keeps that out of the immutable exact key.
+            if (opts.maxFileCount !== undefined &&
+                report.cacheFiles !== null &&
+                report.cacheFiles > opts.maxFileCount) {
+                throw new Error(`cook-cache-${layer}: refusing to upload ${report.cacheFiles} files — exceeds the ` +
+                    `cook-time inventory ceiling of ${opts.maxFileCount} (#513); post-cook mutation ` +
+                    `entered the capture window for key=${exactKey}`);
+            }
             // A successful Soldr exit and a non-empty Actions-cache wrapper do not
             // prove that the inner archive is usable. Validate the serialized file
             // itself before upload so an immutable exact key cannot be poisoned.
@@ -62995,6 +63049,36 @@ async function run() {
             if (!cookRan || cookSaveLayer === "none") {
                 log("cook-cache: layered cache warm or cook did not run successfully - skipping save");
             }
+            else if (core.getState("cookSavedEarly") === "true") {
+                // #513: the dependency closure was captured immediately after cook,
+                // before the consumer's build could mutate target/. Re-capturing here
+                // would freeze first-party post-build state into the immutable exact
+                // key — the bloat path that produced ~1 GB cook-base entries. Surface
+                // the setup-phase outcome in this step's save table instead.
+                const reportJson = core.getState("cookSaveReport") || "{}";
+                log(`cook-cache: saved during setup (#513) - skipping deferred capture report=${reportJson}`);
+                let report = {};
+                try {
+                    report = JSON.parse(reportJson);
+                }
+                catch {
+                    /* keep defaults — the numbers are diagnostics only */
+                }
+                postCollector.record({
+                    label: `cook-cache-${cookSaveLayer}`,
+                    operation: "save",
+                    status: report.status || "saved-early",
+                    hit: false,
+                    key: cookSaveLayer === "delta" ? cookDeltaKey : cookBaseKey,
+                    matchedKey: "",
+                    restoreKeys: [],
+                    archiveBytes: report.archiveBytes ?? null,
+                    inflatedBytes: null,
+                    fileCount: report.fileCount ?? null,
+                    durationMs: report.durationMs ?? 0,
+                    timestamp: new Date().toISOString(),
+                });
+            }
             else if (cookSaveLayer === "delta" && !buildOutputGate.save) {
                 // #626: the delta is captured from target/ after the workspace build,
                 // so it is a build output (#559). The base layer is dependency-only
@@ -63013,6 +63097,12 @@ async function run() {
                 const level = cookSaveLayer === "delta"
                     ? core.getState("cookDeltaCompressLevel") || "3"
                     : core.getState("cookCompressLevel") || "9";
+                // #513: this deferred path only runs when the setup-phase capture
+                // did not complete. The cook-time inventory measured right after
+                // `soldr cook` is the upload ceiling: anything beyond it is
+                // first-party post-build mutation that must not reach the key.
+                const inventoryFiles = Number(core.getState("cookInventoryFileCount") || "0");
+                const maxFileCount = inventoryFiles > 0 ? Math.ceil(inventoryFiles * 1.05) : undefined;
                 const cookSaveStart = Date.now();
                 try {
                     const saveResult = await (0, cook_cache_js_1.saveLayeredCookCache)({
@@ -63024,6 +63114,7 @@ async function run() {
                         layer: cookSaveLayer === "delta" ? "delta" : "base",
                         zstdLevel: level,
                         baseManifestPath: cookBaseManifest,
+                        maxFileCount,
                         log,
                     });
                     // #269: always record so the save table includes skipped/

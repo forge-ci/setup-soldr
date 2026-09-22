@@ -145,6 +145,7 @@ EXPECTED_OUTPUTS = {
     "cook-cache-delta-hit",
     "cook-cache-status",
     "cook-cache-load-report-json",
+    "cook-cache-save-report-json",
     "cargo-registry-cache-hit",
     "build-cache-hit",
     "build-cache-key",

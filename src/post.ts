@@ -2360,6 +2360,39 @@ export async function run(): Promise<void> {
       );
       if (!cookRan || cookSaveLayer === "none") {
         log("cook-cache: layered cache warm or cook did not run successfully - skipping save");
+      } else if (core.getState("cookSavedEarly") === "true") {
+        // #513: the dependency closure was captured immediately after cook,
+        // before the consumer's build could mutate target/. Re-capturing here
+        // would freeze first-party post-build state into the immutable exact
+        // key — the bloat path that produced ~1 GB cook-base entries. Surface
+        // the setup-phase outcome in this step's save table instead.
+        const reportJson = core.getState("cookSaveReport") || "{}";
+        log(`cook-cache: saved during setup (#513) - skipping deferred capture report=${reportJson}`);
+        let report: {
+          status?: string;
+          fileCount?: number | null;
+          archiveBytes?: number | null;
+          durationMs?: number;
+        } = {};
+        try {
+          report = JSON.parse(reportJson);
+        } catch {
+          /* keep defaults — the numbers are diagnostics only */
+        }
+        postCollector.record({
+          label: `cook-cache-${cookSaveLayer}`,
+          operation: "save",
+          status: report.status || "saved-early",
+          hit: false,
+          key: cookSaveLayer === "delta" ? cookDeltaKey : cookBaseKey,
+          matchedKey: "",
+          restoreKeys: [],
+          archiveBytes: report.archiveBytes ?? null,
+          inflatedBytes: null,
+          fileCount: report.fileCount ?? null,
+          durationMs: report.durationMs ?? 0,
+          timestamp: new Date().toISOString(),
+        });
       } else if (cookSaveLayer === "delta" && !buildOutputGate.save) {
         // #626: the delta is captured from target/ after the workspace build,
         // so it is a build output (#559). The base layer is dependency-only
@@ -2376,6 +2409,12 @@ export async function run(): Promise<void> {
           cookSaveLayer === "delta"
             ? core.getState("cookDeltaCompressLevel") || "3"
             : core.getState("cookCompressLevel") || "9";
+        // #513: this deferred path only runs when the setup-phase capture
+        // did not complete. The cook-time inventory measured right after
+        // `soldr cook` is the upload ceiling: anything beyond it is
+        // first-party post-build mutation that must not reach the key.
+        const inventoryFiles = Number(core.getState("cookInventoryFileCount") || "0");
+        const maxFileCount = inventoryFiles > 0 ? Math.ceil(inventoryFiles * 1.05) : undefined;
         const cookSaveStart = Date.now();
         try {
           const saveResult = await saveLayeredCookCache({
@@ -2387,6 +2426,7 @@ export async function run(): Promise<void> {
             layer: cookSaveLayer === "delta" ? "delta" : "base",
             zstdLevel: level,
             baseManifestPath: cookBaseManifest,
+            maxFileCount,
             log,
           });
           // #269: always record so the save table includes skipped/

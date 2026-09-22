@@ -81,6 +81,39 @@ def test_both_jobs_default_to_linux_and_allow_dispatch_elsewhere() -> None:
     assert {"windows-2022", "macos-14"} <= set(options)
 
 
+def test_seed_asserts_the_cook_save_stayed_inside_the_inventory() -> None:
+    """#513 P0: capture cook output at the correct boundary.
+
+    The seed job builds soldr-cli right after setup — the lane that once
+    uploaded a ~1 GB cook base containing the first-party build. The
+    assertion must exist (post-step outputs are invisible to setup-step
+    reads, so a regression back to deferred capture fails here) and must
+    bound the saved file count by the cook-time inventory.
+    """
+    workflow = _workflow()
+    seed = workflow["jobs"]["seed"]
+    step = next(
+        s
+        for s in seed["steps"]
+        if s.get("name") == "Assert the cook save stayed inside the cook-time inventory"
+    )
+    assert step["shell"] == "bash"
+    assert (
+        step["env"]["SAVE_REPORT"]
+        == "${{ steps.setup.outputs.cook-cache-save-report-json }}"
+    )
+    run = step["run"]
+    assert '(.layer == "base")' in run
+    assert "inventoryFileCount" in run
+    assert "fileCount" in run
+    assert "1.05" in run
+    # The assertion must precede the first-party build it protects against.
+    names = [s.get("name") for s in seed["steps"]]
+    assert names.index(
+        "Assert the cook save stayed inside the cook-time inventory"
+    ) < names.index("Build soldr so the closure is populated")
+
+
 def test_the_warm_job_refuses_to_assert_without_a_restore() -> None:
     """A freshness assertion after a cache miss proves nothing."""
     warm = _workflow()["jobs"]["warm"]

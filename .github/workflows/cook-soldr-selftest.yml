@@ -113,6 +113,28 @@ jobs:
             exit 1
           fi
 
+      # #513: the cook base must be captured at cook time, not after the
+      # first-party build below. This job is the RED lane (a ~1 GB base
+      # entry once contained the whole soldr-cli build): any regression
+      # back to a deferred capture makes this report empty or pushes the
+      # saved file count past the cook-time inventory ceiling.
+      - name: Assert the cook save stayed inside the cook-time inventory
+        shell: bash
+        env:
+          SAVE_REPORT: ${{ steps.setup.outputs.cook-cache-save-report-json }}
+        run: |
+          set -euo pipefail
+          echo "cook save report: $SAVE_REPORT"
+          printf '%s' "$SAVE_REPORT" | jq -e '
+            (.layer == "base")
+            and ((.inventoryFileCount // 0) > 0)
+            and ((.status == "saved") or (.status | startswith("skipped-race")))
+            and (if .status == "saved"
+                 then ((.fileCount // 0) <= (((.inventoryFileCount // 0) * 1.05) | ceil))
+                 else true end)
+          '
+          echo "cook capture stayed within the cook-time inventory (#513)"
+
       - name: Build soldr so the closure is populated
         shell: bash
         working-directory: _vender/soldr
