@@ -22,7 +22,6 @@ export GITHUB_ENV=/runner/action/env
 export GITHUB_PATH=/runner/action/path
 export GITHUB_STEP_SUMMARY=/runner/action/summary
 export INPUT_ENABLE=true
-export INPUT_VERSION=0.9.2
 export INPUT_REPO=zackees/soldr
 export INPUT_CACHE=false
 export INPUT_TOOLCHAIN=1.95.0
