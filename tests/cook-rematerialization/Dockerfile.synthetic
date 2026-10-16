@@ -14,9 +14,10 @@ RUN apt-get update \
        zstd \
     && rm -rf /var/lib/apt/lists/*
 
-ARG SOLDR_VERSION=0.9.6
+# Empty = the newest soldr on PyPI; pass --build-arg SOLDR_VERSION=X.Y.Z to pin.
+ARG SOLDR_VERSION=
 RUN python3 -m venv /opt/soldr \
-    && /opt/soldr/bin/pip install --disable-pip-version-check "soldr==${SOLDR_VERSION}" \
+    && /opt/soldr/bin/pip install --disable-pip-version-check "soldr${SOLDR_VERSION:+==${SOLDR_VERSION}}" \
     && /opt/soldr/bin/soldr --version
 
 # The rust image ships CARGO_HOME=/usr/local/cargo. Relocate it onto the path
