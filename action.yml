@@ -26,7 +26,7 @@ inputs:
       bumped on every soldr release). Pass `latest` to resolve the newest
       release at run time instead.
     required: false
-    default: "0.9.33"
+    default: "0.9.37"
   repo:
     description: Internal override for the Soldr source repository used by integration branches.
     required: false
