@@ -9,7 +9,9 @@
  * and `GITHUB_EVENT_NAME` whether an upload may happen.
  *
  * - `auto` (default): save unless the triggering event is `pull_request` on
- *   GitHub. On a local runner (act or act2, which always export `ACT=true`,
+ *   GitHub, or the run's ref is not the repository's default branch (a
+ *   dispatch or push on a branch, a tag): those entries are ref-scoped too
+ *   (setup-soldr#587). On a local runner (act or act2, which always export `ACT=true`,
  *   e.g. under bosn) `auto` saves fully: act's cache server has no ref scoping
  *   and no repository budget, and local runs are `pull_request` on purpose so
  *   PR labels select jobs, so skipping there left every local run cold
@@ -22,6 +24,7 @@
  * `__tests__/save-policy.test.ts` enumerates every raw save call site in
  * `src/` and fails when one bypasses this gate.
  */
+import * as fs from "node:fs";
 import * as cache from "@actions/cache";
 // The local-runner signal lives with the cache profile it also drives;
 // re-exported so existing callers keep importing it from here.
@@ -53,12 +56,19 @@ export function parseSaveCacheMode(raw: string | undefined, defaultMode: SaveCac
   throw new Error(`save-cache must be one of auto, true, false (got '${raw}')`);
 }
 
+/** The run's ref and the repository's default branch, when known. */
+export interface RefScope {
+  ref?: string;
+  defaultBranch?: string;
+}
+
 /** Pure decision: no I/O, platform independent (RUNNER_OS is irrelevant). */
 export function decideCacheSave(
   mode: SaveCacheMode,
   eventName: string | undefined,
   localRunner = false,
   remoteMode: SaveCacheMode = "auto",
+  refScope: RefScope = {},
 ): SaveDecision {
   if (mode === "false") return { save: false, mode, reason: "save-cache=false" };
   // A planner's remote write permission is not a local cache disable.
@@ -73,6 +83,10 @@ export function decideCacheSave(
   }
   if (event === "pull_request") {
     return { save: false, mode, reason: "pull_request event (save-cache=auto)" };
+  }
+  const { ref, defaultBranch } = refScope;
+  if (ref && defaultBranch && ref !== `refs/heads/${defaultBranch}`) {
+    return { save: false, mode, reason: `ref ${ref} is not the default branch ${defaultBranch} (save-cache=auto)` };
   }
   return { save: true, mode, reason: `${event || "unknown"} event (save-cache=auto)` };
 }
@@ -95,7 +109,22 @@ export function currentSaveDecision(env: NodeJS.ProcessEnv = process.env): SaveD
   } catch {
     return { save: false, mode, reason: "invalid save-cache-remote" };
   }
-  return decideCacheSave(mode, env["GITHUB_EVENT_NAME"], isLocalRunner(env), remoteMode);
+  return decideCacheSave(mode, env["GITHUB_EVENT_NAME"], isLocalRunner(env), remoteMode, {
+    ref: env["GITHUB_REF"],
+    defaultBranch: defaultBranchFromEvent(env["GITHUB_EVENT_PATH"]),
+  });
+}
+
+/** `repository.default_branch` from the event payload, or undefined. */
+function defaultBranchFromEvent(eventPath: string | undefined): string | undefined {
+  if (!eventPath) return undefined;
+  try {
+    const payload = JSON.parse(fs.readFileSync(eventPath, "utf8")) as { repository?: { default_branch?: unknown } };
+    const branch = payload.repository?.default_branch;
+    return typeof branch === "string" && branch ? branch : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 const loggedSkips = new Set<string>();
