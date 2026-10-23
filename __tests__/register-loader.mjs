@@ -9,3 +9,7 @@ register("./loader.mjs", import.meta.url);
 // pull_request event; tests that exercise the gate set these explicitly.
 delete process.env["GITHUB_EVENT_NAME"];
 delete process.env["INPUT_SAVE-CACHE"];
+// setup-soldr#587: auto also skips refs off the default branch, read from
+// GITHUB_REF and the event payload's repository.default_branch.
+delete process.env["GITHUB_REF"];
+delete process.env["GITHUB_EVENT_PATH"];
