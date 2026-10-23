@@ -27,15 +27,18 @@ def api(path: str, *, archive: bool = False):
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
-    for attempt in range(4 if archive else 1):
+    # Every call retries transport failures and 5xx: a 502 from the API
+    # gateway (or the log archive's blob redirect) is transient, and failing
+    # the promotion on it forces a re-run of the whole verification.
+    for attempt in range(4):
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
                 data = response.read()
             break
         except (http.client.IncompleteRead, ConnectionError, TimeoutError, urllib.error.URLError) as exc:
-            if isinstance(exc, urllib.error.HTTPError):
+            if isinstance(exc, urllib.error.HTTPError) and exc.code < 500:
                 raise
-            if not archive or attempt == 3:
+            if attempt == 3:
                 raise
             time.sleep(2 ** attempt)
     return data if archive else json.loads(data)

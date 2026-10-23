@@ -149,11 +149,11 @@ def test_archive_retry_exhaustion_and_metadata_read_fail_closed():
         sleep.reset_mock()
         with pytest.raises(http.client.IncompleteRead):
             promotion.api("zackees/setup-soldr/git/ref/heads/main")
-        assert urlopen.call_count == 1
-        sleep.assert_not_called()
+        assert urlopen.call_count == 4
+        assert [call.args[0] for call in sleep.call_args_list] == [1, 2, 4]
 
 
-def test_archive_transport_error_retries_but_http_error_does_not():
+def test_transport_error_and_5xx_retry_but_4xx_does_not():
     class Response:
         def __enter__(self):
             return self
@@ -180,3 +180,23 @@ def test_archive_transport_error_retries_but_http_error_does_not():
             promotion.api("FastLED/fbuild/actions/runs/43/logs", archive=True)
         assert urlopen.call_count == 1
         sleep.assert_not_called()
+
+
+def test_gateway_502_retries_on_metadata_calls():
+    class Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+        def read(self):
+            return b'{"ok": true}'
+
+    bad_gateway = urllib.error.HTTPError("https://example.com", 502, "Bad Gateway", {}, None)
+    with patch.dict(promotion.os.environ, {"GH_TOKEN": "test"}), patch.object(
+        promotion.urllib.request, "urlopen", side_effect=[bad_gateway, Response()],
+    ) as urlopen, patch.object(promotion.time, "sleep") as sleep:
+        assert promotion.api("FastLED/fbuild/actions/runs/43/jobs") == {"ok": True}
+        assert urlopen.call_count == 2
+        sleep.assert_called_once_with(1)
