@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { afterEach, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
@@ -11,6 +11,24 @@ import {
   saveReservedCache,
   type Reservation,
 } from "../src/lib/two-phase-actions-cache.js";
+
+// The save policy reads the run's event, ref and payload (setup-soldr#587).
+// These tests exercise the reservation path, not the policy, so they run with
+// none of the CI job's own values.
+const POLICY_ENV = ["GITHUB_EVENT_NAME", "GITHUB_REF", "GITHUB_EVENT_PATH", "ACT", "INPUT_SAVE-CACHE", "INPUT_SAVE-CACHE-REMOTE"];
+const savedPolicyEnv = new Map<string, string | undefined>();
+beforeEach(() => {
+  for (const name of POLICY_ENV) {
+    savedPolicyEnv.set(name, process.env[name]);
+    delete process.env[name];
+  }
+});
+afterEach(() => {
+  for (const [name, value] of savedPolicyEnv) {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  }
+});
 
 const winner: Reservation = {
   service: "v1",
