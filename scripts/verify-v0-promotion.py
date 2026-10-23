@@ -27,15 +27,18 @@ def api(path: str, *, archive: bool = False):
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
-    for attempt in range(4 if archive else 1):
+    # Every call retries transport failures and 5xx: a 502 from the API
+    # gateway (or the log archive's blob redirect) is transient, and failing
+    # the promotion on it forces a re-run of the whole verification.
+    for attempt in range(4):
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
                 data = response.read()
             break
         except (http.client.IncompleteRead, ConnectionError, TimeoutError, urllib.error.URLError) as exc:
-            if isinstance(exc, urllib.error.HTTPError):
+            if isinstance(exc, urllib.error.HTTPError) and exc.code < 500:
                 raise
-            if not archive or attempt == 3:
+            if attempt == 3:
                 raise
             time.sleep(2 ** attempt)
     return data if archive else json.loads(data)
@@ -82,10 +85,12 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
 
     required_jobs = {"CI selected coverage", "full / Full coverage"}
     successful_jobs = set()
-    for page in range(1, 11):
+    # 30 per page: on a re-run canary (116 jobs) the API answers
+    # `per_page=100` with a deterministic 502 Bad Gateway.
+    for page in range(1, 34):
         result = api(
             f"{CANARY_REPO}/actions/runs/{canary_id}/jobs"
-            f"?filter=latest&per_page=100&page={page}"
+            f"?filter=latest&per_page=30&page={page}"
         )
         successful_jobs.update(
             job["name"] for job in result["jobs"]
@@ -93,7 +98,7 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
         )
         if required_jobs <= successful_jobs:
             break
-        if page * 100 >= result["total_count"]:
+        if page * 30 >= result["total_count"]:
             break
     if not required_jobs <= successful_jobs:
         raise ValueError("canary lacks successful selected and full coverage jobs")
