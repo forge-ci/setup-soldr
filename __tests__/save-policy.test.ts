@@ -425,3 +425,36 @@ test("#527 contract: every save call site in src/ passes the save-policy gate", 
   assert.ok(rawSites + wrapperSites > 0, "contract found no save sites; regex drifted");
   assert.deepEqual(violations, []);
 });
+
+// setup-soldr#587: GitHub scopes a save to its ref, so `auto` declines a save
+// on any GitHub ref other than the default branch, not just `pull_request`.
+// A local runner (act) keeps saving: its cache is machine-scoped.
+test("auto declines GitHub saves off the default branch (#587)", () => {
+  const main = { ref: "refs/heads/main", defaultBranch: "main" };
+  const branch = { ref: "refs/heads/test/2017-x", defaultBranch: "main" };
+  assert.equal(decideCacheSave("auto", "push", false, "auto", main).save, true);
+  assert.equal(decideCacheSave("auto", "workflow_dispatch", false, "auto", branch).save, false);
+  assert.equal(
+    decideCacheSave("auto", "workflow_dispatch", false, "auto", branch).reason,
+    "ref refs/heads/test/2017-x is not the default branch main (save-cache=auto)",
+  );
+  assert.equal(decideCacheSave("auto", "push", false, "auto", { ref: "refs/tags/v1.2.3", defaultBranch: "main" }).save, false);
+  assert.equal(decideCacheSave("auto", "pull_request", true, "auto", branch).save, true);
+  assert.equal(decideCacheSave("true", "workflow_dispatch", false, "auto", branch).save, true);
+  // Unknown ref or default branch keeps the event-only rule.
+  assert.equal(decideCacheSave("auto", "workflow_dispatch", false, "auto", { ref: "refs/heads/x" }).save, true);
+});
+
+test("currentSaveDecision reads the default branch from the event payload (#587)", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "save-policy-587-"));
+  const eventPath = path.join(dir, "event.json");
+  fs.writeFileSync(eventPath, JSON.stringify({ repository: { default_branch: "main" } }));
+  try {
+    const base = { GITHUB_EVENT_NAME: "workflow_dispatch", GITHUB_EVENT_PATH: eventPath };
+    assert.equal(currentSaveDecision({ ...base, GITHUB_REF: "refs/heads/feature" }).save, false);
+    assert.equal(currentSaveDecision({ ...base, GITHUB_REF: "refs/heads/main" }).save, true);
+    assert.equal(currentSaveDecision({ ...base, GITHUB_REF: "refs/heads/feature", ACT: "true" }).save, true);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
