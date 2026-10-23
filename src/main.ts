@@ -2045,9 +2045,18 @@ if (
       });
     }
   } else {
-    run().catch((err: unknown) => {
-      const message = err instanceof Error ? (err.stack ?? err.message) : String(err);
-      core.setFailed(`setup-soldr failed: ${message}`);
-    });
+    // Exit as soon as setup is done (setup-soldr#589). A daemon the cook
+    // started, or a kept-alive socket, can otherwise hold the event loop and
+    // leave the step idle for minutes after its summary. Nothing outlives
+    // run() on purpose: the yank-audit worker is detached and unref'd, and
+    // deferred saves run in the separate post step.
+    run()
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? (err.stack ?? err.message) : String(err);
+        core.setFailed(`setup-soldr failed: ${message}`);
+      })
+      .finally(() => {
+        process.exit();
+      });
   }
 }
