@@ -85,10 +85,12 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
 
     required_jobs = {"CI selected coverage", "full / Full coverage"}
     successful_jobs = set()
-    for page in range(1, 11):
+    # 30 per page: on a re-run canary (116 jobs) the API answers
+    # `per_page=100` with a deterministic 502 Bad Gateway.
+    for page in range(1, 34):
         result = api(
             f"{CANARY_REPO}/actions/runs/{canary_id}/jobs"
-            f"?filter=latest&per_page=100&page={page}"
+            f"?filter=latest&per_page=30&page={page}"
         )
         successful_jobs.update(
             job["name"] for job in result["jobs"]
@@ -96,7 +98,7 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
         )
         if required_jobs <= successful_jobs:
             break
-        if page * 100 >= result["total_count"]:
+        if page * 30 >= result["total_count"]:
             break
     if not required_jobs <= successful_jobs:
         raise ValueError("canary lacks successful selected and full coverage jobs")
