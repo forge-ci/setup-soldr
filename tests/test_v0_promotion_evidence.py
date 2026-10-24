@@ -102,6 +102,34 @@ def test_exact_sha_success_returns_contract_run():
             assert Path(runner_temp, "v0-contract-run-id").read_text() == "42"
 
 
+def test_rerun_canary_reads_every_attempts_logs():
+    # A re-run of only the failed job leaves the pin in attempt 1's logs; the
+    # run-level /logs endpoint serves just the latest attempt (31 of 267 files).
+    pinned = evidence()
+    empty = io.BytesIO()
+    with zipfile.ZipFile(empty, "w") as archive:
+        archive.writestr("rerun.txt", b"Run actions/checkout@v4\n")
+    requested = []
+
+    def fake_api(path, *, archive=False):
+        if path.endswith("/logs"):
+            requested.append(path)
+            if path.endswith("/attempts/1/logs"):
+                return pinned(path, archive=archive)
+            return empty.getvalue()
+        result = pinned(path, archive=archive)
+        if path.endswith("/runs/43"):
+            result = {**result, "run_attempt": 2}
+        return result
+
+    with tempfile.TemporaryDirectory() as runner_temp:
+        with patch.object(promotion, "api", fake_api), patch.object(
+            promotion.subprocess, "check_output", return_value=SHA
+        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp}):
+            assert promotion.verify(SHA, "43") == 42
+    assert "FastLED/fbuild/actions/runs/43/attempts/1/logs" in requested
+
+
 def test_incomplete_archive_read_retries_with_bounded_backoff():
     class Response:
         def __init__(self, result):
