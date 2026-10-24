@@ -59127,9 +59127,10 @@ function soldrRunner(soldrPath) {
  * install soldr now, re-derive its keys and restore those verdicts.
  */
 async function verdictPreflight(opts) {
-    core.saveState("verdictMode", opts.enabled ? opts.mode : "off");
-    if (!opts.enabled || opts.mode === "off")
-        return { lazy: false, paths: null };
+    const mode = opts.enabled ? opts.mode : "off";
+    core.saveState("verdictMode", mode);
+    if (mode === "off")
+        return { lazy: false, paths: null, mode };
     const scope = (0, verdict_cache_js_1.manifestScope)(process.env);
     const staging = (0, verdict_cache_js_1.manifestStagingFile)(opts.runnerTemp);
     let manifest;
@@ -59141,35 +59142,38 @@ async function verdictPreflight(opts) {
     }
     if (!manifest || !fs.existsSync(staging)) {
         opts.log(`verdict: no job manifest for scope ${scope} yet`);
-        return { lazy: false, paths: null };
+        return { lazy: false, paths: null, mode };
     }
     await opts.installSoldr();
     const run = soldrRunner(opts.soldrPath);
     const paths = await (0, verdict_cache_js_1.verdictPaths)(run, opts.workspace);
     if (!paths) {
         opts.log("verdict: this soldr has no verdict ledger; skipping");
-        return { lazy: false, paths: null };
+        return { lazy: false, paths: null, mode: "off" };
     }
     const prediction = await (0, verdict_cache_js_1.predict)(run, staging, opts.workspace);
     (0, verdict_cache_js_1.resetSeen)(paths);
     core.saveState("verdictPaths", JSON.stringify(paths));
     if (!prediction)
-        return { lazy: false, paths };
+        return { lazy: false, paths, mode };
     const restored = await (0, verdict_cache_js_1.restoreVerdicts)(prediction.keys, paths, (p, k) => cache.restoreCache(p, k));
     const lazy = opts.mode === "auto" && opts.shimsEnabled && (0, verdict_cache_js_1.isLazy)(prediction, restored);
     opts.log(`verdict: manifest ${manifest} predicts ${prediction.keys.length} check(s); ` +
         `${restored.length} verdict(s) restored; ` +
         `${prediction.ungated ? "job also builds; " : ""}${lazy ? "LAZY: skipping toolchain and build caches" : "full setup"}`);
     core.saveState("verdictLazy", lazy ? "true" : "false");
-    return { lazy, paths };
+    return { lazy, paths, mode };
 }
 /** After a normal install: locate the store and start this job's log. */
 async function verdictAfterInstall(preflight, opts) {
-    if (preflight.paths || core.getState("verdictMode") === "off" || core.getState("verdictMode") === "")
+    // core.getState is empty until the post step, so the mode comes from preflight.
+    if (preflight.paths || preflight.mode === "off")
         return;
     const paths = await (0, verdict_cache_js_1.verdictPaths)(soldrRunner(opts.soldrPath), opts.workspace);
-    if (!paths)
+    if (!paths) {
+        opts.log?.("verdict: soldr reported no verdict ledger; this job records nothing");
         return;
+    }
     (0, verdict_cache_js_1.resetSeen)(paths);
     core.saveState("verdictPaths", JSON.stringify(paths));
 }

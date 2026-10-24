@@ -132,3 +132,26 @@ test("verdicts input parses", () => {
   assert.equal(parseVerdictsInput("off"), "off");
   assert.equal(parseVerdictsInput("restore"), "restore");
 });
+
+test("#600 verdictAfterInstall records paths in the main step, where getState is empty", async () => {
+  const { verdictAfterInstall } = await import("../src/lib/verdict-setup.js");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "verdict-main-"));
+  const p = tmpPaths();
+  const soldr = path.join(dir, "soldr");
+  fs.writeFileSync(soldr, `#!/bin/sh\necho '${JSON.stringify(p)}'\n`, { mode: 0o755 });
+  const stateFile = path.join(dir, "state");
+  fs.writeFileSync(stateFile, "");
+  const saved = { GITHUB_STATE: process.env["GITHUB_STATE"], STATE_verdictMode: process.env["STATE_verdictMode"] };
+  process.env["GITHUB_STATE"] = stateFile;
+  // Actions only exposes saved state to the post step: in main it reads "".
+  delete process.env["STATE_verdictMode"];
+  try {
+    await verdictAfterInstall({ lazy: false, paths: null, mode: "auto" }, { soldrPath: soldr, workspace: dir });
+  } finally {
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  }
+  assert.match(fs.readFileSync(stateFile, "utf8"), /verdictPaths/);
+});
