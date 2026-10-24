@@ -55885,6 +55885,8 @@ exports.resetSavePolicyLogForTest = resetSavePolicyLogForTest;
 exports.allowCacheSave = allowCacheSave;
 exports.setSaveCacheBackendForTest = setSaveCacheBackendForTest;
 exports.gatedSaveCache = gatedSaveCache;
+exports.allowVerdictSave = allowVerdictSave;
+exports.gatedVerdictSave = gatedVerdictSave;
 /**
  * Shared durable-cache save policy (setup-soldr#527).
  *
@@ -55964,10 +55966,10 @@ function decideCacheSave(mode, eventName, localRunner = false, remoteMode = "aut
  * and the `cook/` action expose the input as `save-cache`, which the runner
  * passes to main and post steps as `INPUT_SAVE-CACHE`.
  */
-function currentSaveDecision(env = process.env) {
+function currentSaveDecision(env = process.env, modeOverride) {
     let mode;
     try {
-        mode = parseSaveCacheMode(env["INPUT_SAVE-CACHE"], "auto");
+        mode = modeOverride ?? parseSaveCacheMode(env["INPUT_SAVE-CACHE"], "auto");
     }
     catch {
         mode = "auto";
@@ -56030,6 +56032,29 @@ function setSaveCacheBackendForTest(fn) {
  */
 async function gatedSaveCache(layer, paths, key, log, backend) {
     if (!allowCacheSave(layer, log))
+        return -1;
+    return (backend ?? saveBackend)(paths, key);
+}
+/**
+ * The verdict ledger's gate (setup-soldr#597). `save-cache` governs build
+ * output layers; a lint-only job sets it to `false` precisely so it never
+ * uploads a build cache, and those are the jobs the ledger exists for.
+ * Verdicts (~230 B) therefore follow only the trust policy: `auto` on this
+ * run's event and ref, with `save-cache-remote` still honoured.
+ */
+function allowVerdictSave(log = console.log) {
+    const decision = currentSaveDecision(process.env, "auto");
+    if (decision.save)
+        return true;
+    if (!loggedSkips.has("verdict")) {
+        loggedSkips.add("verdict");
+        log(`verdict: save skipped: ${decision.reason}`);
+    }
+    return false;
+}
+/** `gatedSaveCache` for the verdict ledger, gated by `allowVerdictSave`. */
+async function gatedVerdictSave(paths, key, log, backend) {
+    if (!allowVerdictSave(log))
         return -1;
     return (backend ?? saveBackend)(paths, key);
 }
@@ -59097,7 +59122,6 @@ function soldrRunner(soldrPath) {
         return { code: out.exitCode, stdout: out.stdout };
     };
 }
-const LAYER = "verdict";
 /**
  * Restore the previous trusted run's job manifest; when there is one,
  * install soldr now, re-derive its keys and restore those verdicts.
@@ -59187,9 +59211,9 @@ async function verdictPost(opts) {
     catch {
         return;
     }
-    if (!(0, save_policy_js_1.allowCacheSave)(LAYER, opts.log))
+    if (!(0, save_policy_js_1.allowVerdictSave)(opts.log))
         return;
-    const save = (p, k) => (0, save_policy_js_1.gatedSaveCache)(LAYER, p, k, opts.log);
+    const save = (p, k) => (0, save_policy_js_1.gatedVerdictSave)(p, k, opts.log);
     const saved = await (0, verdict_cache_js_1.publishVerdicts)(paths, save, opts.log);
     const key = (0, verdict_cache_js_1.manifestKey)((0, verdict_cache_js_1.manifestScope)(process.env), process.env["GITHUB_RUN_ID"] ?? "", process.env["GITHUB_RUN_ATTEMPT"] ?? "");
     let manifestSaved = false;

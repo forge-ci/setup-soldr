@@ -96,10 +96,10 @@ export function decideCacheSave(
  * and the `cook/` action expose the input as `save-cache`, which the runner
  * passes to main and post steps as `INPUT_SAVE-CACHE`.
  */
-export function currentSaveDecision(env: NodeJS.ProcessEnv = process.env): SaveDecision {
+export function currentSaveDecision(env: NodeJS.ProcessEnv = process.env, modeOverride?: SaveCacheMode): SaveDecision {
   let mode: SaveCacheMode;
   try {
-    mode = parseSaveCacheMode(env["INPUT_SAVE-CACHE"], "auto");
+    mode = modeOverride ?? parseSaveCacheMode(env["INPUT_SAVE-CACHE"], "auto");
   } catch {
     mode = "auto";
   }
@@ -171,5 +171,33 @@ export async function gatedSaveCache(
   backend?: SaveCacheFn,
 ): Promise<number> {
   if (!allowCacheSave(layer, log)) return -1;
+  return (backend ?? saveBackend)(paths, key);
+}
+
+/**
+ * The verdict ledger's gate (setup-soldr#597). `save-cache` governs build
+ * output layers; a lint-only job sets it to `false` precisely so it never
+ * uploads a build cache, and those are the jobs the ledger exists for.
+ * Verdicts (~230 B) therefore follow only the trust policy: `auto` on this
+ * run's event and ref, with `save-cache-remote` still honoured.
+ */
+export function allowVerdictSave(log: (msg: string) => void = console.log): boolean {
+  const decision = currentSaveDecision(process.env, "auto");
+  if (decision.save) return true;
+  if (!loggedSkips.has("verdict")) {
+    loggedSkips.add("verdict");
+    log(`verdict: save skipped: ${decision.reason}`);
+  }
+  return false;
+}
+
+/** `gatedSaveCache` for the verdict ledger, gated by `allowVerdictSave`. */
+export async function gatedVerdictSave(
+  paths: string[],
+  key: string,
+  log?: (msg: string) => void,
+  backend?: SaveCacheFn,
+): Promise<number> {
+  if (!allowVerdictSave(log)) return -1;
   return (backend ?? saveBackend)(paths, key);
 }
