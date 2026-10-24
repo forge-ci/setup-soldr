@@ -25,7 +25,7 @@ import {
   restoreVerdicts,
   verdictPaths,
 } from "./verdict-cache.js";
-import { allowCacheSave, gatedSaveCache } from "./save-policy.js";
+import { allowVerdictSave, gatedVerdictSave } from "./save-policy.js";
 import { ensureShims } from "./ensure-shims.js";
 import { verifySoldr } from "./verify-soldr.js";
 import type { ResolveResult } from "./types.js";
@@ -55,8 +55,6 @@ export interface VerdictPreflight {
   lazy: boolean;
   paths: VerdictPaths | null;
 }
-
-const LAYER = "verdict";
 
 /**
  * Restore the previous trusted run's job manifest; when there is one,
@@ -162,8 +160,8 @@ export async function verdictPost(opts: { runnerTemp: string; log: (msg: string)
   } catch {
     return;
   }
-  if (!allowCacheSave(LAYER, opts.log)) return;
-  const save = (p: string[], k: string): Promise<number> => gatedSaveCache(LAYER, p, k, opts.log);
+  if (!allowVerdictSave(opts.log)) return;
+  const save = (p: string[], k: string): Promise<number> => gatedVerdictSave(p, k, opts.log);
   const saved = await publishVerdicts(paths, save, opts.log);
   const key = manifestKey(
     manifestScope(process.env),

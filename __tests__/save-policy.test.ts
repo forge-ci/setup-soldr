@@ -13,9 +13,11 @@ import * as os from "node:os";
 import * as path from "node:path";
 import {
   allowCacheSave,
+  allowVerdictSave,
   currentSaveDecision,
   decideCacheSave,
   gatedSaveCache,
+  gatedVerdictSave,
   parseSaveCacheMode,
   resetSavePolicyLogForTest,
   setSaveCacheBackendForTest,
@@ -457,4 +459,21 @@ test("currentSaveDecision reads the default branch from the event payload (#587)
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("#597 verdicts ignore save-cache=false but keep the trust policy", async () => {
+  setEnv("push", "false");
+  assert.equal(allowCacheSave("build-cache", () => {}), false);
+  assert.equal(allowVerdictSave(() => {}), true, "a lint-only job on main still publishes verdicts");
+  const saved: string[] = [];
+  const id = await gatedVerdictSave(["x"], "soldr-verdict-v1-k", () => {}, async (_p, k) => {
+    saved.push(k);
+    return 7;
+  });
+  assert.equal(id, 7);
+  assert.deepEqual(saved, ["soldr-verdict-v1-k"]);
+  setEnv("pull_request", "false");
+  assert.equal(allowVerdictSave(() => {}), false, "pull requests only read");
+  setEnv("push", "true", undefined, undefined, "false");
+  assert.equal(allowVerdictSave(() => {}), false, "save-cache-remote=false still forbids remote writes");
 });
