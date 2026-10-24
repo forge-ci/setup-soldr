@@ -867,6 +867,18 @@ inputs:
       and Apple SDK bundles.
     required: false
     default: ""
+  verdicts:
+    description: >
+      Carry soldr's verdict ledger (soldr#3894) across runs. soldr records
+      a pass of `soldr cargo clippy`, `fmt --check`, `dylint`,
+      `test --doc`, ... keyed on its exact inputs and replays it instead of
+      re-running. "auto" (default) restores the verdicts this job's previous
+      trusted run predicts, publishes new ones under the `save-cache`
+      policy, and when every check this job runs already passed skips the
+      toolchain install and build-cache layers ("lazy"). "restore" does the
+      same without lazy mode. "off" leaves the ledger machine-local.
+    required: false
+    default: "auto"
   soldr-mini-cache:
     description: >
       Cache the soldr binary in its own tiny long-lived layer,
@@ -882,6 +894,11 @@ inputs:
     required: false
     default: "true"
 outputs:
+  verdict-lazy:
+    description: >
+      "true" when the verdict ledger predicted that every check this job runs
+      already passed with these inputs, so the toolchain install and build
+      caches were skipped (setup-soldr#594). Empty otherwise.
   enabled:
     description: >
       "true" when the action installed the real soldr binary, "false" when

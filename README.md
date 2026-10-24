@@ -490,6 +490,7 @@ preferred for new workflows.
 | `cargo-dylint-version` | `cargo-dylint` version materialized and verified by Soldr. Default `6.0.3`; included in the Dylint cache key. |
 | `dylint-link-version` | `dylint-link` version materialized and verified by Soldr. Default `6.0.3`; included in the Dylint cache key. |
 | `dylint-cache-paths` | Optional newline- or comma-separated path override for the Dylint cache. Empty uses `$CARGO_HOME/bin/cargo-dylint*`, `$CARGO_HOME/bin/dylint-link*`, `$CARGO_HOME/.crates.toml`, `$CARGO_HOME/.crates2.json`, and `$RUNNER_TEMP/dylint-drivers`. |
+| `verdicts` | Carry soldr's verdict ledger ([soldr#3894](https://github.com/zackees/soldr/issues/3894)) across runs. `auto` (default) restores the verdicts this job's previous trusted run predicts, publishes new ones under the `save-cache` policy (pull requests only read), and goes *lazy* — no toolchain install, no build-cache restores — when every check the job runs already passed with these inputs. `restore` does the same without lazy mode; `off` keeps verdicts machine-local. Needs a soldr with `soldr verdict`; older soldr is detected and the layer is skipped. |
 | `compile-cache-stats` | Controls compile-cache (zccache) diagnostic output. `none` suppresses all compile-cache info. `summarize` (default) renders a per-session totals table into `$GITHUB_STEP_SUMMARY` and emits scalar action outputs (hit rate, hits, misses, total). `detailed` adds per-extension and per-tool rollup tables and sets `compile-cache-rollups-json`. Requires soldr `>=0.7.22` for the typed `soldr cache report --json` payload; older releases fall back to a single-line note in the summary. |
 
 ### Legacy Compatibility Inputs
@@ -505,6 +506,7 @@ preferred for new workflows.
 |---|---|
 | `soldr-path` | Installed Soldr binary path added to `PATH`. |
 | `soldr-version` | Installed Soldr version reported by `soldr version --json`. |
+| `verdict-lazy` | `true` when the verdict ledger skipped the toolchain and build caches because every check this job runs already passed with these inputs. |
 | `cache-dir` | Action-managed runner-local cache/state root. |
 | `setup-duration-seconds` | Total wall-clock time spent inside the setup-soldr action. |
 | `setup-phase-summary` | JSON timing summary for the main setup phases and cache restore statuses. |

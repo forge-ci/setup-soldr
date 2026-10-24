@@ -130,6 +130,7 @@ export interface RawInputs {
   prebuildDepsDeltaCache: string;
   cookDelta: string;
   soldrMiniCache: string;
+  verdicts: string;
   ciTests: string;
   dylint: string;
   dylintFoundationCache: string;

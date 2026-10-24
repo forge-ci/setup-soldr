@@ -53561,6 +53561,166 @@ function loggingEnabled(value) {
 
 /***/ }),
 
+/***/ 10202:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// PATH shim writer.
+//
+// Writes shim scripts at <shimsDir>/<tool>[.cmd] that forward
+// `cargo`/`rustfmt`/`clippy-driver`/`rustc`/`rustdoc` invocations through
+// the installed soldr binary so cache-aware tooling is always on PATH.
+//
+// Wave 3.4 (setup-soldr#133): when the installed soldr binary is >= 0.7.35,
+// `ensureShims` delegates the actual shim writing to
+// `soldr toolchain link --shim-dir <path> --json`. The legacy in-TS writer
+// remains as the fallback for older soldr releases and is exported as
+// `ensureShimsLegacy` for unit tests.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ensureShimsLegacy = ensureShimsLegacy;
+exports.tryDelegateToSoldrToolchainLink = tryDelegateToSoldrToolchainLink;
+exports.ensureShims = ensureShims;
+const fs = __importStar(__nccwpck_require__(73024));
+const path = __importStar(__nccwpck_require__(76760));
+const core = __importStar(__nccwpck_require__(37484));
+const soldr_toolchain_client_js_1 = __nccwpck_require__(71349);
+// Tools that route through `soldr <tool>`:
+const ROUTED_TOOLS = ["cargo", "rustfmt", "clippy-driver", "rustc", "rustdoc"];
+// Unix bash shim template (per tool):
+function bashShim(tool, soldrPath) {
+    return `#!/usr/bin/env bash
+set -e
+shim_dir="$(cd "$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+case ":$PATH:" in
+  *":$shim_dir:"*)
+    PATH="$(printf '%s' ":$PATH:" | sed -e "s|:$shim_dir:|:|g" -e 's|^:||' -e 's|:$||')"
+    ;;
+esac
+export PATH
+exec "\${SOLDR_BINARY:-${soldrPath}}" ${tool} "$@"
+`;
+}
+// Windows .cmd shim template (per tool):
+function cmdShim(tool, soldrPath) {
+    return `@echo off
+setlocal enableextensions
+set "shim_dir=%~dp0"
+if "%shim_dir:~-1%"=="\\" set "shim_dir=%shim_dir:~0,-1%"
+call set "PATH=%%PATH:%shim_dir%;=%%"
+call set "PATH=%%PATH:;%shim_dir%=%%"
+call set "PATH=%%PATH:%shim_dir%=%%"
+if defined SOLDR_BINARY (
+  "%SOLDR_BINARY%" ${tool} %*
+) else (
+  "${soldrPath}" ${tool} %*
+)
+endlocal & exit /b %ERRORLEVEL%
+`;
+}
+/**
+ * Legacy in-process shim writer. Used as the fallback when soldr is
+ * older than 0.7.35 (or when the delegation path fails for any reason).
+ *
+ * Exported for unit tests.
+ */
+async function ensureShimsLegacy(opts) {
+    const { shimsDir, soldrPath, isWindows, log } = opts;
+    fs.mkdirSync(shimsDir, { recursive: true });
+    for (const tool of ROUTED_TOOLS) {
+        if (isWindows) {
+            const shimPath = path.join(shimsDir, `${tool}.cmd`);
+            fs.writeFileSync(shimPath, cmdShim(tool, soldrPath), "utf8");
+            log(`shims: wrote ${shimPath}`);
+        }
+        else {
+            const shimPath = path.join(shimsDir, tool);
+            fs.writeFileSync(shimPath, bashShim(tool, soldrPath), { encoding: "utf8", mode: 0o755 });
+            log(`shims: wrote ${shimPath}`);
+        }
+    }
+    core.addPath(shimsDir);
+    log(`shims: added ${shimsDir} to PATH`);
+}
+/**
+ * Wave 3.4 (setup-soldr#133): try delegating shim creation to
+ * `soldr toolchain link --shim-dir <path> --json`. Returns the parsed
+ * result on success, or `null` when the binary is missing / older than
+ * 0.7.35 / returns a non-1 schema_version / exits non-zero.
+ *
+ * Exported for unit tests.
+ */
+async function tryDelegateToSoldrToolchainLink(opts) {
+    const detected = await (0, soldr_toolchain_client_js_1.detectSoldrSupportsToolchainSubcommands)(opts.soldrPath, {
+        exec: opts.exec,
+        warn: opts.warn,
+    });
+    if (!detected.supported)
+        return null;
+    return (0, soldr_toolchain_client_js_1.soldrToolchainLink)(opts.soldrPath, opts.shimDir, {
+        exec: opts.exec,
+        warn: opts.warn,
+    });
+}
+async function ensureShims(opts) {
+    const { shimsDir, soldrPath, isWindows, log } = opts;
+    fs.mkdirSync(shimsDir, { recursive: true });
+    // Wave 3.4: try delegating to soldr first. Returns null and we fall back
+    // to the legacy writer when the binary is missing or pre-0.7.35.
+    const delegated = await tryDelegateToSoldrToolchainLink({
+        soldrPath,
+        shimDir: shimsDir,
+        warn: (msg) => core.warning(msg),
+    });
+    if (delegated) {
+        log(`shims: delegated to soldr toolchain link --shim-dir (tools=${delegated.tools.length}, ` +
+            `elapsed_ms=${delegated.elapsedMs})`);
+        for (const tool of delegated.tools) {
+            log(`shims: ${tool.created ? "wrote" : "kept"} ${tool.shimPath}`);
+        }
+        core.addPath(shimsDir);
+        log(`shims: added ${shimsDir} to PATH`);
+        return;
+    }
+    await ensureShimsLegacy({ shimsDir, soldrPath, isWindows, log });
+}
+
+
+/***/ }),
+
 /***/ 49252:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -55448,6 +55608,7 @@ function readRawInputs(env) {
         prebuildDepsDeltaCache: get("prebuild-deps-delta-cache"),
         cookDelta: get("cook-delta"),
         soldrMiniCache: get("soldr-mini-cache"),
+        verdicts: get("verdicts"),
         ciTests: get("ci-tests"),
         dylint: get("dylint"),
         dylintFoundationCache: get("dylint-foundation-cache"),
@@ -56628,6 +56789,320 @@ function isEligibleForMiniCache(opts) {
         return { eligible: false, reason: "no resolved version available" };
     }
     return { eligible: true, reason: "eligible" };
+}
+
+
+/***/ }),
+
+/***/ 71349:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// Soldr toolchain subcommand client (Wave 3.4 / setup-soldr#133).
+//
+// Wraps the three JSON subcommands added in soldr 0.7.35:
+//
+//   soldr toolchain ensure --json
+//   soldr toolchain link --shim-dir <path> --json
+//   soldr toolchain doctor --json
+//
+// Each helper validates `schema_version === 1` and returns `null` on any
+// failure (binary missing, unsupported version, schema mismatch, non-zero
+// exit, malformed JSON). Callers are expected to fall back to the legacy
+// in-TS implementation when `null` is returned. This is the linchpin of
+// the backwards-compat strategy promised in the issue (the action must
+// still work when pinned to a soldr release older than 0.7.35).
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.TOOLCHAIN_SUBCOMMANDS_MIN_VERSION = void 0;
+exports.detectSoldrSupportsToolchainSubcommands = detectSoldrSupportsToolchainSubcommands;
+exports.soldrToolchainEnsure = soldrToolchainEnsure;
+exports.soldrToolchainLink = soldrToolchainLink;
+exports.soldrToolchainDoctor = soldrToolchainDoctor;
+const exec = __importStar(__nccwpck_require__(95236));
+const verify_soldr_js_1 = __nccwpck_require__(82947);
+/**
+ * Minimum soldr version that exposes the `toolchain ensure/link/doctor`
+ * JSON subcommands. Set by Wave 3.4 of zackees/soldr#514.
+ */
+exports.TOOLCHAIN_SUBCOMMANDS_MIN_VERSION = "0.7.35";
+/** The schema_version emitted by soldr 0.7.35's toolchain subcommands. */
+const SUPPORTED_SCHEMA_VERSION = 1;
+/** Capture exec used in production. Routed through `@actions/exec`. */
+async function defaultExec(cmd, args) {
+    let stdout = "";
+    let stderr = "";
+    const code = await exec.exec(cmd, args, {
+        silent: true,
+        ignoreReturnCode: true,
+        listeners: {
+            stdout: (data) => {
+                stdout += data.toString("utf8");
+            },
+            stderr: (data) => {
+                stderr += data.toString("utf8");
+            },
+        },
+    });
+    return { code, stdout, stderr };
+}
+function resolveExec(deps) {
+    return deps?.exec ?? defaultExec;
+}
+function resolveWarn(deps) {
+    return deps?.warn ?? (() => undefined);
+}
+function parseVersion(value) {
+    const cleaned = value.trim().replace(/^v/, "");
+    if (!cleaned || cleaned === "passthrough")
+        return null;
+    const parts = cleaned.split(".");
+    if (parts.length < 3)
+        return null;
+    const major = Number.parseInt(parts[0] ?? "", 10);
+    const minor = Number.parseInt(parts[1] ?? "", 10);
+    const patchRaw = parts[2] ?? "";
+    const patch = Number.parseInt((patchRaw.split("-", 1)[0] ?? ""), 10);
+    if (!Number.isFinite(major) || !Number.isFinite(minor) || !Number.isFinite(patch))
+        return null;
+    if (Number.isNaN(major) || Number.isNaN(minor) || Number.isNaN(patch))
+        return null;
+    return { major, minor, patch };
+}
+function compareVersion(a, b) {
+    if (a.major !== b.major)
+        return a.major - b.major;
+    if (a.minor !== b.minor)
+        return a.minor - b.minor;
+    return a.patch - b.patch;
+}
+const MIN_VERSION_PARSED = parseVersion(exports.TOOLCHAIN_SUBCOMMANDS_MIN_VERSION);
+/**
+ * Probe `soldr version --json` and return whether it's new enough to host
+ * the `toolchain ensure/link/doctor` subcommands.
+ *
+ * Returns `{ supported: false }` for:
+ *   - exec failures (binary missing, non-zero exit)
+ *   - non-JSON output
+ *   - passthrough stub responses (`setup_soldr_passthrough: true`)
+ *   - versions strictly older than `TOOLCHAIN_SUBCOMMANDS_MIN_VERSION`.
+ */
+async function detectSoldrSupportsToolchainSubcommands(soldrPath, deps) {
+    const ex = resolveExec(deps);
+    let res;
+    try {
+        res = await ex(soldrPath, ["version", "--json"]);
+    }
+    catch {
+        return { supported: false, soldrVersion: "", passthrough: false };
+    }
+    if (res.code !== 0) {
+        return { supported: false, soldrVersion: "", passthrough: false };
+    }
+    let payload;
+    try {
+        // Tolerant parse (extra fields, surrounding noise); silent-binary
+        // regressions (empty stdout, soldr v0.7.85/v0.7.87) land in the catch
+        // and degrade to the legacy in-TS toolchain implementation.
+        payload = (0, verify_soldr_js_1.parseVersionJsonOutput)(res.stdout);
+    }
+    catch {
+        return { supported: false, soldrVersion: "", passthrough: false };
+    }
+    const soldrVersion = String(payload["soldr_version"] ?? "");
+    const passthrough = payload["setup_soldr_passthrough"] === true || soldrVersion === "passthrough";
+    if (passthrough) {
+        return { supported: false, soldrVersion, passthrough: true };
+    }
+    const parsed = parseVersion(soldrVersion);
+    if (parsed === null) {
+        return { supported: false, soldrVersion, passthrough: false };
+    }
+    const supported = compareVersion(parsed, MIN_VERSION_PARSED) >= 0;
+    return { supported, soldrVersion, passthrough: false };
+}
+function checkSchemaVersion(payload, subcommand, warn) {
+    const schema = payload["schema_version"];
+    if (schema !== SUPPORTED_SCHEMA_VERSION) {
+        warn(`soldr ${subcommand} returned unsupported schema_version=${JSON.stringify(schema)} ` +
+            `(expected ${SUPPORTED_SCHEMA_VERSION}); falling back to legacy in-process implementation`);
+        return false;
+    }
+    return true;
+}
+function toStringArray(value) {
+    if (!Array.isArray(value))
+        return [];
+    return value.filter((v) => typeof v === "string");
+}
+/**
+ * Invoke `soldr toolchain ensure --json`. Returns the parsed result on
+ * success, or `null` on any failure (caller must fall back to legacy).
+ */
+async function soldrToolchainEnsure(soldrPath, opts) {
+    const ex = resolveExec(opts);
+    const warn = resolveWarn(opts);
+    const args = ["toolchain", "ensure", "--json"];
+    if (opts?.channel) {
+        args.push("--channel", opts.channel);
+    }
+    if (opts?.profile) {
+        args.push("--profile", opts.profile);
+    }
+    for (const c of opts?.components ?? []) {
+        args.push("--component", c);
+    }
+    for (const t of opts?.targets ?? []) {
+        args.push("--target", t);
+    }
+    let res;
+    try {
+        res = await ex(soldrPath, args);
+    }
+    catch {
+        return null;
+    }
+    if (res.code !== 0)
+        return null;
+    let payload;
+    try {
+        payload = JSON.parse(res.stdout);
+    }
+    catch {
+        return null;
+    }
+    if (!checkSchemaVersion(payload, "toolchain ensure --json", warn)) {
+        return null;
+    }
+    const smoke = (payload["smoke_verify"] ?? {});
+    return {
+        channel: String(payload["channel"] ?? ""),
+        rustupBootstrapped: Boolean(payload["rustup_bootstrapped"]),
+        componentsAdded: toStringArray(payload["components_added"]),
+        targetsAdded: toStringArray(payload["targets_added"]),
+        pluginsInstalled: toStringArray(payload["plugins_installed"]),
+        smokeVerify: {
+            cargoVersion: String(smoke["cargo_version"] ?? ""),
+            rustcVersion: String(smoke["rustc_version"] ?? ""),
+            ok: Boolean(smoke["ok"]),
+        },
+        elapsedMs: Number(payload["elapsed_ms"] ?? 0),
+    };
+}
+/**
+ * Invoke `soldr toolchain link --shim-dir <path> --json`. Returns the
+ * parsed result on success, or `null` on any failure.
+ */
+async function soldrToolchainLink(soldrPath, shimDir, deps) {
+    const ex = resolveExec(deps);
+    const warn = resolveWarn(deps);
+    const args = ["toolchain", "link", "--shim-dir", shimDir, "--json"];
+    let res;
+    try {
+        res = await ex(soldrPath, args);
+    }
+    catch {
+        return null;
+    }
+    if (res.code !== 0)
+        return null;
+    let payload;
+    try {
+        payload = JSON.parse(res.stdout);
+    }
+    catch {
+        return null;
+    }
+    if (!checkSchemaVersion(payload, "toolchain link --json", warn)) {
+        return null;
+    }
+    const toolsRaw = Array.isArray(payload["tools"]) ? payload["tools"] : [];
+    const tools = toolsRaw.map((t) => ({
+        name: String(t["name"] ?? ""),
+        shimPath: String(t["shim_path"] ?? ""),
+        created: Boolean(t["created"]),
+    }));
+    return {
+        shimDir: String(payload["shim_dir"] ?? shimDir),
+        tools,
+        elapsedMs: Number(payload["elapsed_ms"] ?? 0),
+    };
+}
+/**
+ * Invoke `soldr toolchain doctor --json`. Returns the parsed result on
+ * success, or `null` on any failure.
+ */
+async function soldrToolchainDoctor(soldrPath, deps) {
+    const ex = resolveExec(deps);
+    const warn = resolveWarn(deps);
+    let res;
+    try {
+        res = await ex(soldrPath, ["toolchain", "doctor", "--json"]);
+    }
+    catch {
+        return null;
+    }
+    if (res.code !== 0)
+        return null;
+    let payload;
+    try {
+        payload = JSON.parse(res.stdout);
+    }
+    catch {
+        return null;
+    }
+    if (!checkSchemaVersion(payload, "toolchain doctor --json", warn)) {
+        return null;
+    }
+    const hostRaw = (payload["host"] ?? {});
+    const probesRaw = Array.isArray(payload["probes"]) ? payload["probes"] : [];
+    const probes = probesRaw.map((p) => ({
+        name: String(p["name"] ?? ""),
+        ok: Boolean(p["ok"]),
+        details: (p["details"] ?? {}),
+    }));
+    return {
+        host: {
+            os: String(hostRaw["os"] ?? ""),
+            arch: String(hostRaw["arch"] ?? ""),
+            libc: String(hostRaw["libc"] ?? ""),
+        },
+        probes,
+        elapsedMs: Number(payload["elapsed_ms"] ?? 0),
+    };
 }
 
 
@@ -58289,6 +58764,499 @@ function isReservationConflict(result) {
 
 /***/ }),
 
+/***/ 59033:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MAX_MANIFESTS_PER_SCOPE = exports.MAX_VERDICT_ENTRIES = exports.MANIFEST_PREFIX = exports.VERDICT_PREFIX = void 0;
+exports.verdictPaths = verdictPaths;
+exports.manifestScope = manifestScope;
+exports.manifestKey = manifestKey;
+exports.manifestStagingFile = manifestStagingFile;
+exports.parseRekey = parseRekey;
+exports.predict = predict;
+exports.recordPath = recordPath;
+exports.restoreVerdicts = restoreVerdicts;
+exports.isLazy = isLazy;
+exports.spooledKeys = spooledKeys;
+exports.publishVerdicts = publishVerdicts;
+exports.publishManifest = publishManifest;
+exports.resetSeen = resetSeen;
+exports.janitorPlan = janitorPlan;
+/**
+ * Verdict ledger remote tier (setup-soldr#593, #594; soldr#3894).
+ *
+ * soldr keeps a local verdict store: a passing `soldr cargo clippy` /
+ * `fmt --check` / `dylint` / `test --doc` / ... writes a few-hundred-byte
+ * record keyed on its exact inputs, and the next identical invocation
+ * replays it instead of running. This module carries that store across CI
+ * runs with no consumer YAML:
+ *
+ * - main: restore the previous trusted run's *job manifest* (the job's
+ *   gated invocations, `seen.jsonl`), ask soldr to re-derive their keys
+ *   against this checkout (`soldr verdict rekey`), and restore exactly
+ *   those records. When every predicted check already has a verdict and
+ *   the job did nothing else, the job is *lazy*: the toolchain install and
+ *   the build-cache layers are skipped because nothing will compile.
+ * - post: publish the records soldr spooled this run and the job
+ *   manifest, through the shared save policy (trusted refs write, pull
+ *   requests only read).
+ *
+ * Keys are soldr's own (`soldr-verdict-v1-<tool>-<scope>-<digest>`), one
+ * Actions-cache entry per verdict. Manifests are
+ * `soldr-verdict-manifest-v1-<scope>-<run>-<attempt>`, restored by prefix.
+ */
+const crypto = __importStar(__nccwpck_require__(77598));
+const fs = __importStar(__nccwpck_require__(73024));
+const path = __importStar(__nccwpck_require__(76760));
+exports.VERDICT_PREFIX = "soldr-verdict-v1-";
+exports.MANIFEST_PREFIX = "soldr-verdict-manifest-v1-";
+/** Verdicts kept repository-wide by the post-step janitor. */
+exports.MAX_VERDICT_ENTRIES = 256;
+/** Manifests kept per job scope. */
+exports.MAX_MANIFESTS_PER_SCOPE = 2;
+/** `soldr verdict paths --json`; null when this soldr predates the ledger. */
+async function verdictPaths(run, cwd) {
+    try {
+        const { code, stdout } = await run(["verdict", "paths", "--json"], cwd);
+        if (code !== 0)
+            return null;
+        const parsed = JSON.parse(stdout.trim().split("\n").pop() ?? "");
+        if (!parsed.root || !parsed.records || !parsed.spool || !parsed.seen)
+            return null;
+        return parsed;
+    }
+    catch {
+        return null;
+    }
+}
+/**
+ * One job's identity across runs: the workflow file (not its ref), the job
+ * id, the runner platform and every action input (a matrix leg normally
+ * differs in at least one input, such as the target).
+ */
+function manifestScope(env) {
+    const workflow = (env["GITHUB_WORKFLOW_REF"] ?? env["GITHUB_WORKFLOW"] ?? "").replace(/@.*$/, "");
+    const inputs = Object.keys(env)
+        // Tokens change every run; hashing them would give every run a new scope.
+        .filter((name) => name.startsWith("INPUT_") && !/TOKEN|SECRET|PASSWORD/.test(name))
+        .sort()
+        .map((name) => `${name}=${env[name] ?? ""}`);
+    const material = [workflow, env["GITHUB_JOB"] ?? "", env["RUNNER_OS"] ?? "", env["RUNNER_ARCH"] ?? "", ...inputs]
+        .join("\n");
+    return crypto.createHash("sha256").update(material).digest("hex").slice(0, 16);
+}
+function manifestKey(scope, runId, attempt) {
+    return `${exports.MANIFEST_PREFIX}${scope}-${runId || "0"}-${attempt || "1"}`;
+}
+/** Where the manifest lives while it is restored or saved. */
+function manifestStagingFile(runnerTemp) {
+    return path.join(runnerTemp, "soldr-verdict-manifest", "seen.jsonl");
+}
+/** Parse `soldr verdict rekey --json` output. */
+function parseRekey(stdout) {
+    const prediction = { keys: [], unkeyable: 0, ungated: false };
+    for (const line of stdout.split("\n")) {
+        if (!line.trim().startsWith("{"))
+            continue;
+        let row;
+        try {
+            row = JSON.parse(line);
+        }
+        catch {
+            continue;
+        }
+        if (row.ungated)
+            prediction.ungated = true;
+        else if (row.key)
+            prediction.keys.push(row.key);
+        else
+            prediction.unkeyable += 1;
+    }
+    prediction.keys = [...new Set(prediction.keys)];
+    return prediction;
+}
+/** Re-derive a manifest's keys against `workspace`. */
+async function predict(run, manifestFile, workspace) {
+    try {
+        const { code, stdout } = await run(["verdict", "rekey", "--json", manifestFile], workspace);
+        return code === 0 ? parseRekey(stdout) : null;
+    }
+    catch {
+        return null;
+    }
+}
+function recordPath(paths, key) {
+    return path.join(paths.records, `${key}.json`);
+}
+/** Restore each predicted verdict; returns the keys that were found. */
+async function restoreVerdicts(keys, paths, restore) {
+    fs.mkdirSync(paths.records, { recursive: true });
+    const found = await Promise.all(keys.map(async (key) => {
+        try {
+            return (await restore([recordPath(paths, key)], key)) === key ? key : null;
+        }
+        catch {
+            return null;
+        }
+    }));
+    return found.filter((key) => key !== null);
+}
+/**
+ * Lazy when the previous run of this job did nothing but gated checks,
+ * every one of them keys here, and every key already has a verdict.
+ */
+function isLazy(prediction, restored) {
+    if (!prediction || prediction.ungated || prediction.unkeyable > 0 || prediction.keys.length === 0)
+        return false;
+    const have = new Set(restored);
+    return prediction.keys.every((key) => have.has(key));
+}
+/** Verdict keys soldr spooled this run. */
+function spooledKeys(paths) {
+    try {
+        return fs
+            .readdirSync(paths.spool)
+            .filter((name) => name.endsWith(".json") && name.startsWith(exports.VERDICT_PREFIX))
+            .map((name) => name.slice(0, -".json".length));
+    }
+    catch {
+        return [];
+    }
+}
+/** Publish spooled verdicts; returns how many were saved. */
+async function publishVerdicts(paths, save, log) {
+    let saved = 0;
+    for (const key of spooledKeys(paths)) {
+        const record = recordPath(paths, key);
+        if (!fs.existsSync(record))
+            continue;
+        try {
+            if ((await save([record], key)) !== -1)
+                saved += 1;
+        }
+        catch (err) {
+            // An entry that already exists is the common, harmless case.
+            log(`verdict: ${key} not saved: ${err instanceof Error ? err.message : String(err)}`);
+        }
+    }
+    return saved;
+}
+/** Copy this job's `seen.jsonl` to the staging path and publish it. */
+async function publishManifest(paths, stagingFile, key, save) {
+    if (!fs.existsSync(paths.seen) || fs.statSync(paths.seen).size === 0)
+        return false;
+    fs.mkdirSync(path.dirname(stagingFile), { recursive: true });
+    fs.copyFileSync(paths.seen, stagingFile);
+    return (await save([stagingFile], key)) !== -1;
+}
+/** Start this job's invocation log empty so its manifest is this job only. */
+function resetSeen(paths) {
+    try {
+        fs.rmSync(paths.seen, { force: true });
+        fs.rmSync(paths.spool, { recursive: true, force: true });
+    }
+    catch {
+        // Best effort: a stale line only makes the next prediction wider.
+    }
+}
+/**
+ * Janitor plan: entries to delete so verdicts stay a tiny, fresh family.
+ * Keeps the newest `MAX_VERDICT_ENTRIES` verdicts and the newest
+ * `MAX_MANIFESTS_PER_SCOPE` manifests of each scope; a superseded
+ * manifest has no reader.
+ */
+function janitorPlan(entries) {
+    const newest = (a, b) => Date.parse(b.last_accessed_at ?? b.created_at ?? "") - Date.parse(a.last_accessed_at ?? a.created_at ?? "");
+    const verdicts = entries.filter((e) => e.key.startsWith(exports.VERDICT_PREFIX)).sort(newest);
+    const doomed = verdicts.slice(exports.MAX_VERDICT_ENTRIES);
+    const byScope = new Map();
+    for (const entry of entries.filter((e) => e.key.startsWith(exports.MANIFEST_PREFIX))) {
+        const scope = entry.key.slice(exports.MANIFEST_PREFIX.length).split("-")[0] ?? "";
+        byScope.set(scope, [...(byScope.get(scope) ?? []), entry]);
+    }
+    for (const group of byScope.values())
+        doomed.push(...group.sort(newest).slice(exports.MAX_MANIFESTS_PER_SCOPE));
+    return doomed;
+}
+
+
+/***/ }),
+
+/***/ 72510:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseVerdictsInput = parseVerdictsInput;
+exports.soldrRunner = soldrRunner;
+exports.verdictPreflight = verdictPreflight;
+exports.verdictAfterInstall = verdictAfterInstall;
+exports.finishLazySetup = finishLazySetup;
+exports.verdictPost = verdictPost;
+exports.verdictJanitor = verdictJanitor;
+/**
+ * Orchestration for the verdict ledger tier (setup-soldr#593/#594). The pure
+ * pieces live in `verdict-cache.ts`; this module wires them to the Actions
+ * cache, soldr and the action's state.
+ */
+const fs = __importStar(__nccwpck_require__(73024));
+const core = __importStar(__nccwpck_require__(37484));
+const cache = __importStar(__nccwpck_require__(5116));
+const exec = __importStar(__nccwpck_require__(95236));
+const github = __importStar(__nccwpck_require__(93228));
+const verdict_cache_js_1 = __nccwpck_require__(59033);
+const save_policy_js_1 = __nccwpck_require__(98097);
+const ensure_shims_js_1 = __nccwpck_require__(10202);
+const verify_soldr_js_1 = __nccwpck_require__(82947);
+function parseVerdictsInput(raw) {
+    const value = (raw ?? "").trim().toLowerCase();
+    if (["off", "false", "0", "no"].includes(value))
+        return "off";
+    if (value === "restore")
+        return "restore";
+    return "auto";
+}
+function soldrRunner(soldrPath) {
+    return async (args, cwd) => {
+        const out = await exec.getExecOutput(soldrPath, args, {
+            cwd,
+            ignoreReturnCode: true,
+            silent: true,
+            env: { ...process.env, SOLDR_VERDICTS: "off" },
+        });
+        return { code: out.exitCode, stdout: out.stdout };
+    };
+}
+const LAYER = "verdict";
+/**
+ * Restore the previous trusted run's job manifest; when there is one,
+ * install soldr now, re-derive its keys and restore those verdicts.
+ */
+async function verdictPreflight(opts) {
+    core.saveState("verdictMode", opts.enabled ? opts.mode : "off");
+    if (!opts.enabled || opts.mode === "off")
+        return { lazy: false, paths: null };
+    const scope = (0, verdict_cache_js_1.manifestScope)(process.env);
+    const staging = (0, verdict_cache_js_1.manifestStagingFile)(opts.runnerTemp);
+    let manifest;
+    try {
+        manifest = await cache.restoreCache([staging], `${verdict_cache_js_1.MANIFEST_PREFIX}${scope}-`, [`${verdict_cache_js_1.MANIFEST_PREFIX}${scope}-`]);
+    }
+    catch (err) {
+        opts.log(`verdict: manifest restore failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    if (!manifest || !fs.existsSync(staging)) {
+        opts.log(`verdict: no job manifest for scope ${scope} yet`);
+        return { lazy: false, paths: null };
+    }
+    await opts.installSoldr();
+    const run = soldrRunner(opts.soldrPath);
+    const paths = await (0, verdict_cache_js_1.verdictPaths)(run, opts.workspace);
+    if (!paths) {
+        opts.log("verdict: this soldr has no verdict ledger; skipping");
+        return { lazy: false, paths: null };
+    }
+    const prediction = await (0, verdict_cache_js_1.predict)(run, staging, opts.workspace);
+    (0, verdict_cache_js_1.resetSeen)(paths);
+    core.saveState("verdictPaths", JSON.stringify(paths));
+    if (!prediction)
+        return { lazy: false, paths };
+    const restored = await (0, verdict_cache_js_1.restoreVerdicts)(prediction.keys, paths, (p, k) => cache.restoreCache(p, k));
+    const lazy = opts.mode === "auto" && opts.shimsEnabled && (0, verdict_cache_js_1.isLazy)(prediction, restored);
+    opts.log(`verdict: manifest ${manifest} predicts ${prediction.keys.length} check(s); ` +
+        `${restored.length} verdict(s) restored; ` +
+        `${prediction.ungated ? "job also builds; " : ""}${lazy ? "LAZY: skipping toolchain and build caches" : "full setup"}`);
+    core.saveState("verdictLazy", lazy ? "true" : "false");
+    return { lazy, paths };
+}
+/** After a normal install: locate the store and start this job's log. */
+async function verdictAfterInstall(preflight, opts) {
+    if (preflight.paths || core.getState("verdictMode") === "off" || core.getState("verdictMode") === "")
+        return;
+    const paths = await (0, verdict_cache_js_1.verdictPaths)(soldrRunner(opts.soldrPath), opts.workspace);
+    if (!paths)
+        return;
+    (0, verdict_cache_js_1.resetSeen)(paths);
+    core.saveState("verdictPaths", JSON.stringify(paths));
+}
+/** Lazy tail: everything a later step needs from setup-soldr except caches. */
+async function finishLazySetup(opts) {
+    const { result } = opts;
+    core.exportVariable("SOLDR_BINARY", result.soldrPath);
+    core.saveState("setupSoldrPassthrough", "false");
+    if (result.shimsEnabled) {
+        await (0, ensure_shims_js_1.ensureShims)({
+            shimsDir: result.shimsDir,
+            soldrPath: result.soldrPath,
+            isWindows: process.platform === "win32",
+            log: (msg) => opts.logger.log(msg),
+        });
+    }
+    const verify = await (0, verify_soldr_js_1.verifySoldr)({
+        soldrPath: result.soldrPath,
+        buildCacheMode: result.buildCache.mode,
+        requireRustPlan: false,
+    });
+    core.setOutput("soldr-version", verify.soldrVersion);
+    core.setOutput("soldr_version", verify.soldrVersion);
+    core.setOutput("verdict-lazy", "true");
+    core.saveState("soldrRuntimeVersion", verify.soldrVersion);
+    opts.logger.log("setup-soldr: lazy verdict mode — every check this job ran last time already passed with these inputs; " +
+        "toolchain and build caches were not restored (soldr provisions on demand if a check misses).");
+}
+/** Post step: publish this run's verdicts and job manifest. */
+async function verdictPost(opts) {
+    const mode = core.getState("verdictMode");
+    const raw = core.getState("verdictPaths");
+    if (!raw || mode === "off" || mode === "")
+        return;
+    let paths;
+    try {
+        paths = JSON.parse(raw);
+    }
+    catch {
+        return;
+    }
+    if (!(0, save_policy_js_1.allowCacheSave)(LAYER, opts.log))
+        return;
+    const save = (p, k) => (0, save_policy_js_1.gatedSaveCache)(LAYER, p, k, opts.log);
+    const saved = await (0, verdict_cache_js_1.publishVerdicts)(paths, save, opts.log);
+    const key = (0, verdict_cache_js_1.manifestKey)((0, verdict_cache_js_1.manifestScope)(process.env), process.env["GITHUB_RUN_ID"] ?? "", process.env["GITHUB_RUN_ATTEMPT"] ?? "");
+    let manifestSaved = false;
+    try {
+        manifestSaved = await (0, verdict_cache_js_1.publishManifest)(paths, (0, verdict_cache_js_1.manifestStagingFile)(opts.runnerTemp), key, save);
+    }
+    catch (err) {
+        opts.log(`verdict: manifest not saved: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    opts.log(`verdict: published ${saved} verdict(s)${manifestSaved ? ` and manifest ${key}` : ""}`);
+    await verdictJanitor(opts.log);
+}
+/**
+ * Keep the verdict family tiny and fresh: delete verdicts beyond the newest
+ * MAX_VERDICT_ENTRIES and manifests superseded within their scope. Needs a
+ * token with `actions: write`; best effort.
+ */
+async function verdictJanitor(log) {
+    const [owner, repo] = (process.env["GITHUB_REPOSITORY"] ?? "").split("/");
+    const token = (process.env["GITHUB_TOKEN"] ?? "").trim() || (process.env["INPUT_TOKEN"] ?? "").trim();
+    if (!owner || !repo || !token)
+        return;
+    const octokit = github.getOctokit(token);
+    try {
+        const entries = [];
+        for (let page = 1; page <= 10; page += 1) {
+            const response = await octokit.rest.actions.getActionsCacheList({
+                owner,
+                repo,
+                key: "soldr-verdict-",
+                per_page: 100,
+                page,
+            });
+            const items = response.data.actions_caches ?? [];
+            for (const item of items) {
+                if (item.id != null && item.key) {
+                    entries.push({
+                        id: item.id,
+                        key: item.key,
+                        last_accessed_at: item.last_accessed_at ?? undefined,
+                        created_at: item.created_at ?? undefined,
+                    });
+                }
+            }
+            if (items.length < 100)
+                break;
+        }
+        const doomed = (0, verdict_cache_js_1.janitorPlan)(entries);
+        for (const entry of doomed) {
+            try {
+                await octokit.rest.actions.deleteActionsCacheById({ owner, repo, cache_id: entry.id });
+            }
+            catch {
+                // 404 (a sibling job deleted it) and 403 (no actions: write) are fine.
+            }
+        }
+        if (doomed.length > 0)
+            log(`verdict: janitor removed ${doomed.length} superseded entr(ies)`);
+    }
+    catch (err) {
+        log(`verdict: janitor skipped: ${err instanceof Error ? err.message : String(err)}`);
+    }
+}
+
+
+/***/ }),
+
 /***/ 82947:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -58854,7 +59822,9 @@ exports.run = run;
 const fs = __importStar(__nccwpck_require__(73024));
 const path = __importStar(__nccwpck_require__(76760));
 const node_child_process_1 = __nccwpck_require__(31421);
+const os = __importStar(__nccwpck_require__(48161));
 const core = __importStar(__nccwpck_require__(37484));
+const verdict_setup_js_1 = __nccwpck_require__(72510);
 const cache = __importStar(__nccwpck_require__(5116));
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const solo_toolchain_cache_js_1 = __nccwpck_require__(67901);
@@ -59965,6 +60935,13 @@ async function run() {
     }
     catch (err) {
         log(`post: failed to parse resolve state: ${err instanceof Error ? err.message : String(err)}`);
+        return;
+    }
+    // setup-soldr#594: a lazy job restored no build layers, so it has none to
+    // save; publishing its verdicts and manifest is the whole post step.
+    const verdictTemp = process.env["RUNNER_TEMP"] || os.tmpdir();
+    if (core.getState("verdictLazy") === "true") {
+        await (0, verdict_setup_js_1.verdictPost)({ runnerTemp: verdictTemp, log });
         return;
     }
     // #557: publish soldr tool bundles (LLVM, ...) this job installed to
@@ -61125,6 +62102,13 @@ async function run() {
     const saveTotals = postCollector.saveSummaryOneLine();
     if (saveTotals)
         log(saveTotals);
+    // setup-soldr#593: this run's verdicts and job manifest.
+    try {
+        await (0, verdict_setup_js_1.verdictPost)({ runnerTemp: verdictTemp, log });
+    }
+    catch (err) {
+        log(`verdict: post failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
     // #347: repo-level Actions Cache eviction. Runs AFTER all save
     // activity so it doesn't evict what this run just wrote. No-op
     // unless policy is set + usage > trigger threshold. Foundation
