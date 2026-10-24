@@ -103,22 +103,23 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
     if not required_jobs <= successful_jobs:
         raise ValueError("canary lacks successful selected and full coverage jobs")
 
-    logs = api(f"{CANARY_REPO}/actions/runs/{canary_id}/logs", archive=True)
-    if len(logs) > 100_000_000:
-        raise ValueError("canary log archive exceeds verification limit")
     pin = f"zackees/setup-soldr@{target}"
     download = f"Download action repository '{pin}' (SHA:{target})"
     executed = f"Run {pin}"
-    with zipfile.ZipFile(io.BytesIO(logs)) as archive:
-        names = [n for n in archive.namelist() if n.endswith(".txt")]
-        if not any(
-            download in archive.read(name).decode("utf-8", errors="replace")
-            for name in names
-        ) or not any(
-            executed in archive.read(name).decode("utf-8", errors="replace")
-            for name in names
-        ):
-            raise ValueError("canary logs do not prove download and execution of exact action SHA")
+    texts = []
+    # The run-level /logs archive holds only the latest attempt, so a canary
+    # whose failed job was re-run would hide the jobs that ran the pin.
+    for attempt in range(1, int(canary.get("run_attempt", 1)) + 1):
+        logs = api(f"{CANARY_REPO}/actions/runs/{canary_id}/attempts/{attempt}/logs", archive=True)
+        if len(logs) > 100_000_000:
+            raise ValueError("canary log archive exceeds verification limit")
+        with zipfile.ZipFile(io.BytesIO(logs)) as archive:
+            texts.extend(
+                archive.read(name).decode("utf-8", errors="replace")
+                for name in archive.namelist() if name.endswith(".txt")
+            )
+    if not any(download in text for text in texts) or not any(executed in text for text in texts):
+        raise ValueError("canary logs do not prove download and execution of exact action SHA")
 
     contract = max(contracts, key=lambda run: run["id"])
     print(f"Contract: {contract['html_url']}")
