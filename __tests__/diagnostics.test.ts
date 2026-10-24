@@ -74,6 +74,7 @@ function fixtureRawInputs(): RawInputs {
     prebuildDepsDeltaCache: "true",
     cookDelta: "false",
     soldrMiniCache: "true",
+    verdicts: "",
     ciTests: "",
     dylint: "",
     dylintFoundationCache: "",

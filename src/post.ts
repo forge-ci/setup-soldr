@@ -10,7 +10,9 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { spawnSync } from "node:child_process";
+import * as os from "node:os";
 import * as core from "@actions/core";
+import { verdictPost } from "./lib/verdict-setup.js";
 import * as cache from "@actions/cache";
 import { compressCache, type CachePayloadProfile } from "./lib/cache-compress.js";
 import {
@@ -1398,6 +1400,14 @@ export async function run(): Promise<void> {
     return;
   }
 
+  // setup-soldr#594: a lazy job restored no build layers, so it has none to
+  // save; publishing its verdicts and manifest is the whole post step.
+  const verdictTemp = process.env["RUNNER_TEMP"] || os.tmpdir();
+  if (core.getState("verdictLazy") === "true") {
+    await verdictPost({ runnerTemp: verdictTemp, log });
+    return;
+  }
+
   // #557: publish soldr tool bundles (LLVM, ...) this job installed to
   // RUNNER_TOOL_CACHE, so the next run on this runner links them instead.
   if (result.enabled) {
@@ -2666,6 +2676,13 @@ export async function run(): Promise<void> {
   if (saveTable) log(saveTable);
   const saveTotals = postCollector.saveSummaryOneLine();
   if (saveTotals) log(saveTotals);
+
+  // setup-soldr#593: this run's verdicts and job manifest.
+  try {
+    await verdictPost({ runnerTemp: verdictTemp, log });
+  } catch (err) {
+    log(`verdict: post failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   // #347: repo-level Actions Cache eviction. Runs AFTER all save
   // activity so it doesn't evict what this run just wrote. No-op
