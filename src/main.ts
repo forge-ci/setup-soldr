@@ -1500,7 +1500,7 @@ export async function run(): Promise<void> {
   // before ensureSoldr's installedVersion() check or any later soldr spawn.
   await markPhase("install");
   await installSoldr();
-  await verdictAfterInstall(verdict, { soldrPath: result.soldrPath, workspace: result.workspace });
+  await verdictAfterInstall(verdict, { soldrPath: result.soldrPath, workspace: result.workspace, log: (m) => logger.log(m) });
   await finishPhase("install");
 
   // ---- zccache-seed ----
