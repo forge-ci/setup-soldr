@@ -396,6 +396,23 @@ export function decideCookGate(opts: {
 }
 
 /**
+ * Environment for setup-soldr's `soldr cook`: skip the shared cook-index
+ * pack (soldr#3499, setup-soldr#584). On a hosted runner that index starts
+ * empty and is discarded with the VM, so the 100-240 s pack is never reused;
+ * the durable cook cache is the `soldr save` archive of the target dir. An
+ * explicit `SOLDR_COOK_INDEX` from the workflow wins, and soldr releases that
+ * predate the variable ignore it.
+ */
+export function cookEnv(env: NodeJS.ProcessEnv): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [name, value] of Object.entries(env)) {
+    if (value !== undefined) out[name] = value;
+  }
+  out["SOLDR_COOK_INDEX"] ??= "0";
+  return out;
+}
+
+/**
  * Run `soldr cook` in the project directory. The soldr-cook mode emits
  * the recipe and runs the dependency compile. We tolerate failure: cook
  * is an optimization, not a correctness primitive, so any non-zero exit
@@ -417,6 +434,7 @@ export async function runCook(opts: CookRunOpts): Promise<CookRunResult> {
     // already injected by resolve-setup.ts when timestamps are enabled.
     exitCode = await exec.exec(soldrBinary, ["cook", ...flags], {
       cwd: projectRoot,
+      env: cookEnv(process.env),
       ignoreReturnCode: true,
       silent: true,
       listeners: {
