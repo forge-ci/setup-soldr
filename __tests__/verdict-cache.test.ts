@@ -74,6 +74,37 @@ test("job scope ignores the ref and tokens but not inputs", () => {
   assert.ok(manifestKey(scope, "12", "1").startsWith(`${MANIFEST_PREFIX}${scope}-`));
 });
 
+test("job scope ignores the save policy: the run that publishes and the runs that read share it", () => {
+  const env = {
+    GITHUB_WORKFLOW_REF: "o/r/.github/workflows/ci.yml@refs/heads/main",
+    GITHUB_JOB: "clippy",
+    RUNNER_OS: "Linux",
+    RUNNER_ARCH: "X64",
+    "INPUT_SAVE-CACHE-REMOTE": "true",
+    "INPUT_SAVE-CACHE": "true",
+    INPUT_VERDICTS: "auto",
+  };
+  const reader = { ...env, "INPUT_SAVE-CACHE-REMOTE": "false", "INPUT_SAVE-CACHE": "false", INPUT_VERDICTS: "restore" };
+  assert.equal(manifestScope(reader), manifestScope(env));
+});
+
+test("verdict-scope gives a reusable workflow's callers one scope (#604)", () => {
+  const env = {
+    GITHUB_WORKFLOW_REF: "o/r/.github/workflows/push.yaml@refs/heads/main",
+    GITHUB_JOB: "fast-gate",
+    RUNNER_OS: "Linux",
+    RUNNER_ARCH: "X64",
+    "INPUT_VERDICT-SCOPE": "build-project",
+  };
+  const pr = { ...env, GITHUB_WORKFLOW_REF: "o/r/.github/workflows/ci.yml@refs/pull/9/merge" };
+  assert.equal(manifestScope(pr), manifestScope(env));
+  // Without it the caller still separates scopes, as before.
+  const bare = { ...env, "INPUT_VERDICT-SCOPE": "" };
+  assert.notEqual(manifestScope({ ...bare, GITHUB_WORKFLOW_REF: pr.GITHUB_WORKFLOW_REF }), manifestScope(bare));
+  // A different verdict-scope is a different job.
+  assert.notEqual(manifestScope({ ...env, "INPUT_VERDICT-SCOPE": "other" }), manifestScope(env));
+});
+
 test("restore keeps only exact verdict hits", async () => {
   const paths = tmpPaths();
   const restore = async (_p: string[], key: string): Promise<string | undefined> =>
