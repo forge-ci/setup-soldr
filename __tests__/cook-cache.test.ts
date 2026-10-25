@@ -14,6 +14,7 @@ import {
   buildCookCacheKey,
   buildCookDeltaCacheKey,
   buildCookDeltaCacheRestorePrefix,
+  cookEnv,
   decideCookGate,
   hashCookBuildShape,
   hashCookFlags,
@@ -581,4 +582,11 @@ test("decideCookGate keeps cargo-chef as a compatibility alias", () => {
   } finally {
     fs.rmSync(lock, { recursive: true, force: true });
   }
+});
+
+test("cookEnv skips the shared cook-index pack unless the workflow set it (soldr#3499)", () => {
+  const env = cookEnv({ PATH: "/bin", CI: "true" });
+  assert.equal(env["SOLDR_COOK_INDEX"], "0");
+  assert.equal(env["PATH"], "/bin");
+  assert.equal(cookEnv({ SOLDR_COOK_INDEX: "1" })["SOLDR_COOK_INDEX"], "1");
 });
