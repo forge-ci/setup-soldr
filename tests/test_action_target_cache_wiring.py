@@ -83,6 +83,7 @@ EXPECTED_INPUTS = {
     "cook-delta",
     "soldr-mini-cache",
     "verdicts",
+    "verdict-scope",
     "dylint",
     "ci-tests",
     "dylint-foundation-cache",
