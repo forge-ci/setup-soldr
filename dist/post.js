@@ -58890,16 +58890,27 @@ async function verdictPaths(run, cwd) {
         return null;
     }
 }
+/** Inputs that decide whether a run writes, or name the scope, not what it checks. */
+const SCOPE_FREE_INPUTS = new Set(["INPUT_SAVE-CACHE", "INPUT_SAVE-CACHE-REMOTE", "INPUT_VERDICTS", "INPUT_VERDICT-SCOPE"]);
 /**
  * One job's identity across runs: the workflow file (not its ref), the job
  * id, the runner platform and every action input (a matrix leg normally
  * differs in at least one input, such as the target).
+ *
+ * The save policy is left out: the run that publishes (`save-cache-remote`
+ * true on the default branch) and the runs that only read must share a
+ * scope. `verdict-scope` replaces the workflow file, so the callers of one
+ * reusable workflow (push.yaml on main, ci.yml on PRs) share it too (#604).
  */
 function manifestScope(env) {
-    const workflow = (env["GITHUB_WORKFLOW_REF"] ?? env["GITHUB_WORKFLOW"] ?? "").replace(/@.*$/, "");
+    const scope = env["INPUT_VERDICT-SCOPE"] ?? "";
+    const workflow = scope
+        ? `verdict-scope:${scope}`
+        : (env["GITHUB_WORKFLOW_REF"] ?? env["GITHUB_WORKFLOW"] ?? "").replace(/@.*$/, "");
     const inputs = Object.keys(env)
         // Tokens change every run; hashing them would give every run a new scope.
         .filter((name) => name.startsWith("INPUT_") && !/TOKEN|SECRET|PASSWORD/.test(name))
+        .filter((name) => !SCOPE_FREE_INPUTS.has(name))
         .sort()
         .map((name) => `${name}=${env[name] ?? ""}`);
     const material = [workflow, env["GITHUB_JOB"] ?? "", env["RUNNER_OS"] ?? "", env["RUNNER_ARCH"] ?? "", ...inputs]

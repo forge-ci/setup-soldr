@@ -879,6 +879,15 @@ inputs:
       same without lazy mode. "off" leaves the ledger machine-local.
     required: false
     default: "auto"
+  verdict-scope:
+    description: >
+      Name that replaces the calling workflow file in the verdict manifest's
+      job scope. Set it in a reusable workflow so every caller (push.yaml on
+      the default branch, ci.yml on pull requests and the merge queue) reads
+      the manifest the default branch publishes (#604). Empty (default) keeps
+      the workflow file.
+    required: false
+    default: ""
   soldr-mini-cache:
     description: >
       Cache the soldr binary in its own tiny long-lived layer,
