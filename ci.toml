@@ -1,0 +1,127 @@
+# ci.toml -- this repository's CI contract. Checked and planned by ci-lint
+# (forge-ci/ci.yml). Nothing here generates YAML: it bounds what the YAML may
+# do and decides what each run selects.
+#
+# First declaration for this repository (forge-ci/ci.yml#38). setup-soldr is a
+# TypeScript GitHub Action (node, ncc-bundled into dist/), not a Rust crate:
+# Rust is only built by its smoke/comparison workflows, through the action
+# itself. Everything below was read off the existing workflows and the live
+# cache listing; it changes no CI behaviour. Where the YAML and this file
+# disagree, the YAML is right and this file is the bug.
+schema  = 3
+profile = "github-action"
+linter  = "forge-ci/ci.yml@953c4e13691b10c1c4f1f9c39fa259fd732c5789"
+
+# -- Platforms -----------------------------------------------------------------
+# The action's own logic runs on ubuntu-24.04. setup-soldr-contract.yml's
+# `wheel-fallback-smoke` matrix exercises the action on these four runners.
+[platforms]
+linux-x64     = { target = "x86_64-unknown-linux-gnu",  runs-on = "ubuntu-24.04",     group = "linux" }
+linux-arm64   = { target = "aarch64-unknown-linux-gnu", runs-on = "ubuntu-24.04-arm", group = "linux" }
+macos-x64     = { target = "x86_64-apple-darwin",       runs-on = "macos-15-intel",   group = "macos" }
+windows-arm64 = { target = "aarch64-pc-windows-msvc",   runs-on = "windows-11-arm",   group = "windows" }
+
+# -- Suites --------------------------------------------------------------------
+# setup-soldr-contract.yml: js-build (npm ci / typecheck / test / build),
+# contract-tests, release-readiness, wheel-fallback-smoke.
+[suites]
+unit          = { run = "npm test", required = true }
+typecheck     = { run = "npm run typecheck", required = true }
+build         = { run = "npm run build", required = true }
+contract      = { run = "python -m ruff check .", required = true }
+readiness     = { run = "node scripts/check-default-release-readiness.mjs", required = true }
+vendor-prose  = { run = "node scripts/lint-vendor-prose.mjs", required = true }
+cook-selftest = { run = "cook-soldr-selftest.yml" }
+comparison    = { run = "comparison-cluster.yml", kind = "bench", gating = false }
+
+# -- Flows ---------------------------------------------------------------------
+[flow.pr]
+platforms = ["linux-x64"]
+suites    = ["unit", "typecheck", "build", "contract", "readiness", "vendor-prose", "cook-selftest"]
+
+[flow.main]
+extends = "pr"
+cache   = "write"
+
+[flow.nightly]
+extends  = "pr"
+schedule = "daily"
+
+[tags]
+
+# -- Caches --------------------------------------------------------------------
+# Live listing 2026-10-26: 107 entries, 8.85 GB (88% of the 10 GiB cap).
+#   setup-soldr-cargoregistry-v1-*  34 entries  ~3.7 GB
+#   solo-toolchain-v3-*             ~30 entries ~4.9 GB
+#   soldr-mini-v2-*                 ~18 entries ~0.2 GB
+#   setup-soldr-buildcache-v2-*     12 entries  ~0 GB
+#   soldr-verdict-manifest-v1-*      8 entries  ~0 GB
+#   node-cache-* (setup-node npm)    1 entry    35 MB
+# max values are per-family quotas sized above the largest observed entry.
+[cache]
+budget   = "9GB"
+write-on = ["main"]
+never    = []
+retired  = []
+pr       = { mode = "none", families = [], max-per-pr = "0MB", budget = "0MB", trim = "on-close" }
+
+[cache.family]
+registry   = { via = "setup-soldr:cargo-registry", max = "200MB", lockfile = true, per = "none", evict = "lru" }
+toolchain  = { via = "setup-soldr:solo-toolchain", max = "200MB", per = "platform", evict = "lru" }
+soldr-mini = { via = "setup-soldr:soldr-mini",     max = "30MB",  per = "platform", min = "1MB", evict = "lru" }
+compile    = { via = "setup-soldr:build-cache",    max = "150MB", lockfile = true, per = "platform", evict = "lru" }
+verdict    = { prefix = "soldr-verdict-manifest-v1", max = "1MB" }
+npm        = { prefix = "node-cache-",             max = "100MB", per = "none", evict = "lru" }
+
+[cache.promote]
+mode = "off"
+
+[local]
+runner = "native"
+lanes  = []
+cache  = "off"
+
+# -- Allowlists ----------------------------------------------------------------
+[allow]
+actions           = ["actions/checkout", "actions/setup-node", "actions/upload-artifact", "actions/download-artifact", "actions/cache", "actions/configure-pages", "actions/deploy-pages", "actions/upload-pages-artifact", "dtolnay/rust-toolchain", "zackees/setup-soldr"]
+tools             = ["node", "npm", "python", "python3", "soldr", "git", "gh"]
+secrets           = ["SOLDR_CROSS_REPO_TOKEN"]
+platform-selector = "src/main.ts"
+platform-code     = ["src/**"]
+cache-actions     = { only-in = ".github/actions/comparison-zccache" }
+# The action IS setup-soldr; workflows call it as `./` and `zackees/setup-soldr`
+# from many places, so no single wrapper directory is asserted.
+setup-soldr       = { only-in = "" }
+
+[allow.workflows]
+"setup-soldr-contract.yml"              = ["push:main", "pull_request", "workflow_dispatch"]
+"setup-soldr-action.yml"                = ["push:main", "pull_request", "workflow_dispatch"]
+"lint-vendor-prose.yml"                 = ["push:main", "pull_request"]
+"cook-soldr-selftest.yml"               = ["workflow_dispatch", "pull_request", "push:main"]
+"cook-rematerialization.yml"            = ["workflow_dispatch", "pull_request"]
+"cook-downstream-rematerialization.yml" = ["workflow_dispatch", "pull_request"]
+"cross-prepare.yml"                     = ["pull_request", "workflow_dispatch"]
+"dylint-map-smoke.yml"                  = ["pull_request", "workflow_dispatch"]
+"release-lane-smoke.yml"                = ["pull_request", "workflow_dispatch"]
+"ingest-soldr-release.yml"              = ["schedule", "workflow_dispatch"]
+"bench-cache-modes.yml"                 = ["workflow_dispatch"]
+"cargo-registry-soldr-benchmark.yml"    = ["workflow_dispatch"]
+"comparison-child-branch.yml"           = ["workflow_dispatch"]
+"comparison-cluster.yml"                = ["workflow_dispatch"]
+"update-v0-tag.yml"                     = ["workflow_dispatch"]
+"rust-ci.yml"                           = ["workflow_call", "workflow_dispatch"]
+"release-lane.yml"                      = ["workflow_call"]
+"target-lifecycle.yml"                  = ["workflow_call"]
+"_comparison-build.yml"                 = ["workflow_call"]
+"_comparison-scenario.yml"              = ["workflow_call"]
+"_cook-consumer-rematerialization.yml"  = ["workflow_call"]
+
+[allow.permissions]
+"actions: write"       = ["cleanup"]
+"contents: write"      = ["benchmark"]
+"issues: write"        = ["benchmark"]
+"pull-requests: write" = ["benchmark"]
+"pages: write"         = ["benchmark", "deploy-pages"]
+"id-token: write"      = ["benchmark", "deploy-pages"]
+
+[publish]
