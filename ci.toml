@@ -94,7 +94,7 @@ cache-actions     = { only-in = ".github/actions/comparison-zccache" }
 setup-soldr       = { only-in = "" }
 
 [allow.workflows]
-"setup-soldr-contract.yml"              = ["push:main", "pull_request", "workflow_dispatch"]
+"setup-soldr-contract.yml"              = ["push:main", "pull_request", "merge_group", "workflow_dispatch"]
 "setup-soldr-action.yml"                = ["push:main", "pull_request", "workflow_dispatch"]
 "lint-vendor-prose.yml"                 = ["push:main", "pull_request"]
 "cook-soldr-selftest.yml"               = ["workflow_dispatch", "pull_request", "push:main"]
@@ -117,7 +117,7 @@ setup-soldr       = { only-in = "" }
 "_cook-consumer-rematerialization.yml"  = ["workflow_call"]
 
 [allow.permissions]
-"actions: write"       = ["cleanup"]
+"actions: write"       = ["cleanup", "cancel-superseded", "queue-cache-janitor"]
 "contents: write"      = ["benchmark"]
 "issues: write"        = ["benchmark"]
 "pull-requests: write" = ["benchmark"]

@@ -55,6 +55,9 @@ on:
       - .github/workflows/cook-rematerialization.yml
       - .github/workflows/setup-soldr-contract.yml
       - .github/workflows/update-v0-tag.yml
+  # GEN-022 (forge-ci/ci.yml#405/#432): PRs merge through the main merge queue.
+  # merge_group takes no `paths:` filter, so every queue entry runs this workflow.
+  merge_group:
   workflow_dispatch:
 
 # One live run per workflow per ref: a new push to a branch or PR cancels the
@@ -68,6 +71,30 @@ permissions:
   contents: read
 
 jobs:
+  # GEN-022 / forge-ci/ci.yml#409: a queue ref carries the base commit
+  # (gh-readonly-queue/main/pr-<N>-<sha>), so the workflow concurrency group
+  # never pairs a PR's rebuilt queue run with the one main's movement replaced;
+  # this cancels the older one. No `needs:`; only the end-of-queue janitor
+  # depends on it.
+  cancel-superseded:
+    name: Cancel superseded queue runs
+    if: ${{ !cancelled() && github.event_name == 'merge_group' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          sparse-checkout: ci/cancel_superseded.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Cancel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ci/cancel_superseded.py
+
   js-build:
     name: JS Build and Tests
     runs-on: ubuntu-24.04
@@ -230,3 +257,40 @@ jobs:
           if ($doctorJson.zccache.backend -ne "embedded") {
             throw "expected embedded zccache; got $($doctorJson.zccache | ConvertTo-Json -Compress)"
           }
+
+  # GEN-022 (forge-ci/ci.yml#405): every merge-queue run ends with the ci-lint
+  # cache janitor. It runs after every other job, even failed ones, so the
+  # repository stays under [cache].budget by our LRU order instead of GitHub's.
+  # The non-cancelling `cache-janitor` group keeps one sweep at a time.
+  queue-cache-janitor:
+    name: End-of-queue cache janitor
+    needs: [cancel-superseded, js-build, contract-tests, release-readiness, wheel-fallback-smoke]
+    if: always() && github.event_name == 'merge_group'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    concurrency:
+      group: cache-janitor
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      # The janitor reads only ci.toml from this repository.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout: ci.toml
+          sparse-checkout-cone-mode: false
+      # Same commit as ci.toml's `linter` pin.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: forge-ci/ci.yml
+          ref: 953c4e13691b10c1c4f1f9c39fa259fd732c5789
+          path: .ci-lint
+          persist-credentials: false
+          sparse-checkout: ci_lint
+      - name: Sweep caches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .ci-lint
+        run: python3 -P -m ci_lint cache janitor --repo . --default-branch main
