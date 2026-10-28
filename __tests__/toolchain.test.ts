@@ -376,8 +376,8 @@ test("system Rust release probe uses the selected Soldr and Rust homes", async (
   const win = process.platform === "win32";
   const fake = path.join(root, win ? "soldr.cmd" : "soldr");
   fs.writeFileSync(fake, win
-    ? '@echo off\r\necho %*^|%RUSTUP_TOOLCHAIN%^|%CARGO_HOME%^|%RUSTUP_HOME%^|%SOLDR_AS% > "%PROBE_MARKER%"\r\necho rustc 1.95.0\r\n'
-    : '#!/bin/sh\nprintf "%s|%s|%s|%s|%s\\n" "$*" "$RUSTUP_TOOLCHAIN" "$CARGO_HOME" "$RUSTUP_HOME" "$SOLDR_AS" > "$PROBE_MARKER"\necho "rustc 1.95.0"\n', { mode: 0o755 });
+    ? '@echo off\r\necho %*^|%RUSTUP_TOOLCHAIN%^|%CARGO_HOME%^|%RUSTUP_HOME%^|%SOLDR_AS%^|%SOLDR_BROKER_AUTOSPAWN% > "%PROBE_MARKER%"\r\necho rustc 1.95.0\r\n'
+    : '#!/bin/sh\nprintf "%s|%s|%s|%s|%s|%s\\n" "$*" "$RUSTUP_TOOLCHAIN" "$CARGO_HOME" "$RUSTUP_HOME" "$SOLDR_AS" "$SOLDR_BROKER_AUTOSPAWN" > "$PROBE_MARKER"\necho "rustc 1.95.0"\n', { mode: 0o755 });
   const ok = await systemRustupSatisfiesRequest({
     cargoHome, rustupHome, bootstrapSoldr: fake,
     toolchain: { channel: "stable", cacheChannel: "1.95.0", profile: "minimal", components: [], targets: [], source: "default", fileHash: "none" },
@@ -385,5 +385,5 @@ test("system Rust release probe uses the selected Soldr and Rust homes", async (
     deps: { which: async () => "/fake/rustup" },
   });
   assert.equal(ok, true);
-  assert.equal(fs.readFileSync(marker, "utf8").trim(), `rustc --version|stable|${cargoHome}|${rustupHome}|`);
+  assert.equal(fs.readFileSync(marker, "utf8").trim(), `--no-cache rustc --version|stable|${cargoHome}|${rustupHome}||0`);
 });

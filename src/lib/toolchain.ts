@@ -285,8 +285,8 @@ async function installedToolchainRelease(
   let stdout = "";
   let exitCode: number;
   if (bootstrapSoldr) {
-    exitCode = await new ToolRunner(bootstrapSoldr, ["rustc", "--version"], {
-      env: { ...env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_AS: "" }, silent: true, ignoreReturnCode: true,
+    exitCode = await new ToolRunner(bootstrapSoldr, ["--no-cache", "rustc", "--version"], {
+      env: { ...env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" }, silent: true, ignoreReturnCode: true,
       listeners: { stdout: (data: Buffer) => { stdout += data.toString(); } },
     }).exec();
   } else {

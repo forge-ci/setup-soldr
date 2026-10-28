@@ -52,7 +52,7 @@ type BootstrapDeps = {
 
 async function bootstrapVersion(binary: string): Promise<string> {
   return await new Promise((resolve, reject) => {
-    const env: NodeJS.ProcessEnv = { ...process.env, SOLDR_NO_GLOBAL_DELEGATION: "1" };
+    const env: NodeJS.ProcessEnv = { ...process.env, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0" };
     delete env.SOLDR_AS;
     const child = spawn(binary, ["--version"], { env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";

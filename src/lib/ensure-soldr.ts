@@ -826,6 +826,10 @@ async function buildFromSource(opts: {
       if (v !== undefined) buildEnv[k] = v;
     }
     buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+    // The intermediate compiler must not start a persistent broker that a
+    // different requested Soldr image inherits later in this action.
+    buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+    buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
     buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
     buildEnv["SOLDR_AS"] = "";
     log(`Building soldr from source ref ${ref} (${commitSha})`);
@@ -833,7 +837,7 @@ async function buildFromSource(opts: {
     // forensic log shows where the soldr build wall-clock went.
     await streamExec(
       bootstrapSoldr,
-      ["cargo", "build", "--locked", "--bin", "soldr", "--target", target],
+      ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target],
       { cwd: repoRoot, env: buildEnv },
     );
     const builtBinary = path.join(repoRoot, "target", target, "debug", binaryName);
@@ -883,6 +887,9 @@ async function buildFromLocalSource(opts: {
     if (value !== undefined) buildEnv[key] = value;
   }
   buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+  // Keep the bootstrap's broker out of the requested source version's run.
+  buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+  buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
   buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
   buildEnv["SOLDR_AS"] = "";
   const cargoTargetDir = path.join(os.tmpdir(), "setup-soldr-source-build", sourceIdentity);
@@ -892,7 +899,7 @@ async function buildFromLocalSource(opts: {
   log(`Building soldr from local source ${sourcePath} (${sourceIdentity})`);
   await streamExec(
     bootstrapSoldr,
-    ["cargo", "build", "--locked", "--bin", "soldr", "--target", target],
+    ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target],
     { cwd: sourcePath, env: buildEnv },
   );
   const builtBinary = path.join(cargoTargetDir, target, "debug", binaryName);

@@ -54494,12 +54494,16 @@ async function buildFromSource(opts) {
                 buildEnv[k] = v;
         }
         buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+        // The intermediate compiler must not start a persistent broker that a
+        // different requested Soldr image inherits later in this action.
+        buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+        buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
         buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
         buildEnv["SOLDR_AS"] = "";
         log(`Building soldr from source ref ${ref} (${commitSha})`);
         // #389: streamExec prefixes each `Compiling foo` line so the
         // forensic log shows where the soldr build wall-clock went.
-        await (0, log_utils_js_1.streamExec)(bootstrapSoldr, ["cargo", "build", "--locked", "--bin", "soldr", "--target", target], { cwd: repoRoot, env: buildEnv });
+        await (0, log_utils_js_1.streamExec)(bootstrapSoldr, ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target], { cwd: repoRoot, env: buildEnv });
         const builtBinary = path.join(repoRoot, "target", target, "debug", binaryName);
         if (!fs.existsSync(builtBinary)) {
             throw new Error(`built soldr binary not found at ${builtBinary}`);
@@ -54542,13 +54546,16 @@ async function buildFromLocalSource(opts) {
             buildEnv[key] = value;
     }
     buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+    // Keep the bootstrap's broker out of the requested source version's run.
+    buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+    buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
     buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
     buildEnv["SOLDR_AS"] = "";
     const cargoTargetDir = path.join(os.tmpdir(), "setup-soldr-source-build", sourceIdentity);
     fs.mkdirSync(cargoTargetDir, { recursive: true });
     buildEnv["CARGO_TARGET_DIR"] = cargoTargetDir;
     log(`Building soldr from local source ${sourcePath} (${sourceIdentity})`);
-    await (0, log_utils_js_1.streamExec)(bootstrapSoldr, ["cargo", "build", "--locked", "--bin", "soldr", "--target", target], { cwd: sourcePath, env: buildEnv });
+    await (0, log_utils_js_1.streamExec)(bootstrapSoldr, ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target], { cwd: sourcePath, env: buildEnv });
     const builtBinary = path.join(cargoTargetDir, target, "debug", binaryName);
     if (!fs.existsSync(builtBinary)) {
         throw new Error(`built soldr binary not found at ${builtBinary}`);
@@ -57762,8 +57769,10 @@ async function verifyRestoredToolchain(opts) {
         let toolArgs = managed ? args.slice(2) : args;
         if (managed && toolArgs[0] === "cargo-miri")
             toolArgs = ["cargo", "miri", ...toolArgs.slice(1)];
+        if (managed)
+            toolArgs = ["--no-cache", ...toolArgs];
         const code = await new toolrunner_js_1.ToolRunner(tool, toolArgs, {
-            env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_AS: "" } : undefined,
+            env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } : undefined,
             silent: true,
             ignoreReturnCode: true,
             listeners: {

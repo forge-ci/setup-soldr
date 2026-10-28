@@ -720,8 +720,9 @@ export async function verifyRestoredToolchain(opts: {
     const tool = managed ? opts.bootstrapSoldr! : rustupCommand;
     let toolArgs = managed ? args.slice(2) : args;
     if (managed && toolArgs[0] === "cargo-miri") toolArgs = ["cargo", "miri", ...toolArgs.slice(1)];
+    if (managed) toolArgs = ["--no-cache", ...toolArgs];
     const code = await new ToolRunner(tool, toolArgs, {
-      env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_AS: "" } as Record<string, string> : undefined,
+      env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } as Record<string, string> : undefined,
       silent: true,
       ignoreReturnCode: true,
       listeners: {

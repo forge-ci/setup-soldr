@@ -473,14 +473,16 @@ test("local source build invokes the verified bootstrap from a spaced path", { s
   const fake = path.join(root, "verified bootstrap");
   const marker = path.join(root, "arguments");
   fs.writeFileSync(fake, `#!/bin/sh
-printf '%s|%s|%s\\n' "$*" "$PWD" "$SOLDR_NO_GLOBAL_DELEGATION" > "$SOURCE_BUILD_MARKER"
+printf '%s|%s|%s|%s|%s\\n' "$*" "$PWD" "$SOLDR_NO_GLOBAL_DELEGATION" "$SOLDR_RUSTC_WRAPPER" "$SOLDR_BROKER_AUTOSPAWN" > "$SOURCE_BUILD_MARKER"
 for last do :; done
 mkdir -p "$CARGO_TARGET_DIR/$last/debug"
 printf '#!/bin/sh\\necho '\''{"soldr_version":"0.0.1"}'\''\\n' > "$CARGO_TARGET_DIR/$last/debug/soldr"
 chmod +x "$CARGO_TARGET_DIR/$last/debug/soldr"
 `, { mode: 0o755 });
   const old = process.env.SOURCE_BUILD_MARKER;
+  const oldWrapper = process.env.SOLDR_RUSTC_WRAPPER;
   process.env.SOURCE_BUILD_MARKER = marker;
+  process.env.SOLDR_RUSTC_WRAPPER = "existing-wrapper";
   try {
     const result = {
       soldrPath: path.join(install, "soldr"), soldrRef: "", soldrVersionRequested: "",
@@ -490,11 +492,13 @@ chmod +x "$CARGO_TARGET_DIR/$last/debug/soldr"
     await assert.rejects(() => ensureSoldr({ resolveResult: result, githubToken: "" }), /verified Soldr bootstrap required/);
     await ensureSoldr({ resolveResult: result, githubToken: "", bootstrapSoldr: fake });
     const observed = fs.readFileSync(marker, "utf8").trim();
-    assert.match(observed, /^cargo build --locked --bin soldr --target \S+\|/);
-    assert.ok(observed.endsWith(`|${source}|1`));
+    assert.match(observed, /^--no-cache cargo build --locked --bin soldr --target \S+\|/);
+    assert.ok(observed.endsWith(`|${source}|1|none|0`));
     assert.ok(fs.existsSync(path.join(install, "soldr")));
   } finally {
     if (old === undefined) delete process.env.SOURCE_BUILD_MARKER;
     else process.env.SOURCE_BUILD_MARKER = old;
+    if (oldWrapper === undefined) delete process.env.SOLDR_RUSTC_WRAPPER;
+    else process.env.SOLDR_RUSTC_WRAPPER = oldWrapper;
   }
 });

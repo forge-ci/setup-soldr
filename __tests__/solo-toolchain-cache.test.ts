@@ -433,7 +433,7 @@ test("restored release is checked through the verified Soldr bootstrap", async (
       bootstrapSoldr: fake, log: () => {},
     });
     assert.equal(result.match, true);
-    assert.equal(fs.readFileSync(marker, "utf8").trim(), "rustc --version|stable");
+    assert.equal(fs.readFileSync(marker, "utf8").trim(), "--no-cache rustc --version|stable");
   } finally {
     if (old === undefined) delete process.env.RESTORE_PROBE_MARKER;
     else process.env.RESTORE_PROBE_MARKER = old;

@@ -142,8 +142,8 @@ async function installedToolchainRelease(rustup: string, channel: string, bootst
   let code: number;
   let stdout = "";
   if (bootstrapSoldr) {
-    code = await new ToolRunner(bootstrapSoldr, ["rustc", "--version"], {
-      env: { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_AS: "" } as Record<string, string>,
+    code = await new ToolRunner(bootstrapSoldr, ["--no-cache", "rustc", "--version"], {
+      env: { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } as Record<string, string>,
       silent: true, ignoreReturnCode: true,
       listeners: { stdout: (data: Buffer) => { stdout += data.toString("utf8"); } },
     }).exec();
@@ -427,9 +427,9 @@ export async function ensureRustToolchain(opts: {
     throw new Error("setup-soldr failed to expose cargo/rustc after rustup configured the toolchain");
   }
   if (opts.bootstrapSoldr) {
-    const env = { ...process.env, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_AS: "" } as Record<string, string>;
-    await new ToolRunner(opts.bootstrapSoldr, ["cargo", "--version"], { env }).exec();
-    await new ToolRunner(opts.bootstrapSoldr, ["rustc", "--version"], { env }).exec();
+    const env = { ...process.env, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } as Record<string, string>;
+    await new ToolRunner(opts.bootstrapSoldr, ["--no-cache", "cargo", "--version"], { env }).exec();
+    await new ToolRunner(opts.bootstrapSoldr, ["--no-cache", "rustc", "--version"], { env }).exec();
   } else if (!resolveResult.enabled) {
     await exec.exec(cargo, ["--version"]);
     await exec.exec(rustc, ["--version"]);
