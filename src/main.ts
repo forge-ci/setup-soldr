@@ -1142,6 +1142,7 @@ export async function run(): Promise<void> {
     prebuildDeps: inputs.prebuildDeps,
     cacheUmbrella: cacheEnabled,
     lockfilePath: result.targetCache.lockfilePath,
+    plannedLockfileAvailable: result.targetCache.lockfileHash !== "no-lock",
   });
   const cookActive = cookGate.enabled && result.enabled;
   let cookFlags: string[] = [];

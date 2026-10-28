@@ -590,3 +590,16 @@ test("cookEnv skips the shared cook-index pack unless the workflow set it (soldr
   assert.equal(env["PATH"], "/bin");
   assert.equal(cookEnv({ SOLDR_COOK_INDEX: "1" })["SOLDR_COOK_INDEX"], "1");
 });
+
+test("cook stays disabled when a lockfile appears after planning", () => {
+  const lock = mkTmp("cook-late-lock-");
+  const lockfilePath = path.join(lock, "Cargo.lock");
+  fs.writeFileSync(lockfilePath, "# lock\n", "utf8");
+  const gate = decideCookGate({
+    prebuildDeps: "soldr-cook",
+    cacheUmbrella: true,
+    lockfilePath,
+    plannedLockfileAvailable: false,
+  });
+  assert.equal(gate.enabled, false);
+});

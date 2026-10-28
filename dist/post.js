@@ -52373,8 +52373,8 @@ function decideCookGate(opts) {
     if (!opts.cacheUmbrella) {
         return { enabled: false, reason: "cache: false - cook produces no value without caching" };
     }
-    if (!opts.lockfilePath) {
-        return { enabled: false, reason: "no Cargo.lock found - cook needs a lockfile to derive recipe" };
+    if (opts.plannedLockfileAvailable === false || !opts.lockfilePath) {
+        return { enabled: false, reason: "no Cargo.lock found during planning - cook needs a lockfile to derive recipe" };
     }
     if (!fs.existsSync(opts.lockfilePath)) {
         return { enabled: false, reason: `Cargo.lock path ${opts.lockfilePath} does not exist` };

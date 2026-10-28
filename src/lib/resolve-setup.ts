@@ -897,7 +897,13 @@ export async function resolveSetup(
   );
 
   const buildCacheInputRaw = inputs.buildCache.trim() || "true";
-  const buildCacheEnabled = cacheUmbrellaEnabled && !isFalsy(buildCacheInputRaw);
+  // Restored dependency caches cannot be audited for yanked crates without
+  // a Cargo.lock. Do not restore or save those caches in that case.
+  const lockfileAvailable = cargoLockHash !== "no-lock";
+  const buildCacheEnabled = cacheUmbrellaEnabled && lockfileAvailable && !isFalsy(buildCacheInputRaw);
+  if (cacheUmbrellaEnabled && !lockfileAvailable && !isFalsy(buildCacheInputRaw)) {
+    log("build-cache: disabled because no Cargo.lock is available for dependency audit");
+  }
 
   // soldr#2931 / setup-soldr#496: `ci-tests: true` carries a cache-ownership
   // contract — a lane whose entire product is linked test binaries may not
@@ -1084,7 +1090,7 @@ export async function resolveSetup(
   // 9-job matrix = ~500 MB wasted bandwidth). Sharing the key
   // across jobs means: first job saves, rest exact-HIT.
   const cargoRegistryCacheKey = `${cargoRegistryCacheRestorePrefix}${digest}`;
-  const cargoRegistryCacheEnabled = cacheUmbrellaEnabled && cargoRegistryCacheRequested;
+  const cargoRegistryCacheEnabled = cacheUmbrellaEnabled && lockfileAvailable && cargoRegistryCacheRequested;
   if (cargoRegistryCacheEnabled) {
     makeDirs(cargoRegistryCachePath);
     for (const archivePath of cargoRegistryArchive.restorePaths) makeDirs(path.dirname(archivePath));
@@ -1097,6 +1103,7 @@ export async function resolveSetup(
   const dylintOutputCacheEnabled =
     dylintModeEnabled &&
     cacheUmbrellaEnabled &&
+    lockfileAvailable &&
     parseOptInBool("dylint-output-cache", inputs.dylintOutputCache, true);
   if (dylintOutputCacheEnabled && targetTreeCacheEnabled) {
     throw new Error(
@@ -1284,7 +1291,7 @@ export async function resolveSetup(
   const cachePolicyLayers: string[] = [];
   if (cacheUmbrellaEnabled) cachePolicyLayers.push("toolchain");
   if (cargoRegistryCacheEnabled) cachePolicyLayers.push("cargo-registry");
-  if (cacheUmbrellaEnabled && cookPrebuildEnabled) cachePolicyLayers.push("cook");
+  if (cacheUmbrellaEnabled && lockfileAvailable && cookPrebuildEnabled) cachePolicyLayers.push("cook");
   if (buildCacheEnabled) cachePolicyLayers.push("zccache-unit");
   if (targetCacheEnabled) {
     cachePolicyLayers.push(targetTreeCacheEnabled ? "target-tree" : "target-bundle");
@@ -1382,8 +1389,8 @@ export async function resolveSetup(
   // private-session path under <cwd>/.zccache won't be used.
   const zccachePrivateOverlap = detectZccachePrivateOverlap(env);
   if (zccachePrivateOverlap) core.warning(zccachePrivateOverlap);
-  setEnv("SETUP_SOLDR_BUILD_CACHE_MODE", cacheUmbrellaEnabled ? buildCacheMode : "off");
-  setEnv("SOLDR_BUILD_CACHE_MODE", cacheUmbrellaEnabled ? buildCacheRuntimeMode : "off");
+  setEnv("SETUP_SOLDR_BUILD_CACHE_MODE", buildCacheEnabled ? buildCacheMode : "off");
+  setEnv("SOLDR_BUILD_CACHE_MODE", buildCacheEnabled ? buildCacheRuntimeMode : "off");
   setEnv(
     "SOLDR_TARGET_CACHE_MODE",
     targetCacheEnabled ? buildCacheRuntimeMode : "off",

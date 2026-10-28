@@ -2119,3 +2119,40 @@ test("detectZccachePrivateOverlap: returns null when SOLDR_ZCCACHE_PRIVATE unset
   assert.equal(detectZccachePrivateOverlap({}), null);
   assert.equal(detectZccachePrivateOverlap({ SOLDR_ZCCACHE_PRIVATE: undefined }), null);
 });
+
+test("missing Cargo.lock disables dependency-bearing cache plans", async () => {
+  const { result } = await run({ withLockfile: false }, {
+    INPUT_CACHE: "true",
+    INPUT_BUILD_CACHE: "true",
+    INPUT_BUILD_CACHE_MODE: "full",
+    INPUT_TARGET_CACHE: "true",
+    INPUT_CARGO_REGISTRY_CACHE: "true",
+    INPUT_PREBUILD_DEPS: "soldr-cook",
+  });
+  assert.equal(result.buildCache.enabled, false);
+  assert.equal(result.targetCache.enabled, false);
+  assert.equal(result.cargoRegistryCache.enabled, false);
+  assert.equal(result.envExports["SOLDR_BUILD_CACHE_MODE"], "off");
+  assert.equal(result.envExports["SETUP_SOLDR_BUILD_CACHE_MODE"], "off");
+  assert.equal(result.envExports["SOLDR_TARGET_CACHE_MODE"], "off");
+  const policyJson = result.envExports["SETUP_SOLDR_CACHE_POLICY_JSON"];
+  assert.ok(policyJson);
+  const policy = JSON.parse(policyJson);
+  assert.deepEqual(policy.layers, ["toolchain"]);
+});
+
+test("missing Cargo.lock disables Dylint output cache but retains foundation tools", async () => {
+  const { result } = await run(
+    { withLockfile: false },
+    { INPUT_DYLINT: "true", INPUT_TOOLCHAIN: "1.94.1" },
+    undefined,
+    async () => ({
+      channel: "nightly-2026-01-18",
+      rustVersion: "1.94",
+      rustcRelease: "1.94.0-nightly",
+      rustcCommitHash: "1111111111111111111111111111111111111111",
+    }),
+  );
+  assert.equal(result.dylintCache.enabled, true);
+  assert.equal(result.dylintCache.outputCacheEnabled, false);
+});
