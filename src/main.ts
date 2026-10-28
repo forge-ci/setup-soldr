@@ -16,7 +16,8 @@ import { autoKeyEnabled } from "./lib/ancestor-cache.js";
 import { ancestorTelemetry, publishBuildCachePlan, type AncestorTelemetry } from "./lib/ancestor-cache-telemetry.js";
 import { planAncestorRestore, planLocalAncestorRestore } from "./lib/ancestor-cache-github.js";
 import { cargoConfigHash, shortJsonHash, targetEnvHash, workspaceManifestHash } from "./lib/cache-keys.js";
-import { readRawInputs, resolveSetup, applyResolveResult } from "./lib/resolve-setup.js";
+import { readRawInputs, resolveSetup, applyResolveResult, setupEnabled } from "./lib/resolve-setup.js";
+import { bootstrapAssetFor, ensureBootstrap } from "./lib/bootstrap-soldr.js";
 import {
   cacheProfileDefault,
   describeCacheProfile,
@@ -415,6 +416,14 @@ export async function run(): Promise<void> {
   // ---- resolve ----
   await markPhase("resolve");
   const inputs = readRawInputs(process.env);
+  if (setupEnabled(inputs.enable)) {
+    let bootstrap: Promise<string> | undefined;
+    ctx.getBootstrapSoldr = () => {
+      const toolCache = ctx.env["RUNNER_TOOL_CACHE"]?.trim() || path.join(os.homedir(), ".cache", "setup-soldr");
+      bootstrap ??= ensureBootstrap(ctx.runnerTemp, bootstrapAssetFor(process.platform, process.arch, detectLibc()), undefined, path.join(toolCache, "bootstrap"), ctx.env["SETUP_SOLDR_BOOTSTRAP_ARCHIVE"]?.trim());
+      return bootstrap;
+    };
+  }
   const result = await resolveSetup(ctx, inputs);
   await applyResolveResult(result);
   await finishPhase("resolve");
@@ -579,7 +588,7 @@ export async function run(): Promise<void> {
       // On mini-cache hit, ensureSoldr's installedVersion() check sees the
       // restored binary at the expected path with the expected version and
       // short-circuits — no GH fetch.
-      await ensureSoldr({ resolveResult: result, githubToken: ctx.githubToken });
+      await ensureSoldr({ resolveResult: result, githubToken: ctx.githubToken, getBootstrapSoldr: ctx.getBootstrapSoldr });
     } else {
       installPassthrough({
         soldrPath: result.soldrPath,
@@ -1329,6 +1338,8 @@ export async function run(): Promise<void> {
         expectedComponents: result.toolchain.components,
         channel: result.toolchain.channel,
         rustupCommand: process.platform === "win32" ? "rustup.exe" : "rustup",
+        bootstrapSoldr: await ctx.getBootstrapSoldr?.(),
+        allowUnmanagedProbe: !result.enabled,
         log: (msg) => logger.log(msg),
       });
       verifiedMatch = verify.match;
@@ -1408,10 +1419,11 @@ export async function run(): Promise<void> {
       }),
       logger: storeLogger,
     });
-    await timeSubPhase("toolchain", "rustup-install", () =>
+    await timeSubPhase("toolchain", "rustup-install", async () =>
       ensureRustToolchain({
         resolveResult: result,
         setupCacheExactHit,
+        bootstrapSoldr: await ctx.getBootstrapSoldr?.(),
         forceRepair: forceToolchainRepair,
       }),
     );
@@ -1423,6 +1435,8 @@ export async function run(): Promise<void> {
         expectedComponents: result.toolchain.components,
         channel: result.toolchain.channel,
         rustupCommand: process.platform === "win32" ? "rustup.exe" : "rustup",
+        bootstrapSoldr: await ctx.getBootstrapSoldr?.(),
+        allowUnmanagedProbe: !result.enabled,
         log: (msg) => logger.log(msg),
       });
       if (!repaired.match) {

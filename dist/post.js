@@ -52212,7 +52212,7 @@ const fs = __importStar(__nccwpck_require__(73024));
 const fsp = __importStar(__nccwpck_require__(51455));
 const path = __importStar(__nccwpck_require__(76760));
 const core = __importStar(__nccwpck_require__(37484));
-const exec = __importStar(__nccwpck_require__(95236));
+const toolrunner_js_1 = __nccwpck_require__(6665);
 const cache = __importStar(__nccwpck_require__(5116));
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const log_utils_js_1 = __nccwpck_require__(28129);
@@ -52418,7 +52418,7 @@ async function runCook(opts) {
         // unchanged — we only modify the line prefix, not the line body.
         // Color forcing (CARGO_TERM_COLOR/FORCE_COLOR/CLICOLOR_FORCE) is
         // already injected by resolve-setup.ts when timestamps are enabled.
-        exitCode = await exec.exec(soldrBinary, ["cook", ...flags], {
+        exitCode = await new toolrunner_js_1.ToolRunner(soldrBinary, ["cook", ...flags], {
             cwd: projectRoot,
             env: cookEnv(process.env),
             ignoreReturnCode: true,
@@ -52431,7 +52431,7 @@ async function runCook(opts) {
                     process.stderr.write(`${(0, log_utils_js_1.formatLogLine)(process.env, line)}\n`);
                 },
             },
-        });
+        }).exec();
     }
     catch (err) {
         log(`cook: exec threw: ${err instanceof Error ? err.message : String(err)}`);
@@ -52595,7 +52595,7 @@ async function runSoldrJson(soldrBinary, args, cwd, log) {
     log(`cook-cache: running '${soldrBinary} ${args.join(" ")}' in ${cwd}`);
     let code = 1;
     try {
-        code = await exec.exec(soldrBinary, args, {
+        code = await new toolrunner_js_1.ToolRunner(soldrBinary, args, {
             cwd,
             ignoreReturnCode: true,
             silent: true,
@@ -52607,7 +52607,7 @@ async function runSoldrJson(soldrBinary, args, cwd, log) {
                     stderr += data.toString("utf8");
                 },
             },
-        });
+        }).exec();
     }
     catch (err) {
         stderr += err instanceof Error ? err.message : String(err);
@@ -53786,13 +53786,15 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports._internal = void 0;
 exports.installedSoldrReleaseIsUsable = installedSoldrReleaseIsUsable;
+exports.extractBinary = extractBinary;
+exports.downloadWithHeaders = downloadWithHeaders;
 exports.ensureSoldr = ensureSoldr;
 const fs = __importStar(__nccwpck_require__(73024));
 const node_crypto_1 = __nccwpck_require__(77598);
 const os = __importStar(__nccwpck_require__(48161));
 const path = __importStar(__nccwpck_require__(76760));
 const core = __importStar(__nccwpck_require__(37484));
-const exec = __importStar(__nccwpck_require__(95236));
+const toolrunner_js_1 = __nccwpck_require__(6665);
 const tc = __importStar(__nccwpck_require__(33472));
 const fzstd = __importStar(__nccwpck_require__(27437));
 const log_utils_js_1 = __nccwpck_require__(28129);
@@ -53981,7 +53983,7 @@ async function installedVersion(binaryPath) {
     if (!fs.existsSync(binaryPath))
         return null;
     let stdout = "";
-    const code = await exec.exec(binaryPath, ["version", "--json"], {
+    const code = await new toolrunner_js_1.ToolRunner(binaryPath, ["version", "--json"], {
         silent: true,
         ignoreReturnCode: true,
         listeners: {
@@ -53989,7 +53991,7 @@ async function installedVersion(binaryPath) {
                 stdout += data.toString("utf8");
             },
         },
-    });
+    }).exec();
     if (code !== 0)
         return null;
     try {
@@ -54471,7 +54473,7 @@ function copyBundledReleasePayload(extractDir, installDir, binaryName) {
     return copied;
 }
 async function buildFromSource(opts) {
-    const { repo, ref, commitSha, installDir, target, binaryName, githubToken, log } = opts;
+    const { repo, ref, commitSha, installDir, target, binaryName, githubToken, bootstrapSoldr, log } = opts;
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "setup-soldr-source-"));
     try {
         const archivePath = path.join(tmp, "source.zip");
@@ -54492,10 +54494,16 @@ async function buildFromSource(opts) {
                 buildEnv[k] = v;
         }
         buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+        // The intermediate compiler must not start a persistent broker that a
+        // different requested Soldr image inherits later in this action.
+        buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+        buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
+        buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
+        buildEnv["SOLDR_AS"] = "";
         log(`Building soldr from source ref ${ref} (${commitSha})`);
         // #389: streamExec prefixes each `Compiling foo` line so the
         // forensic log shows where the soldr build wall-clock went.
-        await (0, log_utils_js_1.streamExec)("cargo", ["build", "--locked", "--bin", "soldr", "--target", target], { cwd: repoRoot, env: buildEnv });
+        await (0, log_utils_js_1.streamExec)(bootstrapSoldr, ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target], { cwd: repoRoot, env: buildEnv });
         const builtBinary = path.join(repoRoot, "target", target, "debug", binaryName);
         if (!fs.existsSync(builtBinary)) {
             throw new Error(`built soldr binary not found at ${builtBinary}`);
@@ -54531,18 +54539,23 @@ async function buildFromSource(opts) {
     }
 }
 async function buildFromLocalSource(opts) {
-    const { sourcePath, sourceIdentity, installDir, target, binaryName, log } = opts;
+    const { sourcePath, sourceIdentity, installDir, target, binaryName, bootstrapSoldr, log } = opts;
     const buildEnv = {};
     for (const [key, value] of Object.entries(process.env)) {
         if (value !== undefined)
             buildEnv[key] = value;
     }
     buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+    // Keep the bootstrap's broker out of the requested source version's run.
+    buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+    buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
+    buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
+    buildEnv["SOLDR_AS"] = "";
     const cargoTargetDir = path.join(os.tmpdir(), "setup-soldr-source-build", sourceIdentity);
     fs.mkdirSync(cargoTargetDir, { recursive: true });
     buildEnv["CARGO_TARGET_DIR"] = cargoTargetDir;
     log(`Building soldr from local source ${sourcePath} (${sourceIdentity})`);
-    await (0, log_utils_js_1.streamExec)("cargo", ["build", "--locked", "--bin", "soldr", "--target", target], { cwd: sourcePath, env: buildEnv });
+    await (0, log_utils_js_1.streamExec)(bootstrapSoldr, ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target], { cwd: sourcePath, env: buildEnv });
     const builtBinary = path.join(cargoTargetDir, target, "debug", binaryName);
     if (!fs.existsSync(builtBinary)) {
         throw new Error(`built soldr binary not found at ${builtBinary}`);
@@ -54655,7 +54668,11 @@ async function ensureSoldr(opts) {
                 return;
             }
         }
+        const bootstrapSoldr = opts.bootstrapSoldr ?? await opts.getBootstrapSoldr?.();
+        if (!bootstrapSoldr)
+            throw new Error("verified Soldr bootstrap required for source build");
         const builtPath = await buildFromLocalSource({
+            bootstrapSoldr,
             sourcePath,
             sourceIdentity,
             installDir,
@@ -54682,7 +54699,11 @@ async function ensureSoldr(opts) {
                 return;
             }
         }
+        const bootstrapSoldr = opts.bootstrapSoldr ?? await opts.getBootstrapSoldr?.();
+        if (!bootstrapSoldr)
+            throw new Error("verified Soldr bootstrap required for source build");
         const builtPath = await buildFromSource({
+            bootstrapSoldr,
             repo,
             ref: requestedRef,
             commitSha,
@@ -55222,7 +55243,7 @@ function getTimestampFormat(env) {
  * modules that don't need @actions/exec).
  */
 async function streamExec(command, args, opts = {}) {
-    const exec = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 95236, 23));
+    const { ToolRunner } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 6665, 23));
     const env = process.env;
     const colorEnv = colorForceEnvironment(env);
     const userEnv = opts.env ?? undefined;
@@ -55241,7 +55262,7 @@ async function streamExec(command, args, opts = {}) {
         }
     }
     const userListeners = opts.listeners ?? {};
-    return exec.exec(command, [...args], {
+    return new ToolRunner(command, [...args], {
         ...opts,
         silent: true,
         env: mergedEnv,
@@ -55256,7 +55277,7 @@ async function streamExec(command, args, opts = {}) {
                 userListeners.errline?.(line);
             },
         },
-    });
+    }).exec();
 }
 
 
@@ -56839,7 +56860,7 @@ function isEligibleForMiniCache(opts) {
 /***/ }),
 
 /***/ 71349:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -56857,46 +56878,13 @@ function isEligibleForMiniCache(opts) {
 // in-TS implementation when `null` is returned. This is the linchpin of
 // the backwards-compat strategy promised in the issue (the action must
 // still work when pinned to a soldr release older than 0.7.35).
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TOOLCHAIN_SUBCOMMANDS_MIN_VERSION = void 0;
 exports.detectSoldrSupportsToolchainSubcommands = detectSoldrSupportsToolchainSubcommands;
 exports.soldrToolchainEnsure = soldrToolchainEnsure;
 exports.soldrToolchainLink = soldrToolchainLink;
 exports.soldrToolchainDoctor = soldrToolchainDoctor;
-const exec = __importStar(__nccwpck_require__(95236));
+const toolrunner_js_1 = __nccwpck_require__(6665);
 const verify_soldr_js_1 = __nccwpck_require__(82947);
 /**
  * Minimum soldr version that exposes the `toolchain ensure/link/doctor`
@@ -56909,7 +56897,7 @@ const SUPPORTED_SCHEMA_VERSION = 1;
 async function defaultExec(cmd, args) {
     let stdout = "";
     let stderr = "";
-    const code = await exec.exec(cmd, args, {
+    const code = await new toolrunner_js_1.ToolRunner(cmd, args, {
         silent: true,
         ignoreReturnCode: true,
         listeners: {
@@ -56920,7 +56908,7 @@ async function defaultExec(cmd, args) {
                 stderr += data.toString("utf8");
             },
         },
-    });
+    }).exec();
     return { code, stdout, stderr };
 }
 function resolveExec(deps) {
@@ -57221,7 +57209,7 @@ const fsp = __importStar(__nccwpck_require__(51455));
 const os = __importStar(__nccwpck_require__(48161));
 const path = __importStar(__nccwpck_require__(76760));
 const cache = __importStar(__nccwpck_require__(5116));
-const exec = __importStar(__nccwpck_require__(95236));
+const toolrunner_js_1 = __nccwpck_require__(6665);
 const github = __importStar(__nccwpck_require__(93228));
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const save_policy_js_1 = __nccwpck_require__(98097);
@@ -57772,14 +57760,26 @@ async function verifyRestoredToolchain(opts) {
     const runRustup = opts.runRustup ?? (async (args) => {
         let stdout = "";
         let stderr = "";
-        const code = await exec.exec(rustupCommand, args, {
+        const isRustProbe = args[0] === "run" && args[1] === channel;
+        if (isRustProbe && !opts.bootstrapSoldr && !opts.allowUnmanagedProbe) {
+            throw new Error("verified Soldr bootstrap required for restored toolchain probe");
+        }
+        const managed = opts.bootstrapSoldr && isRustProbe;
+        const tool = managed ? opts.bootstrapSoldr : rustupCommand;
+        let toolArgs = managed ? args.slice(2) : args;
+        if (managed && toolArgs[0] === "cargo-miri")
+            toolArgs = ["cargo", "miri", ...toolArgs.slice(1)];
+        if (managed)
+            toolArgs = ["--no-cache", ...toolArgs];
+        const code = await new toolrunner_js_1.ToolRunner(tool, toolArgs, {
+            env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } : undefined,
             silent: true,
             ignoreReturnCode: true,
             listeners: {
                 stdout: (data) => { stdout += data.toString("utf8"); },
                 stderr: (data) => { stderr += data.toString("utf8"); },
             },
-        });
+        }).exec();
         return { code, stdout, stderr };
     });
     let releaseMatch = true;
@@ -57794,7 +57794,7 @@ async function verifyRestoredToolchain(opts) {
             return { match: false, observedRelease: null };
         }
         if (version.code !== 0) {
-            log(`solo-toolchain-cache: rustup run ${channel} rustc --version exited ${version.code}; cannot verify restore`);
+            log(`solo-toolchain-cache: rustc --version exited ${version.code}; cannot verify restore`);
             return { match: false, observedRelease: null };
         }
         const match = version.stdout.trim().match(/^rustc\s+(\S+)/);
@@ -59316,7 +59316,7 @@ async function verdictJanitor(log) {
 /***/ }),
 
 /***/ 82947:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
@@ -59325,44 +59325,12 @@ async function verdictJanitor(log) {
 // Port of .github/actions/setup-soldr/verify_soldr.py.
 // Runs `soldr version --json` and asserts the binary is on PATH, returns
 // the resolved version string for the action output.
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.versionTuple = versionTuple;
 exports.parseVersionJsonOutput = parseVersionJsonOutput;
+exports.verifyManagedToolVersions = verifyManagedToolVersions;
 exports.verifySoldr = verifySoldr;
-const exec = __importStar(__nccwpck_require__(95236));
+const toolrunner_js_1 = __nccwpck_require__(6665);
 const log_utils_js_1 = __nccwpck_require__(28129);
 function versionTuple(value) {
     const cleaned = value.trim().replace(/^v/, "");
@@ -59447,7 +59415,7 @@ function asJsonObject(value) {
 async function captureAll(command, args) {
     let stdout = "";
     let combined = "";
-    const code = await exec.exec(command, args, {
+    const code = await new toolrunner_js_1.ToolRunner(command, args, {
         silent: true,
         ignoreReturnCode: true,
         listeners: {
@@ -59460,8 +59428,13 @@ async function captureAll(command, args) {
                 combined += data.toString("utf8");
             },
         },
-    });
+    }).exec();
     return { code, stdout, combined };
+}
+/** Informational probes must use the installed managed toolchain. */
+async function verifyManagedToolVersions(soldrPath, run = (command, args, options) => new toolrunner_js_1.ToolRunner(command, args, options).exec()) {
+    await run(soldrPath, ["cargo", "--version"], { ignoreReturnCode: true });
+    await run(soldrPath, ["rustc", "--version"], { ignoreReturnCode: true });
 }
 async function verifySoldr(opts) {
     const logger = (0, log_utils_js_1.createLogger)(process.env);
@@ -59491,11 +59464,10 @@ async function verifySoldr(opts) {
             throw new Error(`setup-soldr build-cache-mode ${JSON.stringify(buildCacheMode || "thin")} requires soldr v0.7.10 or newer for the zccache Rust artifact plan API; installed ${soldrVersion}.`);
         }
     }
-    // Smoke checks. cargo/rustc exit codes ignored — they're informational.
-    await exec.exec("cargo", ["--version"], { ignoreReturnCode: true });
-    await exec.exec("rustc", ["--version"], { ignoreReturnCode: true });
+    // Version probes are informational, but still use the managed toolchain.
+    await verifyManagedToolVersions(soldrPath);
     log("+ soldr status --json");
-    const status = await captureAll("soldr", ["status", "--json"]);
+    const status = await captureAll(soldrPath, ["status", "--json"]);
     if (status.code === 0) {
         if (status.stdout.trim()) {
             for (const line of status.stdout.split(/\r?\n/)) {

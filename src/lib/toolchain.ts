@@ -13,6 +13,7 @@ import * as path from "node:path";
 import * as toml from "@iarna/toml";
 import * as io from "@actions/io";
 import * as exec from "@actions/exec";
+import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import type { Logger, ToolchainSpec } from "./types.js";
 
 const ROLLING_TOOLCHAIN_ALIASES = ["stable", "beta", "nightly"] as const;
@@ -279,12 +280,20 @@ async function installedToolchainRelease(
   rustup: string,
   channel: string,
   env: Record<string, string>,
+  bootstrapSoldr?: string,
 ): Promise<string | null> {
-  const { exitCode, stdout } = await runRustupText(
-    rustup,
-    ["run", channel, "rustc", "--version"],
-    env,
-  );
+  let stdout = "";
+  let exitCode: number;
+  if (bootstrapSoldr) {
+    exitCode = await new ToolRunner(bootstrapSoldr, ["--no-cache", "rustc", "--version"], {
+      env: { ...env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" }, silent: true, ignoreReturnCode: true,
+      listeners: { stdout: (data: Buffer) => { stdout += data.toString(); } },
+    }).exec();
+  } else {
+    const result = await runRustupText(rustup, ["run", channel, "rustc", "--version"], env);
+    exitCode = result.exitCode;
+    stdout = result.stdout;
+  }
   if (exitCode !== 0) return null;
   const match = stdout.trim().match(/^rustc\s+(\S+)/);
   return match ? (match[1] ?? null) : null;
@@ -314,6 +323,9 @@ export interface SystemRustupProbeDeps {
 export async function systemRustupSatisfiesRequest(opts: {
   cargoHome: string;
   rustupHome: string;
+  bootstrapSoldr?: string;
+  getBootstrapSoldr?: () => Promise<string>;
+  allowUnmanagedProbe?: boolean;
   toolchain: ToolchainSpec;
   env: Record<string, string | undefined>;
   logger?: Logger;
@@ -364,7 +376,12 @@ export async function systemRustupSatisfiesRequest(opts: {
 
   const expectedRelease = toolchain.cacheChannel.trim();
   if (rollingToolchainAlias(channel) !== null && expectedRelease) {
-    const installedRelease = await installedReleaseFn(rustup, channel, probeEnv);
+    let bootstrapSoldr = opts.bootstrapSoldr;
+    if (!bootstrapSoldr && !opts.allowUnmanagedProbe && !deps?.installedToolchainRelease) {
+      if (!opts.getBootstrapSoldr) throw new Error("verified Soldr bootstrap required for system Rust release probe");
+      bootstrapSoldr = await opts.getBootstrapSoldr();
+    }
+    const installedRelease = await installedReleaseFn(rustup, channel, probeEnv, bootstrapSoldr);
     if (installedRelease !== expectedRelease) {
       logger?.log(
         `Runner rustup home ${rustupHome} has ${channel} release ${installedRelease ?? "missing"} but exact-hit reuse expects ${expectedRelease}; using managed RUSTUP_HOME under the setup cache root`,

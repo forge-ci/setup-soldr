@@ -412,6 +412,9 @@ export interface ActionContext {
   env: Record<string, string | undefined>;
   workspace: string;
   runnerTemp: string;
+  /** Verified bootstrap binary for compiler probes before final installation. */
+  bootstrapSoldr?: string;
+  getBootstrapSoldr?: () => Promise<string>;
   runnerOs: string;
   runnerArch: string;
   githubSha: string;

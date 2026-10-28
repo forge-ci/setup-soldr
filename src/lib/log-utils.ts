@@ -196,7 +196,7 @@ export async function streamExec(
   args: ReadonlyArray<string>,
   opts: import("@actions/exec/lib/interfaces.js").ExecOptions = {},
 ): Promise<number> {
-  const exec = await import("@actions/exec");
+  const { ToolRunner } = await import("@actions/exec/lib/toolrunner.js");
   const env = process.env as Record<string, string | undefined>;
   const colorEnv = colorForceEnvironment(env);
   const userEnv = (opts.env as Record<string, string | undefined> | undefined) ?? undefined;
@@ -213,7 +213,7 @@ export async function streamExec(
     }
   }
   const userListeners = opts.listeners ?? {};
-  return exec.exec(command, [...args], {
+  return new ToolRunner(command, [...args], {
     ...opts,
     silent: true,
     env: mergedEnv,
@@ -228,5 +228,5 @@ export async function streamExec(
         userListeners.errline?.(line);
       },
     },
-  });
+  }).exec();
 }

@@ -74,7 +74,7 @@ def test_release_lane_uses_soldr_capabilities_and_safe_release_arguments() -> No
     assert job["outputs"]["target-plan-json"] == "${{ steps.setup-soldr.outputs.target-plan-json }}"
 
     setup = _step(job, "Setup Soldr release target")
-    assert setup["uses"] == "zackees/setup-soldr@v0"
+    assert setup["uses"] == "./.setup-soldr-release-workflow"
     assert setup["with"]["cross-targets"] == "${{ inputs.target }}"
     assert setup["with"]["cache"] == "${{ inputs.cache }}"
     assert setup["with"]["build-cache"] == "${{ inputs.cache }}"

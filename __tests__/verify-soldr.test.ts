@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseVersionJsonOutput, versionTuple } from "../src/lib/verify-soldr.js";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import { parseVersionJsonOutput, verifyManagedToolVersions, verifySoldr, versionTuple } from "../src/lib/verify-soldr.js";
 
 test("versionTuple parses canonical semver", () => {
   assert.deepEqual(versionTuple("0.7.10"), { major: 0, minor: 7, patch: 10 });
@@ -80,4 +83,48 @@ test("parseVersionJsonOutput rejects garbage with a raw-output snippet", () => {
   });
   // A JSON scalar is not an acceptable payload either.
   assert.throws(() => parseVersionJsonOutput('"0.7.96"'), /non-JSON output/);
+});
+
+
+test("managed version probes use the exact Soldr executable and tolerate tool failures", async () => {
+  const calls: Array<{ command: string; args: string[]; ignore: boolean }> = [];
+  const run = async (command: string, args: string[], opts: { ignoreReturnCode: boolean }) => {
+    calls.push({ command, args, ignore: opts.ignoreReturnCode });
+    return 17;
+  };
+  await verifyManagedToolVersions("/installed path/soldr", run);
+  assert.deepEqual(calls, [
+    { command: "/installed path/soldr", args: ["cargo", "--version"], ignore: true },
+    { command: "/installed path/soldr", args: ["rustc", "--version"], ignore: true },
+  ]);
+});
+
+
+test("verification executes a Soldr path containing spaces without invoking PATH tools", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "setup-soldr verify path "));
+  const log = path.join(dir, "calls.log");
+  const win = process.platform === "win32";
+  const executableDir = win ? dir : path.join(dir, 'quoted "path" with \\ slash');
+  if (!win) fs.mkdirSync(executableDir);
+  const fake = path.join(executableDir, win ? "soldr.cmd" : "soldr");
+  const script = win
+    ? '@echo off\r\nif "%~1"=="version" (echo {"soldr_version":"0.9.41"}& exit /b 0)\r\nif "%~1"=="status" (echo {}& exit /b 0)\r\necho %*>>"%SETUP_SOLDR_TEST_LOG%"\r\nexit /b 17\r\n'
+    : `#!/bin/sh
+case "$1" in
+  version) echo '{"soldr_version":"0.9.41"}' ;;
+  status) echo '{}' ;;
+  *) echo "$*" >> "$SETUP_SOLDR_TEST_LOG"; exit 17 ;;
+esac
+`;
+  fs.writeFileSync(fake, script, { mode: 0o755 });
+  const previous = process.env.SETUP_SOLDR_TEST_LOG;
+  process.env.SETUP_SOLDR_TEST_LOG = log;
+  try {
+    const result = await verifySoldr({ soldrPath: fake, buildCacheMode: "", requireRustPlan: false });
+    assert.equal(result.soldrVersion, "0.9.41");
+    assert.deepEqual(fs.readFileSync(log, "utf8").trim().split(/\r?\n/), ["cargo --version", "rustc --version"]);
+  } finally {
+    if (previous === undefined) delete process.env.SETUP_SOLDR_TEST_LOG;
+    else process.env.SETUP_SOLDR_TEST_LOG = previous;
+  }
 });

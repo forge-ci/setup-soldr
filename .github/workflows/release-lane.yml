@@ -122,7 +122,7 @@ jobs:
 
       - name: Setup Soldr release target
         id: setup-soldr
-        uses: zackees/setup-soldr@v0
+        uses: ./.setup-soldr-release-workflow
         with:
           cross-targets: ${{ inputs.target }}
           cache: ${{ inputs.cache }}

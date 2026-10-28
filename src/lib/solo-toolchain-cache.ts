@@ -19,6 +19,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import * as cache from "@actions/cache";
 import * as exec from "@actions/exec";
+import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as github from "@actions/github";
 import { compressCache, decompressCache, detectCompressMagic } from "./cache-compress.js";
 import { allowCacheSave, gatedSaveCache } from "./save-policy.js";
@@ -692,6 +693,8 @@ export async function verifyRestoredToolchain(opts: {
   expectedComponents?: string[];
   channel: string;
   rustupCommand: string;
+  bootstrapSoldr?: string;
+  allowUnmanagedProbe?: boolean;
   log: (msg: string) => void;
   /** Test seam; production invokes rustup with the supplied arguments. */
   runRustup?: (args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
@@ -709,14 +712,24 @@ export async function verifyRestoredToolchain(opts: {
   const runRustup = opts.runRustup ?? (async (args: string[]) => {
     let stdout = "";
     let stderr = "";
-    const code = await exec.exec(rustupCommand, args, {
+    const isRustProbe = args[0] === "run" && args[1] === channel;
+    if (isRustProbe && !opts.bootstrapSoldr && !opts.allowUnmanagedProbe) {
+      throw new Error("verified Soldr bootstrap required for restored toolchain probe");
+    }
+    const managed = opts.bootstrapSoldr && isRustProbe;
+    const tool = managed ? opts.bootstrapSoldr! : rustupCommand;
+    let toolArgs = managed ? args.slice(2) : args;
+    if (managed && toolArgs[0] === "cargo-miri") toolArgs = ["cargo", "miri", ...toolArgs.slice(1)];
+    if (managed) toolArgs = ["--no-cache", ...toolArgs];
+    const code = await new ToolRunner(tool, toolArgs, {
+      env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } as Record<string, string> : undefined,
       silent: true,
       ignoreReturnCode: true,
       listeners: {
         stdout: (data: Buffer) => { stdout += data.toString("utf8"); },
         stderr: (data: Buffer) => { stderr += data.toString("utf8"); },
       },
-    });
+    }).exec();
     return { code, stdout, stderr };
   });
   let releaseMatch = true;
@@ -730,7 +743,7 @@ export async function verifyRestoredToolchain(opts: {
       return { match: false, observedRelease: null };
     }
     if (version.code !== 0) {
-      log(`solo-toolchain-cache: rustup run ${channel} rustc --version exited ${version.code}; cannot verify restore`);
+      log(`solo-toolchain-cache: rustc --version exited ${version.code}; cannot verify restore`);
       return { match: false, observedRelease: null };
     }
     const match = version.stdout.trim().match(/^rustc\s+(\S+)/);

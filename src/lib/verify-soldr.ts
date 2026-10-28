@@ -4,7 +4,7 @@
 // Runs `soldr version --json` and asserts the binary is on PATH, returns
 // the resolved version string for the action output.
 
-import * as exec from "@actions/exec";
+import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import { createLogger } from "./log-utils.js";
 
 export interface VerifyResult {
@@ -105,7 +105,7 @@ async function captureAll(
 ): Promise<{ code: number; stdout: string; combined: string }> {
   let stdout = "";
   let combined = "";
-  const code = await exec.exec(command, args, {
+  const code = await new ToolRunner(command, args, {
     silent: true,
     ignoreReturnCode: true,
     listeners: {
@@ -118,8 +118,23 @@ async function captureAll(
         combined += data.toString("utf8");
       },
     },
-  });
+  }).exec();
   return { code, stdout, combined };
+}
+
+type VersionProbe = (
+  command: string,
+  args: string[],
+  options: { ignoreReturnCode: boolean },
+) => Promise<number>;
+
+/** Informational probes must use the installed managed toolchain. */
+export async function verifyManagedToolVersions(
+  soldrPath: string,
+  run: VersionProbe = (command, args, options) => new ToolRunner(command, args, options).exec(),
+): Promise<void> {
+  await run(soldrPath, ["cargo", "--version"], { ignoreReturnCode: true });
+  await run(soldrPath, ["rustc", "--version"], { ignoreReturnCode: true });
 }
 
 export async function verifySoldr(opts: {
@@ -160,12 +175,11 @@ export async function verifySoldr(opts: {
     }
   }
 
-  // Smoke checks. cargo/rustc exit codes ignored — they're informational.
-  await exec.exec("cargo", ["--version"], { ignoreReturnCode: true });
-  await exec.exec("rustc", ["--version"], { ignoreReturnCode: true });
+  // Version probes are informational, but still use the managed toolchain.
+  await verifyManagedToolVersions(soldrPath);
 
   log("+ soldr status --json");
-  const status = await captureAll("soldr", ["status", "--json"]);
+  const status = await captureAll(soldrPath, ["status", "--json"]);
   if (status.code === 0) {
     if (status.stdout.trim()) {
       for (const line of status.stdout.split(/\r?\n/)) {

@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
+import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as tc from "@actions/tool-cache";
 import * as fzstd from "fzstd";
 import { createLogger, streamExec } from "./log-utils.js";
@@ -233,7 +233,7 @@ async function resolveRefCommitSha(repo: string, ref: string, githubToken: strin
 async function installedVersion(binaryPath: string): Promise<string | null> {
   if (!fs.existsSync(binaryPath)) return null;
   let stdout = "";
-  const code = await exec.exec(binaryPath, ["version", "--json"], {
+  const code = await new ToolRunner(binaryPath, ["version", "--json"], {
     silent: true,
     ignoreReturnCode: true,
     listeners: {
@@ -241,7 +241,7 @@ async function installedVersion(binaryPath: string): Promise<string | null> {
         stdout += data.toString("utf8");
       },
     },
-  });
+  }).exec();
   if (code !== 0) return null;
   try {
     // Tolerant parse: extra fields, surrounding noise, and the silent-binary
@@ -502,7 +502,7 @@ function prepareZipArchivePath(archivePath: string, archiveExt: ArchiveExt): str
   return zipPath;
 }
 
-async function extractBinary(
+export async function extractBinary(
   archivePath: string,
   archiveExt: ArchiveExt,
   binaryName: string,
@@ -803,9 +803,10 @@ async function buildFromSource(opts: {
   target: string;
   binaryName: string;
   githubToken: string;
+  bootstrapSoldr: string;
   log: (msg: string) => void;
 }): Promise<string> {
-  const { repo, ref, commitSha, installDir, target, binaryName, githubToken, log } = opts;
+  const { repo, ref, commitSha, installDir, target, binaryName, githubToken, bootstrapSoldr, log } = opts;
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "setup-soldr-source-"));
   try {
     const archivePath = path.join(tmp, "source.zip");
@@ -825,12 +826,18 @@ async function buildFromSource(opts: {
       if (v !== undefined) buildEnv[k] = v;
     }
     buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+    // The intermediate compiler must not start a persistent broker that a
+    // different requested Soldr image inherits later in this action.
+    buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+    buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
+    buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
+    buildEnv["SOLDR_AS"] = "";
     log(`Building soldr from source ref ${ref} (${commitSha})`);
     // #389: streamExec prefixes each `Compiling foo` line so the
     // forensic log shows where the soldr build wall-clock went.
     await streamExec(
-      "cargo",
-      ["build", "--locked", "--bin", "soldr", "--target", target],
+      bootstrapSoldr,
+      ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target],
       { cwd: repoRoot, env: buildEnv },
     );
     const builtBinary = path.join(repoRoot, "target", target, "debug", binaryName);
@@ -871,22 +878,28 @@ async function buildFromLocalSource(opts: {
   installDir: string;
   target: string;
   binaryName: string;
+  bootstrapSoldr: string;
   log: (msg: string) => void;
 }): Promise<string> {
-  const { sourcePath, sourceIdentity, installDir, target, binaryName, log } = opts;
+  const { sourcePath, sourceIdentity, installDir, target, binaryName, bootstrapSoldr, log } = opts;
   const buildEnv: Record<string, string> = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (value !== undefined) buildEnv[key] = value;
   }
   buildEnv["CARGO_TERM_COLOR"] = buildEnv["CARGO_TERM_COLOR"] ?? "always";
+  // Keep the bootstrap's broker out of the requested source version's run.
+  buildEnv["SOLDR_RUSTC_WRAPPER"] = "none";
+  buildEnv["SOLDR_BROKER_AUTOSPAWN"] = "0";
+  buildEnv["SOLDR_NO_GLOBAL_DELEGATION"] = "1";
+  buildEnv["SOLDR_AS"] = "";
   const cargoTargetDir = path.join(os.tmpdir(), "setup-soldr-source-build", sourceIdentity);
   fs.mkdirSync(cargoTargetDir, { recursive: true });
   buildEnv["CARGO_TARGET_DIR"] = cargoTargetDir;
 
   log(`Building soldr from local source ${sourcePath} (${sourceIdentity})`);
   await streamExec(
-    "cargo",
-    ["build", "--locked", "--bin", "soldr", "--target", target],
+    bootstrapSoldr,
+    ["--no-cache", "cargo", "build", "--locked", "--bin", "soldr", "--target", target],
     { cwd: sourcePath, env: buildEnv },
   );
   const builtBinary = path.join(cargoTargetDir, target, "debug", binaryName);
@@ -913,7 +926,7 @@ async function buildFromLocalSource(opts: {
   return destination;
 }
 
-async function downloadWithHeaders(url: string, dest: string, headers: Record<string, string>): Promise<void> {
+export async function downloadWithHeaders(url: string, dest: string, headers: Record<string, string>): Promise<void> {
   // tc.downloadTool supports auth/headers via separate args; rather than rely
   // on that, do a manual fetch+pipe to keep behavior parity with the Python
   // implementation. We stream to disk to avoid loading large archives in RAM.
@@ -987,6 +1000,8 @@ async function installCargoChefSupport(opts: {
 export async function ensureSoldr(opts: {
   resolveResult: ResolveResult;
   githubToken: string;
+  bootstrapSoldr?: string;
+  getBootstrapSoldr?: () => Promise<string>;
 }): Promise<void> {
   const logger = createLogger(process.env);
   const log = (msg: string): void => logger.log(msg);
@@ -1022,7 +1037,10 @@ export async function ensureSoldr(opts: {
         return;
       }
     }
+    const bootstrapSoldr = opts.bootstrapSoldr ?? await opts.getBootstrapSoldr?.();
+    if (!bootstrapSoldr) throw new Error("verified Soldr bootstrap required for source build");
     const builtPath = await buildFromLocalSource({
+      bootstrapSoldr,
       sourcePath,
       sourceIdentity,
       installDir,
@@ -1050,7 +1068,10 @@ export async function ensureSoldr(opts: {
         return;
       }
     }
+    const bootstrapSoldr = opts.bootstrapSoldr ?? await opts.getBootstrapSoldr?.();
+    if (!bootstrapSoldr) throw new Error("verified Soldr bootstrap required for source build");
     const builtPath = await buildFromSource({
+      bootstrapSoldr,
       repo,
       ref: requestedRef,
       commitSha,

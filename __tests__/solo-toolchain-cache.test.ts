@@ -416,3 +416,26 @@ test("#473 corrupt-cache deletion is scoped to the matched key and current ref",
   assert.deepEqual(deleted, [1]);
   assert.deepEqual(result, { found: 1, deleted: 1, failed: 0 });
 });
+
+test("restored release is checked through the verified Soldr bootstrap", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "restore managed probe "));
+  const win = process.platform === "win32";
+  const fake = path.join(root, win ? "soldr.cmd" : "soldr");
+  const marker = path.join(root, "arguments.txt");
+  fs.writeFileSync(fake, win
+    ? '@echo off\r\necho %*^|%RUSTUP_TOOLCHAIN% > "%RESTORE_PROBE_MARKER%"\r\necho rustc 1.95.0\r\n'
+    : '#!/bin/sh\nprintf "%s|%s\\n" "$*" "$RUSTUP_TOOLCHAIN" > "$RESTORE_PROBE_MARKER"\necho "rustc 1.95.0"\n', { mode: 0o755 });
+  const old = process.env.RESTORE_PROBE_MARKER;
+  process.env.RESTORE_PROBE_MARKER = marker;
+  try {
+    const result = await verifyRestoredToolchain({
+      expectedRelease: "1.95.0", channel: "stable", rustupCommand: "unused-rustup",
+      bootstrapSoldr: fake, log: () => {},
+    });
+    assert.equal(result.match, true);
+    assert.equal(fs.readFileSync(marker, "utf8").trim(), "--no-cache rustc --version|stable");
+  } finally {
+    if (old === undefined) delete process.env.RESTORE_PROBE_MARKER;
+    else process.env.RESTORE_PROBE_MARKER = old;
+  }
+});
