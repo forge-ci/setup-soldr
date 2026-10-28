@@ -183,6 +183,21 @@ function isFalsy(value: string | undefined): boolean {
   return FALSY.has(((value ?? "").trim().toLowerCase()));
 }
 
+export function resolveRuntimeCacheFlags(
+  cacheInput: string,
+  plannedBuildEnabled: boolean,
+  miniInput: string,
+  soloInput: string,
+): { setup: boolean; build: boolean; mini: boolean; solo: boolean } {
+  const setup = !isFalsy(cacheInput.trim() || "true");
+  return {
+    setup,
+    build: setup && plannedBuildEnabled,
+    mini: setup && !isFalsy(miniInput.trim() || "true"),
+    solo: setup && isTruthy(soloInput),
+  };
+}
+
 function fileExists(p: string): boolean {
   try {
     return fs.statSync(p).isFile();
@@ -484,8 +499,12 @@ export async function run(): Promise<void> {
     await normalizeSourceMtime({ workspace: ctx.workspace, enabled: true });
   }
 
-  const cacheEnabled = !isFalsy(inputs.cache.trim() || "true");
-  const buildCacheEnabled = !isFalsy(inputs.buildCache.trim() || "true");
+  const cacheFlags = resolveRuntimeCacheFlags(
+    inputs.cache, result.buildCache.enabled, inputs.soldrMiniCache, inputs.soloToolchainCache,
+  );
+  const cacheEnabled = cacheFlags.setup;
+  const buildCacheEnabled = cacheFlags.build;
+  core.saveState("cacheUmbrellaEnabled", cacheEnabled ? "true" : "false");
   core.saveState("setupCacheEnabled", cacheEnabled && result.setupCache.paths.length > 0 ? "true" : "false");
   core.saveState("setupCacheExactHit", "false");
   core.saveState("setupCacheMatchedKey", "");
@@ -513,7 +532,7 @@ export async function run(): Promise<void> {
   // install phase. Restoring this layer in the background can rewrite the
   // install dir while later phases spawn PATH tools, which surfaced as Linux
   // ETXTBSY on the warm demo after soldr-cook started invoking soldr earlier.
-  const miniEnabled = !isFalsy(inputs.soldrMiniCache.trim() || "true");
+  const miniEnabled = cacheFlags.mini;
   const miniInstallDir = path.dirname(result.soldrPath);
   const miniArchive = `${miniInstallDir}.tar.zst`;
   let miniHit = false;
@@ -1050,7 +1069,7 @@ export async function run(): Promise<void> {
   // ---- syslib store in RUNNER_TOOL_CACHE (#553) ----
   // After setup-cache restore (which may bring back a real bin/syslib dir,
   // kept as-is) and before any soldr spawn that could install a syslib.
-  if (result.enabled) {
+  if (result.enabled && cacheEnabled) {
     const syslibDecision = decideSyslibToolCache({
       env: process.env,
       platform: process.platform,
@@ -1087,7 +1106,7 @@ export async function run(): Promise<void> {
     warn: (msg: string) => core.warning(msg),
     debug: (msg: string) => debugLog(`[debug] ${msg}`),
   };
-  if (result.enabled) {
+  if (result.enabled && cacheEnabled) {
     adoptBundleToolCache({
       env: process.env,
       soldrBinDir: result.soldrBinCachePath,
@@ -1277,7 +1296,7 @@ export async function run(): Promise<void> {
     "rustup-toolchains": snapshotRoots[0] as string,
     "cargo-bin": snapshotRoots[1] as string,
   };
-  const soloEnabled = isTruthy(inputs.soloToolchainCache);
+  const soloEnabled = cacheFlags.solo;
   // #310: default-changed from "19" → "9". Measured first-save cost
   // dropped from ~104s → ~12s on 140 MB toolchain delta; restore stays
   // bandwidth-bound either way.
@@ -1402,7 +1421,7 @@ export async function run(): Promise<void> {
   } else {
     // #557: on act/self-hosted runners, reuse the toolchain a previous run
     // kept in RUNNER_TOOL_CACHE instead of reinstalling it every job.
-    const rustupStore = adoptRustupToolCache({
+    const rustupStore = cacheEnabled ? adoptRustupToolCache({
       env: process.env,
       rustupHome: result.rustupHome,
       request: {
@@ -1418,7 +1437,7 @@ export async function run(): Promise<void> {
         channel: result.toolchain.channel,
       }),
       logger: storeLogger,
-    });
+    }) : null;
     await timeSubPhase("toolchain", "rustup-install", async () =>
       ensureRustToolchain({
         resolveResult: result,

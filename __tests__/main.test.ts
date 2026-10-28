@@ -50,3 +50,13 @@ test("cargo-registry encryption failures honor skip only for legacy-v1", async (
     false,
   );
 });
+
+test("cache=false disables all runtime cache restores despite enabled layer inputs", async () => {
+  const { resolveRuntimeCacheFlags } = await import("../src/main.js");
+  assert.deepEqual(resolveRuntimeCacheFlags("false", true, "true", "true"), {
+    setup: false, build: false, mini: false, solo: false,
+  });
+  assert.deepEqual(resolveRuntimeCacheFlags("true", false, "true", "true"), {
+    setup: true, build: false, mini: true, solo: true,
+  });
+});

@@ -50,7 +50,8 @@ inputs:
       go: setup-cache (soldr binary + rustup state including
       `~/.rustup/update-hashes/` for fast `rustup update` no-ops, see
       setup-soldr#102), build-cache (zccache compilation cache),
-      target-cache (Rust target/ artifacts), and cargo-registry-cache.
+      target-cache (Rust target/ artifacts), cargo-registry-cache,
+      and local runner tool stores.
       Also exports `SOLDR_BUILD_CACHE_MODE=off` / `SOLDR_TARGET_CACHE_MODE=off`
       so soldr skips its zccache wrapping entirely — the daemon won't be
       invoked and no per-session stats are written. Use this when you

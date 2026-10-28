@@ -60976,7 +60976,7 @@ async function run() {
     }
     // #557: publish soldr tool bundles (LLVM, ...) this job installed to
     // RUNNER_TOOL_CACHE, so the next run on this runner links them instead.
-    if (result.enabled) {
+    if (result.enabled && core.getState("cacheUmbrellaEnabled") === "true") {
         (0, bundle_tool_cache_js_1.publishBundleToolCache)({
             env: process.env,
             soldrBinDir: result.soldrBinCachePath,
