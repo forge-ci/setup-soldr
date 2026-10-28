@@ -1268,7 +1268,10 @@ export async function run(): Promise<void> {
     "rustup-toolchains": snapshotRoots[0] as string,
     "cargo-bin": snapshotRoots[1] as string,
   };
-  const soloEnabled = isTruthy(inputs.soloToolchainCache);
+  const soloEnabled = isTruthy(inputs.soloToolchainCache) && result.rustupStrategy === "managed";
+  if (isTruthy(inputs.soloToolchainCache) && !soloEnabled) {
+    logger.log(`solo-toolchain-cache: disabled for ${result.rustupStrategy} RUSTUP_HOME to avoid overwriting a user-owned toolchain`);
+  }
   // #310: default-changed from "19" → "9". Measured first-save cost
   // dropped from ~104s → ~12s on 140 MB toolchain delta; restore stays
   // bandwidth-bound either way.
@@ -1327,6 +1330,7 @@ export async function run(): Promise<void> {
         expectedRelease: expected,
         expectedTargets: result.toolchain.targets,
         expectedComponents: result.toolchain.components,
+        checkRegisteredTargets: true,
         channel: result.toolchain.channel,
         rustupCommand: process.platform === "win32" ? "rustup.exe" : "rustup",
         log: (msg) => logger.log(msg),
@@ -1334,6 +1338,9 @@ export async function run(): Promise<void> {
       verifiedMatch = verify.match;
     }
     soloRestoreInvalid = Boolean(restored.matchedKey) && (!restored.verified || !verifiedMatch);
+    if (soloRestoreInvalid && result.rustupStrategy !== "managed") {
+      throw new Error(`solo-toolchain-cache: restored toolchain failed validation in ${result.rustupStrategy} RUSTUP_HOME; refusing automatic repair of a user-owned toolchain`);
+    }
     forceToolchainRepair = soloRestoreInvalid;
     if (soloRestoreInvalid) {
       core.warning(
@@ -1421,6 +1428,7 @@ export async function run(): Promise<void> {
         expectedRelease: result.toolchain.cacheChannel.trim(),
         expectedTargets: result.toolchain.targets,
         expectedComponents: result.toolchain.components,
+        checkRegisteredTargets: true,
         channel: result.toolchain.channel,
         rustupCommand: process.platform === "win32" ? "rustup.exe" : "rustup",
         log: (msg) => logger.log(msg),
