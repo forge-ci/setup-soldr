@@ -22,7 +22,8 @@ SHA = "a" * 40
 
 def evidence(
     *, contract=True, canary_status="success", pinned_sha=SHA,
-    canary_path=".github/workflows/ci-minimal.yml", full_job_status="success"
+    canary_path=".github/workflows/ci-minimal.yml", full_job_status="success",
+    contract_repository_id=101, alias_repository_id=101,
 ):
     run = {
         "id": 42,
@@ -32,7 +33,7 @@ def evidence(
         "conclusion": "success",
         "event": "push",
         "path": ".github/workflows/setup-soldr-contract.yml",
-        "repository": {"full_name": "zackees/setup-soldr"},
+        "repository": {"id": contract_repository_id, "full_name": "forge-ci/setup-soldr"},
         "html_url": "https://github.com/zackees/setup-soldr/actions/runs/42",
     }
     canary = {
@@ -54,6 +55,8 @@ def evidence(
         archive.writestr("job.txt", blob)
 
     def fake_api(path, *, archive=False):
+        if path == promotion.SETUP_REPO:
+            return {"id": alias_repository_id, "full_name": "forge-ci/setup-soldr"}
         if path.endswith("git/ref/heads/main"):
             return {"object": {"sha": SHA}}
         if "/workflows/" in path:
@@ -77,6 +80,8 @@ def evidence(
     "api,error",
     [
         (evidence(contract=False), "no successful Setup Soldr Contract"),
+        (evidence(alias_repository_id=102), "alias does not match"),
+        (evidence(contract_repository_id=102), "no successful Setup Soldr Contract"),
         (evidence(canary_status="failure"), "expected successful"),
         (evidence(canary_status="cancelled"), "expected successful"),
         (evidence(canary_path=".github/workflows/trivial.yml"), "expected successful"),
@@ -88,16 +93,25 @@ def test_bad_evidence_fails_closed(api, error):
     with tempfile.TemporaryDirectory() as runner_temp:
         with patch.object(promotion, "api", api), patch.object(
             promotion.subprocess, "check_output", return_value=SHA
-        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp}):
+        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp, "GITHUB_REPOSITORY_ID": "101"}):
             with pytest.raises(ValueError, match=error):
                 promotion.verify(SHA, "43")
+
+
+@pytest.mark.parametrize("repository_id", ["", "0", "101x", "١٠١"])
+def test_invalid_workflow_repository_identity_fails_closed(repository_id):
+    with patch.object(promotion, "api", evidence()), patch.object(
+        promotion.subprocess, "check_output", return_value=SHA
+    ), patch.dict(promotion.os.environ, {"GITHUB_REPOSITORY_ID": repository_id}):
+        with pytest.raises(ValueError, match="repository"):
+            promotion.verify(SHA, "43")
 
 
 def test_exact_sha_success_returns_contract_run():
     with tempfile.TemporaryDirectory() as runner_temp:
         with patch.object(promotion, "api", evidence()), patch.object(
             promotion.subprocess, "check_output", return_value=SHA
-        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp}):
+        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp, "GITHUB_REPOSITORY_ID": "101"}):
             assert promotion.verify(SHA, "43") == 42
             assert Path(runner_temp, "v0-contract-run-id").read_text() == "42"
 
@@ -125,7 +139,7 @@ def test_rerun_canary_reads_every_attempts_logs():
     with tempfile.TemporaryDirectory() as runner_temp:
         with patch.object(promotion, "api", fake_api), patch.object(
             promotion.subprocess, "check_output", return_value=SHA
-        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp}):
+        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp, "GITHUB_REPOSITORY_ID": "101"}):
             assert promotion.verify(SHA, "43") == 42
     assert "FastLED/fbuild/actions/runs/43/attempts/1/logs" in requested
 

@@ -48,6 +48,9 @@ jobs:
       - name: Show action outputs
         shell: pwsh
         run: |
+          if ("${{ steps.setup.outputs.build-cache-hit }}" -eq "true" -or $env:SOLDR_BUILD_CACHE_MODE -ne "off") {
+            throw "dependency build cache must be disabled without Cargo.lock"
+          }
           Write-Host "soldr-path=${{ steps.setup.outputs.soldr-path }}"
           Write-Host "soldr-version=${{ steps.setup.outputs.soldr-version }}"
           Write-Host "cache-dir=${{ steps.setup.outputs.cache-dir }}"

@@ -237,6 +237,9 @@ jobs:
       - name: Verify the wheel runtime and pinned helper
         shell: pwsh
         run: |
+          if ("${{ steps.setup.outputs.build-cache-hit }}" -eq "true") {
+            throw "cache=false unexpectedly restored the build cache"
+          }
           $versionJson = (soldr version --json | Out-String) | ConvertFrom-Json
           $actionVersion = "${{ steps.setup.outputs.soldr-version }}"
           if ($versionJson.soldr_version -ne $actionVersion) {
