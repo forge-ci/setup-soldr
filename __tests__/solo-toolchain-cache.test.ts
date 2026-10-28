@@ -19,6 +19,7 @@ import {
   saveSoloCache,
   soloCacheEntryExistsForRef,
   verifyRestoredToolchain,
+  verifyRegisteredTargetPayloads,
   type RootMap,
 } from "../src/lib/solo-toolchain-cache.js";
 import type { SnapshotDiff, SnapshotEntry } from "../src/lib/toolchain-snapshot.js";
@@ -37,6 +38,45 @@ function writeFile(root: string, rel: string, content: string): string {
   fs.writeFileSync(abs, content, "utf8");
   return abs;
 }
+
+const fixtureRustc = path.join(path.parse(process.cwd()).root, "tc", "bin", process.platform === "win32" ? "rustc.exe" : "rustc");
+
+test("restored cache detects missing std for registered but undeclared targets", async () => {
+  const calls: string[][] = [];
+  const result = await verifyRegisteredTargetPayloads({
+    channel: "1.95.0", log: () => {},
+    runRustup: async (args) => {
+      calls.push(args);
+      return { code: 0, stdout: args[0] === "which" ? `${fixtureRustc}\n` : "x86_64-unknown-linux-gnu\naarch64-apple-darwin\n", stderr: "" };
+    },
+    readManifest: async (filename) => {
+      const target = filename.split("manifest-rust-std-")[1];
+      return `file:lib/rustlib/${target}/lib/libcore-abcd.rlib\nfile:lib/rustlib/${target}/lib/libstd-abcd.rlib\n`;
+    },
+    isFile: async (filename) => !filename.includes("aarch64-apple-darwin") || !filename.includes("libstd-"),
+  });
+  assert.equal(result, false);
+  assert.deepEqual(calls[0], ["target", "list", "--toolchain", "1.95.0", "--installed"]);
+});
+
+test("registered target verification accepts intact payloads and fails closed on query errors", async () => {
+  const base = { channel: "stable", log: () => {}, readManifest: async () => "file:lib/rustlib/x86_64-unknown-linux-gnu/lib/libcore-abcd.rlib\n", isFile: async () => true };
+  const healthy = await verifyRegisteredTargetPayloads({ ...base, runRustup: async (args) => ({ code: 0, stdout: args[0] === "which" ? `${fixtureRustc}\n` : "x86_64-unknown-linux-gnu\n", stderr: "" }) });
+  assert.equal(healthy, true);
+  const failed = await verifyRegisteredTargetPayloads({ ...base, runRustup: async () => ({ code: 1, stdout: "", stderr: "failure" }) });
+  assert.equal(failed, false);
+});
+
+test("restored toolchain verification includes undeclared registered target payloads", async () => {
+  const result = await verifyRestoredToolchain({
+    expectedRelease: "", channel: "stable", rustupCommand: "rustup", log: () => {},
+    checkRegisteredTargets: true,
+    runRustup: async (args) => ({ code: 0, stdout: args[0] === "which" ? `${fixtureRustc}\n` : "aarch64-apple-darwin\n", stderr: "" }),
+    readTargetManifest: async () => "file:lib/rustlib/aarch64-apple-darwin/lib/libcore-abcd.rlib\n",
+    targetFileExists: async () => false,
+  });
+  assert.equal(result.match, false);
+});
 
 test("hashStringArray is stable across input order", () => {
   assert.equal(
@@ -315,6 +355,25 @@ test("stageDiffForSave + applyStagedToLiveRoots round-trip", async () => {
       fs.readFileSync(path.join(liveBRestored, "rustfmt"), "utf8"),
       "rustfmt-bytes",
     );
+    // Exercise the actual manifest and file reads against an incomplete
+    // restored toolchain. The target remains registered even though libstd
+    // is missing; restoring it is what turns this verification green.
+    const target = "aarch64-apple-darwin";
+    const root = path.join(liveARestored, "1.84.0");
+    writeFile(root, `lib/rustlib/manifest-rust-std-${target}`,
+      `file:lib/rustlib/${target}/lib/libcore-fake.rlib\nfile:lib/rustlib/${target}/lib/libstd-fake.rlib\n`);
+    writeFile(root, `lib/rustlib/${target}/lib/libcore-fake.rlib`, "core");
+    const verify = () => verifyRegisteredTargetPayloads({
+      channel: "1.84.0", log: () => {},
+      runRustup: async (args) => ({
+        code: 0,
+        stdout: args[0] === "which" ? `${path.join(root, "bin", process.platform === "win32" ? "rustc.exe" : "rustc")}\n` : `${target}\n`,
+        stderr: "",
+      }),
+    });
+    assert.equal(await verify(), false);
+    writeFile(root, `lib/rustlib/${target}/lib/libstd-fake.rlib`, "std");
+    assert.equal(await verify(), true);
   } finally {
     rmDir(liveA);
     rmDir(liveB);

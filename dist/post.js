@@ -57214,6 +57214,7 @@ exports.stageDiffForSave = stageDiffForSave;
 exports.applyStagedToLiveRoots = applyStagedToLiveRoots;
 exports.saveSoloCache = saveSoloCache;
 exports.restoreSoloCache = restoreSoloCache;
+exports.verifyRegisteredTargetPayloads = verifyRegisteredTargetPayloads;
 exports.verifyRestoredToolchain = verifyRestoredToolchain;
 const node_crypto_1 = __nccwpck_require__(77598);
 const fs = __importStar(__nccwpck_require__(73024));
@@ -57758,6 +57759,55 @@ async function restoreSoloCache(opts) {
         verified: true,
     };
 }
+/** Validate payloads of every target rustup claims is installed in a restored cache.
+ * A cache can carry stale metadata for targets that were not requested by this
+ * job; a subsequent rustup target add then incorrectly reports them installed.
+ */
+async function verifyRegisteredTargetPayloads(opts) {
+    const fail = (reason) => {
+        opts.log(`solo-toolchain-cache: registered target validation failed: ${reason}`);
+        return false;
+    };
+    try {
+        const listed = await opts.runRustup(["target", "list", "--toolchain", opts.channel, "--installed"]);
+        if (listed.code !== 0)
+            return fail("cannot list installed targets");
+        const targets = listed.stdout.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        if (targets.length === 0 || targets.some((target) => !/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(target))) {
+            return fail("invalid installed target list");
+        }
+        const which = await opts.runRustup(["which", "--toolchain", opts.channel, "rustc"]);
+        const executable = which.stdout.trim();
+        if (which.code !== 0 || !path.isAbsolute(executable) || !/^rustc(?:\.exe)?$/i.test(path.basename(executable))) {
+            return fail("cannot resolve the selected toolchain");
+        }
+        const sysroot = path.dirname(path.dirname(executable));
+        const readManifest = opts.readManifest ?? ((filename) => fsp.readFile(filename, "utf8"));
+        const isFile = opts.isFile ?? (async (filename) => (await fsp.stat(filename)).isFile());
+        for (const target of new Set(targets)) {
+            const manifest = await readManifest(path.join(sysroot, "lib", "rustlib", `manifest-rust-std-${target}`));
+            const entries = manifest.split(/\r?\n/).filter(Boolean);
+            const prefix = `lib/rustlib/${target}/`;
+            if (!entries.length || !entries.some((entry) => entry.startsWith(`file:${prefix}lib/libcore-`) && entry.endsWith(".rlib"))) {
+                return fail(`invalid target manifest for ${target}`);
+            }
+            for (const entry of entries) {
+                if (!entry.startsWith(`file:${prefix}`))
+                    return fail(`invalid target manifest entry for ${target}`);
+                const relative = entry.slice("file:".length);
+                if (relative.split("/").some((part) => part === ".." || part === "." || !part || part.includes("\\"))) {
+                    return fail(`unsafe target manifest entry for ${target}`);
+                }
+                if (!(await isFile(path.join(sysroot, ...relative.split("/")))))
+                    return fail(`missing target payload for ${target}`);
+            }
+        }
+        return true;
+    }
+    catch (err) {
+        return fail(err instanceof Error ? err.message : String(err));
+    }
+}
 /**
  * Run `rustc --version` against the toolchain rustup picks by default
  * after a restore, and confirm the release matches the expected
@@ -57892,7 +57942,10 @@ async function verifyRestoredToolchain(opts) {
             }
         }
     }
-    return { match: releaseMatch && targetsMatch && componentsMatch, observedRelease };
+    const registeredTargetsMatch = !opts.checkRegisteredTargets || await verifyRegisteredTargetPayloads({
+        channel, log, runRustup, readManifest: opts.readTargetManifest, isFile: opts.targetFileExists,
+    });
+    return { match: releaseMatch && targetsMatch && componentsMatch && registeredTargetsMatch, observedRelease };
 }
 
 
