@@ -65,12 +65,43 @@ jobs:
           cd "$RUNNER_TEMP/cook-rematerialization-fixture"
           rm -rf target
           started_ns="$(date +%s%N)"
-          soldr cargo build \
+          if soldr cargo build \
             --release \
             --locked \
             --message-format=json-render-diagnostics \
             > "$RUNNER_TEMP/baseline-messages.jsonl" \
-            2> "$RUNNER_TEMP/baseline-stderr.log"
+            2> "$RUNNER_TEMP/baseline-stderr.log"; then
+            :
+          else
+            status=$?
+            echo "::error::Baseline build failed (exit $status); bounded diagnostics follow"
+            tail -c 12000 "$RUNNER_TEMP/baseline-stderr.log" || true
+            python3 - "$RUNNER_TEMP/baseline-messages.jsonl" <<'PYDIAG' || true
+          import json
+          import sys
+          from collections import deque
+
+          errors = deque(maxlen=4)
+          with open(sys.argv[1], encoding="utf-8", errors="replace") as messages:
+              for line in messages:
+                  try:
+                      entry = json.loads(line)
+                  except json.JSONDecodeError:
+                      continue
+                  if not isinstance(entry, dict):
+                      continue
+                  message = entry.get("message")
+                  if entry.get("reason") != "compiler-message" or not isinstance(message, dict):
+                      continue
+                  if message.get("level") == "error":
+                      rendered = message.get("rendered") or message.get("message")
+                      if isinstance(rendered, str):
+                          errors.append(rendered)
+          for error in errors:
+              print(error[-4000:])
+          PYDIAG
+            exit "$status"
+          fi
           finished_ns="$(date +%s%N)"
           baseline_ms="$(( (finished_ns - started_ns) / 1000000 ))"
           echo "ms=$baseline_ms" >> "$GITHUB_OUTPUT"
