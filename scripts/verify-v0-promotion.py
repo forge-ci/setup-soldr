@@ -51,6 +51,12 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
         raise ValueError("canary_run_id must be a positive run ID")
     if subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip() != target:
         raise ValueError("checked-out action is not the candidate SHA")
+    workflow_repository_id = os.environ.get("GITHUB_REPOSITORY_ID", "")
+    if not workflow_repository_id.isascii() or not workflow_repository_id.isdecimal():
+        raise ValueError("promotion workflow has no valid repository identity")
+    repository_id = api(SETUP_REPO).get("id")
+    if type(repository_id) is not int or repository_id <= 0 or repository_id != int(workflow_repository_id):
+        raise ValueError("setup-soldr alias does not match the promotion repository")
     main = api(f"{SETUP_REPO}/git/ref/heads/main")["object"]["sha"]
     if main != target:
         raise ValueError("candidate is not current main")
@@ -67,7 +73,7 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
         and run["conclusion"] == "success"
         and run["event"] in ("push", "workflow_dispatch")
         and run["path"].lstrip("/") == ".github/workflows/setup-soldr-contract.yml"
-        and run["repository"]["full_name"].lower() == SETUP_REPO.lower()
+        and run["repository"].get("id") == repository_id
     ]
     if not contracts:
         raise ValueError("no successful Setup Soldr Contract run for exact main SHA")
