@@ -355,6 +355,25 @@ test("stageDiffForSave + applyStagedToLiveRoots round-trip", async () => {
       fs.readFileSync(path.join(liveBRestored, "rustfmt"), "utf8"),
       "rustfmt-bytes",
     );
+    // Exercise the actual manifest and file reads against an incomplete
+    // restored toolchain. The target remains registered even though libstd
+    // is missing; restoring it is what turns this verification green.
+    const target = "aarch64-apple-darwin";
+    const root = path.join(liveARestored, "1.84.0");
+    writeFile(root, `lib/rustlib/manifest-rust-std-${target}`,
+      `file:lib/rustlib/${target}/lib/libcore-fake.rlib\nfile:lib/rustlib/${target}/lib/libstd-fake.rlib\n`);
+    writeFile(root, `lib/rustlib/${target}/lib/libcore-fake.rlib`, "core");
+    const verify = () => verifyRegisteredTargetPayloads({
+      channel: "1.84.0", log: () => {},
+      runRustup: async (args) => ({
+        code: 0,
+        stdout: args[0] === "which" ? `${path.join(root, "bin", process.platform === "win32" ? "rustc.exe" : "rustc")}\n` : `${target}\n`,
+        stderr: "",
+      }),
+    });
+    assert.equal(await verify(), false);
+    writeFile(root, `lib/rustlib/${target}/lib/libstd-fake.rlib`, "std");
+    assert.equal(await verify(), true);
   } finally {
     rmDir(liveA);
     rmDir(liveB);
