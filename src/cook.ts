@@ -1,5 +1,4 @@
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -17,24 +16,8 @@ import {
   selectDeferredCookSaveLayer,
 } from "./lib/deferred-cook.js";
 import { parseVersionJsonOutput } from "./lib/verify-soldr.js";
+import { captureCookCommand as capture, resolveCookRustcRelease } from "./lib/cook-rustc.js";
 import { decideCacheSave, isLocalRunner, parseSaveCacheMode } from "./lib/save-policy.js";
-
-async function capture(
-  command: string,
-  args: string[],
-): Promise<{ code: number; stdout: string; stderr: string }> {
-  let stdout = "";
-  let stderr = "";
-  const code = await exec.exec(command, args, {
-    silent: true,
-    ignoreReturnCode: true,
-    listeners: {
-      stdout: (data: Buffer) => { stdout += data.toString("utf8"); },
-      stderr: (data: Buffer) => { stderr += data.toString("utf8"); },
-    },
-  });
-  return { code, stdout, stderr };
-}
 
 async function soldrVersion(soldrPath: string): Promise<string> {
   const result = await capture(soldrPath, ["version", "--json"]);
@@ -49,16 +32,6 @@ async function soldrVersion(soldrPath: string): Promise<string> {
     core.warning(`cook: soldr version probe produced unusable JSON: ${err instanceof Error ? err.message : String(err)}`);
     return "unresolved";
   }
-}
-
-async function rustcRelease(): Promise<string> {
-  const result = await capture("rustc", ["--version"]);
-  if (result.code !== 0) {
-    core.warning(`cook: rustc --version failed with exit ${result.code}: ${result.stderr.trim()}`);
-    return "unresolved";
-  }
-  const match = /^rustc\s+(\S+)/.exec(result.stdout.trim());
-  return match?.[1] ?? (result.stdout.trim() || "unresolved");
 }
 
 async function deriveParentSha(workspace: string, githubSha: string): Promise<string> {
@@ -129,7 +102,7 @@ async function main(): Promise<void> {
     flags: core.getInput("flags"),
     cache,
     deltaCache,
-    rustcRelease: core.getInput("rustc-release").trim() || await rustcRelease(),
+    rustcRelease: core.getInput("rustc-release").trim() || await resolveCookRustcRelease(soldrPath, path.resolve(workspace), capture, (message) => core.warning(message)),
     soldrVersion: core.getInput("soldr-version").trim() || await soldrVersion(soldrPath),
     buildShape: core.getInput("build-shape"),
     env,

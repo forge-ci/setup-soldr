@@ -79,6 +79,14 @@ import type {
 
 const FALSY_VALUES: ReadonlySet<string> = new Set(["0", "false", "no", "off"]);
 const TRUTHY_VALUES: ReadonlySet<string> = new Set(["1", "true", "yes", "on"]);
+export function setupEnabled(input: string): boolean {
+  const value = input.trim() || "true";
+  if (!TRUTHY_VALUES.has(value.toLowerCase()) && !FALSY_VALUES.has(value.toLowerCase())) {
+    throw new Error(`invalid 'enable' input: '${value}'. Allowed: true | false`);
+  }
+  return !FALSY_VALUES.has(value.toLowerCase());
+}
+
 const ALLOWED_LINKER_VALUES = [
   "default",
   "platform-default",
@@ -621,13 +629,7 @@ export async function resolveSetup(
   // The stub is a bash script on Unix and a .cmd shim on Windows — Windows
   // cannot spawn a script via the .exe extension without a real PE, so
   // soldrPath must end in .cmd in passthrough mode.
-  const enableRaw = inputs.enable.trim() || "true";
-  if (!TRUTHY_VALUES.has(enableRaw.toLowerCase()) && !FALSY_VALUES.has(enableRaw.toLowerCase())) {
-    throw new Error(
-      `invalid 'enable' input: '${enableRaw}'. Allowed: true | false`,
-    );
-  }
-  const enabled = !FALSY_VALUES.has(enableRaw.toLowerCase());
+  const enabled = setupEnabled(inputs.enable);
   const soldrBinary = enabled
     ? process.platform === "win32"
       ? "soldr.exe"
@@ -672,6 +674,9 @@ export async function resolveSetup(
         systemRustupSatisfiesRequest({
           cargoHome,
           rustupHome: runnerRustupHome,
+          bootstrapSoldr: enabled ? ctx.bootstrapSoldr : undefined,
+          getBootstrapSoldr: enabled ? ctx.getBootstrapSoldr : undefined,
+          allowUnmanagedProbe: !enabled,
           toolchain,
           env,
           logger,

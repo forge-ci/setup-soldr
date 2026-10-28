@@ -9,6 +9,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
+import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as io from "@actions/io";
 import * as tc from "@actions/tool-cache";
 import { createLogger, streamExec } from "./log-utils.js";
@@ -137,8 +138,18 @@ async function toolchainAvailable(rustup: string, channel: string): Promise<bool
   return false;
 }
 
-async function installedToolchainRelease(rustup: string, channel: string): Promise<string | null> {
-  const { code, stdout } = await captureText(rustup, ["run", channel, "rustc", "--version"]);
+async function installedToolchainRelease(rustup: string, channel: string, bootstrapSoldr?: string): Promise<string | null> {
+  let code: number;
+  let stdout = "";
+  if (bootstrapSoldr) {
+    code = await new ToolRunner(bootstrapSoldr, ["rustc", "--version"], {
+      env: { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_AS: "" } as Record<string, string>,
+      silent: true, ignoreReturnCode: true,
+      listeners: { stdout: (data: Buffer) => { stdout += data.toString("utf8"); } },
+    }).exec();
+  } else {
+    ({ code, stdout } = await captureText(rustup, ["run", channel, "rustc", "--version"]));
+  }
   if (code !== 0) return null;
   const match = stdout.trim().match(/^rustc\s+(\S+)/);
   return match ? (match[1] ?? null) : null;
@@ -293,6 +304,7 @@ export async function tryDelegateToSoldrToolchainEnsure(opts: {
 export async function ensureRustToolchain(opts: {
   resolveResult: ResolveResult;
   setupCacheExactHit: boolean;
+  bootstrapSoldr?: string;
   /** Reinstall after a restored cache entry fails a post-restore probe. */
   forceRepair?: boolean;
 }): Promise<void> {
@@ -300,6 +312,9 @@ export async function ensureRustToolchain(opts: {
   const log = (msg: string): void => logger.log(msg);
 
   const { resolveResult, setupCacheExactHit, forceRepair = false } = opts;
+  if (resolveResult.enabled && !opts.bootstrapSoldr) {
+    throw new Error("verified Soldr bootstrap required for toolchain setup");
+  }
   const cargoHome = resolveResult.cargoHome;
   const rustupHome = resolveResult.rustupHome;
   const soldrRoot = resolveResult.soldrRoot;
@@ -375,7 +390,7 @@ export async function ensureRustToolchain(opts: {
 
   if (!forceRepair && shouldRefreshToolchain(channel)) {
     const installedRelease = (await toolchainAvailable(rustup, channel))
-      ? await installedToolchainRelease(rustup, channel)
+      ? await installedToolchainRelease(rustup, channel, opts.bootstrapSoldr)
       : null;
     if (shouldSkipRefreshForExactHit(channel, cacheChannel, setupCacheExactHit, installedRelease)) {
       log(
@@ -411,8 +426,16 @@ export async function ensureRustToolchain(opts: {
   if (!cargo || !rustc) {
     throw new Error("setup-soldr failed to expose cargo/rustc after rustup configured the toolchain");
   }
-  await exec.exec(cargo, ["--version"]);
-  await exec.exec(rustc, ["--version"]);
+  if (opts.bootstrapSoldr) {
+    const env = { ...process.env, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_AS: "" } as Record<string, string>;
+    await new ToolRunner(opts.bootstrapSoldr, ["cargo", "--version"], { env }).exec();
+    await new ToolRunner(opts.bootstrapSoldr, ["rustc", "--version"], { env }).exec();
+  } else if (!resolveResult.enabled) {
+    await exec.exec(cargo, ["--version"]);
+    await exec.exec(rustc, ["--version"]);
+  } else {
+    throw new Error("verified Soldr bootstrap required for toolchain verification");
+  }
 
   core.setOutput("toolchain", channel);
   // Touch os.EOL once to avoid unused-import complaints when running on some

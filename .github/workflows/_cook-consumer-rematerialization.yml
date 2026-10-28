@@ -172,7 +172,7 @@ jobs:
           # build without changing the dependency graph it keeps fresh.
           find . -path ./target -prune -o -type f -name '*.rs' -exec touch {} +
           read -r -a build_args <<< "$BUILD_ARGS"
-          cargo metadata --locked --format-version=1 \
+          soldr cargo metadata --locked --format-version=1 \
             > "$RUNNER_TEMP/${{ inputs.cache_key }}-metadata.json"
           # Match the command that created the cooked fingerprints, including
           # soldr's CC/CXX wrapper identity for native build scripts. A zccache

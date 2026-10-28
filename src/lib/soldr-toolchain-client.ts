@@ -13,7 +13,7 @@
 // the backwards-compat strategy promised in the issue (the action must
 // still work when pinned to a soldr release older than 0.7.35).
 
-import * as exec from "@actions/exec";
+import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import { parseVersionJsonOutput } from "./verify-soldr.js";
 
 /**
@@ -43,7 +43,7 @@ export interface SoldrClientDeps {
 async function defaultExec(cmd: string, args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
   let stdout = "";
   let stderr = "";
-  const code = await exec.exec(cmd, args, {
+  const code = await new ToolRunner(cmd, args, {
     silent: true,
     ignoreReturnCode: true,
     listeners: {
@@ -54,7 +54,7 @@ async function defaultExec(cmd: string, args: string[]): Promise<{ code: number;
         stderr += data.toString("utf8");
       },
     },
-  });
+  }).exec();
   return { code, stdout, stderr };
 }
 

@@ -18,7 +18,7 @@ import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
+import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as cache from "@actions/cache";
 import { compressCache, decompressCache, detectCompressMagic } from "./cache-compress.js";
 import { formatLogLine } from "./log-utils.js";
@@ -432,7 +432,7 @@ export async function runCook(opts: CookRunOpts): Promise<CookRunResult> {
     // unchanged — we only modify the line prefix, not the line body.
     // Color forcing (CARGO_TERM_COLOR/FORCE_COLOR/CLICOLOR_FORCE) is
     // already injected by resolve-setup.ts when timestamps are enabled.
-    exitCode = await exec.exec(soldrBinary, ["cook", ...flags], {
+    exitCode = await new ToolRunner(soldrBinary, ["cook", ...flags], {
       cwd: projectRoot,
       env: cookEnv(process.env),
       ignoreReturnCode: true,
@@ -445,7 +445,7 @@ export async function runCook(opts: CookRunOpts): Promise<CookRunResult> {
           process.stderr.write(`${formatLogLine(process.env, line)}\n`);
         },
       },
-    });
+    }).exec();
   } catch (err) {
     log(`cook: exec threw: ${err instanceof Error ? err.message : String(err)}`);
     exitCode = 1;
@@ -645,7 +645,7 @@ async function runSoldrJson(
   log(`cook-cache: running '${soldrBinary} ${args.join(" ")}' in ${cwd}`);
   let code = 1;
   try {
-    code = await exec.exec(soldrBinary, args, {
+    code = await new ToolRunner(soldrBinary, args, {
       cwd,
       ignoreReturnCode: true,
       silent: true,
@@ -657,7 +657,7 @@ async function runSoldrJson(
           stderr += data.toString("utf8");
         },
       },
-    });
+    }).exec();
   } catch (err) {
     stderr += err instanceof Error ? err.message : String(err);
   }

@@ -98,7 +98,7 @@ test("the default Actions-cache wrapper round trips producer archives for v1 and
           return 42;
         },
       });
-      assert.equal(result.status, "saved");
+      assert.equal(result.status, "saved", result.status === "failed" ? result.error : undefined);
       assert.ok(wrapperPath);
       assert.equal(fs.existsSync(wrapperPath), false);
     }

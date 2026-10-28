@@ -165,7 +165,7 @@ jobs:
           # Force one first-party unit dirty. The closure itself must remain
           # fresh; otherwise a zero-work Cargo invocation would prove nothing.
           touch crates/soldr-cli/src/main.rs
-          cargo metadata --locked --format-version=1 \
+          soldr cargo metadata --locked --format-version=1 \
             > "$RUNNER_TEMP/warm-metadata.json"
           soldr cargo build -p soldr-cli --locked \
             --message-format=json-render-diagnostics \

@@ -86,7 +86,7 @@ def test_reusable_workflow_proves_a_clean_job_loaded_the_cook_base() -> None:
     build = next(step for step in jobs["warm"]["steps"] if step.get("id") == "build")
     assert "soldr cargo build" in build["run"]
     assert "ZCCACHE_DISABLE" not in build["run"]
-    assert "cargo metadata --locked --format-version=1" in build["run"]
+    assert "soldr cargo metadata --locked --format-version=1" in build["run"]
     assert "find . -path ./target -prune" in build["run"]
     assert '"$RUNNER_TEMP/${{ inputs.cache_key }}-metadata.json"' in build["run"]
     assert "assert_no_external_rebuild.py" in build["run"]

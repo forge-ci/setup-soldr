@@ -366,3 +366,24 @@ test("systemRustupSatisfiesRequest FS fast-path matches channel from on-disk too
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("system Rust release probe uses the selected Soldr and Rust homes", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "managed rust probe "));
+  const rustupHome = path.join(root, "rustup");
+  const cargoHome = path.join(root, "cargo");
+  fs.mkdirSync(path.join(rustupHome, "toolchains", "stable-x86_64-unknown-linux-gnu"), { recursive: true });
+  const marker = path.join(root, "probe.txt");
+  const win = process.platform === "win32";
+  const fake = path.join(root, win ? "soldr.cmd" : "soldr");
+  fs.writeFileSync(fake, win
+    ? '@echo off\r\necho %*^|%RUSTUP_TOOLCHAIN%^|%CARGO_HOME%^|%RUSTUP_HOME%^|%SOLDR_AS% > "%PROBE_MARKER%"\r\necho rustc 1.95.0\r\n'
+    : '#!/bin/sh\nprintf "%s|%s|%s|%s|%s\\n" "$*" "$RUSTUP_TOOLCHAIN" "$CARGO_HOME" "$RUSTUP_HOME" "$SOLDR_AS" > "$PROBE_MARKER"\necho "rustc 1.95.0"\n', { mode: 0o755 });
+  const ok = await systemRustupSatisfiesRequest({
+    cargoHome, rustupHome, bootstrapSoldr: fake,
+    toolchain: { channel: "stable", cacheChannel: "1.95.0", profile: "minimal", components: [], targets: [], source: "default", fileHash: "none" },
+    env: { ...process.env, PROBE_MARKER: marker, SOLDR_AS: "0.0.1" },
+    deps: { which: async () => "/fake/rustup" },
+  });
+  assert.equal(ok, true);
+  assert.equal(fs.readFileSync(marker, "utf8").trim(), `rustc --version|stable|${cargoHome}|${rustupHome}|`);
+});

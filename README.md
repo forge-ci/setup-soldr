@@ -1123,6 +1123,17 @@ Fresh GitHub checkouts assign new mtimes to every file, which can cause Cargo to
       - run: soldr cargo build --locked --release
 ```
 
+### Offline bootstrap on self-hosted runners
+
+The action uses a pinned Soldr bootstrap to run Rust probes before the requested
+Soldr installation is ready. It caches the official archive and verifies its
+SHA-256 each time it is reused. An enabled first run needs network access unless
+that archive is already cached or supplied locally. For an offline first run,
+set `SETUP_SOLDR_BOOTSTRAP_ARCHIVE` to the absolute path of the matching host
+archive from the [Soldr 0.9.41 release](https://github.com/forge-ci/soldr/releases/tag/v0.9.41).
+The action checks the pinned digest before extraction and rejects a mismatched
+archive; the requested final Soldr version remains independently selected.
+
 ## Development
 
 `setup-soldr` is a Node 24 JavaScript GitHub Action. The runtime lives in TypeScript under `src/` and is bundled into `dist/main.js` (pre-step) and `dist/post.js` (post-step) with `@vercel/ncc`. The bundled output **is committed** to the repository so consumers running `uses: zackees/setup-soldr@v0` get a self-contained action without needing `npm install` at action runtime.
