@@ -679,6 +679,32 @@ export async function restoreSoloCache(opts: {
 }
 
 /**
+ * Environment for a restored-toolchain probe. `SOLDR_DYLINT_TOOLCHAIN`
+ * makes soldr's proxies rewrite every toolchain selection to the Dylint
+ * nightly, so a probe of the cached channel would observe the nightly
+ * instead and condemn a valid restore (#622). `managedChannel` adds the
+ * bootstrap-soldr pins.
+ */
+export function verifyProbeEnv(
+  env: NodeJS.ProcessEnv,
+  managedChannel: string | null,
+): Record<string, string> {
+  const probe: Record<string, string> = {};
+  for (const [key, value] of Object.entries(env)) {
+    if (value !== undefined && key !== "SOLDR_DYLINT_TOOLCHAIN") probe[key] = value;
+  }
+  if (managedChannel !== null) {
+    Object.assign(probe, {
+      RUSTUP_TOOLCHAIN: managedChannel,
+      SOLDR_NO_GLOBAL_DELEGATION: "1",
+      SOLDR_BROKER_AUTOSPAWN: "0",
+      SOLDR_AS: "",
+    });
+  }
+  return probe;
+}
+
+/**
  * Run `rustc --version` against the toolchain rustup picks by default
  * after a restore, and confirm the release matches the expected
  * `cacheChannel` from ToolchainSpec. Mismatch → caller should treat the
@@ -722,7 +748,7 @@ export async function verifyRestoredToolchain(opts: {
     if (managed && toolArgs[0] === "cargo-miri") toolArgs = ["cargo", "miri", ...toolArgs.slice(1)];
     if (managed) toolArgs = ["--no-cache", ...toolArgs];
     const code = await new ToolRunner(tool, toolArgs, {
-      env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } as Record<string, string> : undefined,
+      env: verifyProbeEnv(process.env, managed ? channel : null),
       silent: true,
       ignoreReturnCode: true,
       listeners: {
