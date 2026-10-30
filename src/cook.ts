@@ -125,6 +125,7 @@ async function main(): Promise<void> {
   if (plan.layered) {
     const restore = await restoreLayeredCookCacheArchives({
       baseKey: plan.baseKey,
+      baseRestoreKeys: plan.baseRestoreKeys,
       deltaKey: plan.deltaKey,
       deltaRestoreKeys: plan.deltaRestoreKeys,
       baseArchivePath: plan.baseArchivePath,

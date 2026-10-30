@@ -52192,6 +52192,7 @@ exports.selectCookSaveLayer = selectCookSaveLayer;
 exports.hashCookFlags = hashCookFlags;
 exports.buildCookCacheKey = buildCookCacheKey;
 exports.buildCookBaseCacheKey = buildCookBaseCacheKey;
+exports.buildCookBaseCacheRestorePrefix = buildCookBaseCacheRestorePrefix;
 exports.hashCookBuildShape = hashCookBuildShape;
 exports.buildCookDeltaCacheKey = buildCookDeltaCacheKey;
 exports.buildCookDeltaCacheRestorePrefix = buildCookDeltaCacheRestorePrefix;
@@ -52241,7 +52242,7 @@ function selectCookSaveLayer(cookRan, baseReady, deltaEnabled) {
     return deltaEnabled ? "delta" : "none";
 }
 const COOK_KEY_PREFIX = "cook";
-const COOK_BASE_KEY_PREFIX = "cook-base-v2";
+const COOK_BASE_KEY_PREFIX = "cook-base-v3";
 const COOK_DELTA_KEY_PREFIX = "cook-delta-v2";
 exports.LAYERED_COOK_MIN_SOLDR_VERSION = "0.7.38";
 const COOK_MODE = "soldr-cook";
@@ -52304,8 +52305,23 @@ function cookKeyParts(parts) {
         segments.push(`x${keyFragment(parts.keySuffix, "none")}`);
     return segments;
 }
+// setup-soldr#625: the base layer puts the soldr version LAST (v3), after
+// the optional suffix, so `buildCookBaseCacheRestorePrefix` can drop only
+// that segment. A new soldr release then restores the previous release's
+// third-party deps and `soldr cook` rebuilds only what changed; os, arch,
+// libc, rustc release, flags, lockfile and suffix all stay in the prefix.
+function cookBaseKeyParts(parts) {
+    const segments = cookKeyParts(parts);
+    const soldr = segments.splice(6, 1);
+    return [...segments, ...soldr];
+}
 function buildCookBaseCacheKey(parts) {
-    return [COOK_BASE_KEY_PREFIX, ...cookKeyParts(parts)].join("-");
+    return [COOK_BASE_KEY_PREFIX, ...cookBaseKeyParts(parts)].join("-");
+}
+function buildCookBaseCacheRestorePrefix(parts) {
+    const segments = cookBaseKeyParts(parts);
+    segments[segments.length - 1] = "soldr";
+    return [COOK_BASE_KEY_PREFIX, ...segments].join("-");
 }
 function hashCookBuildShape(value) {
     return shortHash(value, "no-shape");
@@ -52570,18 +52586,20 @@ async function restoreLayeredCookCacheArchives(opts) {
     };
     if (opts.deltaEnabled === false) {
         opts.log("cook-cache-delta: disabled (cook-delta=false); restoring base layer only");
-        const base = await restoreOneLayer("cook-cache-base", opts.baseKey, opts.baseArchivePath, [], opts.log, warn, restore);
+        const base = await restoreOneLayer("cook-cache-base", opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore);
         return { base, delta: deltaMiss };
     }
     const [base, delta] = await Promise.all([
-        restoreOneLayer("cook-cache-base", opts.baseKey, opts.baseArchivePath, [], opts.log, warn, restore),
+        restoreOneLayer("cook-cache-base", opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore),
         restoreOneLayer("cook-cache-delta", opts.deltaKey, opts.deltaArchivePath, opts.deltaRestoreKeys ?? [], opts.log, warn, restore),
     ]);
     // Preserve the pre-#295 contract: when base missed, the delta is
     // semantically invalid even if it happened to restore (no base to
     // overlay onto). Discard the delta archive in that case so callers
     // can rely on `base.matchedKey === "" ⇒ delta.hit === false`.
-    if (!base.matchedKey) {
+    // #625: a base restored through the soldr-free fallback was written by a
+    // different soldr release; a delta keyed on this release cannot belong to it.
+    if (!base.matchedKey || !base.hit) {
         return {
             base,
             delta: { hit: false, matchedKey: "", archivePath: opts.deltaArchivePath, archiveBytes: 0 },

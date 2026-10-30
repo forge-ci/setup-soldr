@@ -11,6 +11,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import {
   buildCookBaseCacheKey,
+  buildCookBaseCacheRestorePrefix,
   buildCookCacheKey,
   buildCookDeltaCacheKey,
   buildCookDeltaCacheRestorePrefix,
@@ -114,9 +115,67 @@ test("buildCookBaseCacheKey stays Cargo.lock-oriented and omits SHA", () => {
   };
   assert.equal(
     buildCookBaseCacheKey(parts),
-    "cook-base-v2-linux-x64-glibc-rustc1.84.1-fabc12345-ldeadbeef-soldr0.7.38",
+    "cook-base-v3-linux-x64-glibc-rustc1.84.1-fabc12345-ldeadbeef-soldr0.7.38",
   );
   assert.equal(buildCookBaseCacheKey(parts), buildCookBaseCacheKey(parts));
+});
+
+test("#625 cook-base restore prefix drops only the soldr version", () => {
+  const parts = {
+    runnerOs: "linux",
+    runnerArch: "x64",
+    libc: "glibc",
+    rustcRelease: "1.84.1",
+    flagsHash: "abc12345",
+    lockHash: "deadbeef",
+    soldrVersion: "0.9.44",
+  };
+  const prefix = buildCookBaseCacheRestorePrefix(parts);
+  assert.equal(prefix, "cook-base-v3-linux-x64-glibc-rustc1.84.1-fabc12345-ldeadbeef-soldr");
+  // The previous soldr release's entry is reachable from the new release.
+  assert.ok(buildCookBaseCacheKey({ ...parts, soldrVersion: "0.9.42" }).startsWith(prefix));
+  // Every other dimension still separates entries.
+  for (const changed of [
+    { rustcRelease: "1.85.0" }, { libc: "musl" }, { runnerArch: "arm64" },
+    { runnerOs: "macos" }, { lockHash: "cafef00d" }, { flagsHash: "00000000" },
+    { keySuffix: "job" },
+  ]) {
+    assert.ok(
+      !buildCookBaseCacheKey({ ...parts, ...changed }).startsWith(prefix),
+      `prefix must not match ${JSON.stringify(changed)}`,
+    );
+  }
+  const suffixed = { ...parts, keySuffix: "job" };
+  assert.ok(buildCookBaseCacheKey({ ...suffixed, soldrVersion: "0.9.42" })
+    .startsWith(buildCookBaseCacheRestorePrefix(suffixed)));
+});
+
+test("#625 layered restore passes base restore keys and drops delta on a fallback base", async () => {
+  const root = mkTmp("cook-layer-fallback-");
+  const seen: Array<{ key: string; restoreKeys: string[] }> = [];
+  try {
+    const result = await restoreLayeredCookCacheArchives({
+      baseKey: "cook-base-v3-new",
+      baseRestoreKeys: ["cook-base-v3-"],
+      deltaKey: "cook-delta-v2-exact",
+      deltaRestoreKeys: ["cook-delta-v2-"],
+      baseArchivePath: path.join(root, "base.tar.zst"),
+      deltaArchivePath: path.join(root, "delta.tar.zst"),
+      log: () => {},
+      restoreCache: async (paths, key, restoreKeys) => {
+        seen.push({ key, restoreKeys: restoreKeys ?? [] });
+        fs.writeFileSync(paths[0]!, Buffer.from("payload"));
+        return key.startsWith("cook-base") ? "cook-base-v3-old" : key;
+      },
+    });
+    assert.deepEqual(seen.find((s) => s.key === "cook-base-v3-new")?.restoreKeys, ["cook-base-v3-"]);
+    assert.equal(result.base.hit, false);
+    assert.equal(result.base.matchedKey, "cook-base-v3-old");
+    assert.equal(result.delta.matchedKey, "");
+    assert.equal(result.delta.hit, false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("cook cache keys honor an explicit cache-key suffix", () => {
@@ -131,7 +190,8 @@ test("cook cache keys honor an explicit cache-key suffix", () => {
     keySuffix: "rematerialization/run 42",
   };
   assert.match(buildCookCacheKey(parts), /-xrematerialization_run_42$/);
-  assert.match(buildCookBaseCacheKey(parts), /-xrematerialization_run_42$/);
+  // #625: the base layer keeps the suffix but puts soldr last (v3).
+  assert.match(buildCookBaseCacheKey(parts), /-xrematerialization_run_42-soldr0\.9\.3$/);
   const restorePrefix = buildCookDeltaCacheRestorePrefix({
     ...parts,
     buildShapeHash: "shape",
