@@ -29,6 +29,7 @@ import * as cache from "@actions/cache";
 // The local-runner signal lives with the cache profile it also drives;
 // re-exported so existing callers keep importing it from here.
 import { isLocalRunner } from "./local-profile.js";
+import { readDependencyLayerSaveGate } from "./failed-job-save.js";
 export { isLocalRunner };
 
 export type SaveCacheMode = "auto" | "true" | "false";
@@ -139,8 +140,20 @@ export function resetSavePolicyLogForTest(): void {
  * logs one line per layer: `<layer>: save skipped: <reason>`.
  */
 export function allowCacheSave(layer: string, log: (msg: string) => void = console.log): boolean {
-  const decision = currentSaveDecision();
-  if (decision.save) return true;
+  let decision: SaveDecision = currentSaveDecision();
+  // #626: a cancelled job saves no layer at all (the dependency phase may
+  // have been interrupted). A failed job still passes here; output layers
+  // apply their own stricter #559 gate in the post step.
+  if (decision.save) {
+    let jobGate: { save: boolean; reason: string };
+    try {
+      jobGate = readDependencyLayerSaveGate(process.env);
+    } catch (err) {
+      jobGate = { save: false, reason: err instanceof Error ? err.message : String(err) };
+    }
+    if (jobGate.save) return true;
+    decision = { save: false, mode: decision.mode, reason: jobGate.reason };
+  }
   if (!loggedSkips.has(layer)) {
     loggedSkips.add(layer);
     log(`${layer}: save skipped: ${decision.reason}`);

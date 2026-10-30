@@ -11,10 +11,12 @@ import * as path from "node:path";
 
 import {
   decideBuildOutputSave,
+  decideLayerSave,
   FAILED_JOB_SKIP_STATUS,
   readBuildOutputSaveGate,
 } from "../src/lib/failed-job-save.js";
 import { readRawInputs } from "../src/lib/raw-inputs.js";
+import { allowCacheSave, resetSavePolicyLogForTest } from "../src/lib/save-policy.js";
 
 const ROOT = process.cwd();
 
@@ -74,4 +76,64 @@ test("#559 post.ts gates the build-cache and target-cache saves on the job statu
   assert.ok(gate < buildSave && gate < targetSave, "the gate is read before either save");
   assert.ok(src.includes(`status: FAILED_JOB_SKIP_STATUS`), "a skipped save is recorded");
   assert.equal(FAILED_JOB_SKIP_STATUS, "failed-job-skip");
+});
+
+// setup-soldr#626: dependency layers (cook-base, cargo registry, toolchain)
+// are finalized before the first workspace compile, so a failing test or
+// lint does not corrupt them. A failed job keeps saving them; a cancelled
+// job may have been interrupted inside the dependency phase, so it saves
+// nothing.
+test("#626 a failed job still saves dependency layers; a cancelled job does not", () => {
+  assert.equal(decideLayerSave({ jobStatus: "failure", saveOnFailure: "" }, "dependency").save, true);
+  assert.equal(decideLayerSave({ jobStatus: " Failure ", saveOnFailure: "" }, "dependency").save, true);
+  const cancelled = decideLayerSave({ jobStatus: "cancelled", saveOnFailure: "" }, "dependency");
+  assert.equal(cancelled.save, false);
+  assert.match(cancelled.reason, /job status cancelled/);
+  assert.equal(decideLayerSave({ jobStatus: "success", saveOnFailure: "" }, "dependency").save, true);
+  assert.equal(decideLayerSave({ jobStatus: "", saveOnFailure: "" }, "dependency").save, true);
+  assert.equal(decideLayerSave({ jobStatus: "cancelled", saveOnFailure: "true" }, "dependency").save, true);
+});
+
+test("#626 output layers keep the #559 refusal for failure and cancelled", () => {
+  for (const jobStatus of ["failure", "cancelled"]) {
+    assert.equal(decideLayerSave({ jobStatus, saveOnFailure: "" }, "output").save, false, jobStatus);
+    assert.deepEqual(
+      decideLayerSave({ jobStatus, saveOnFailure: "" }, "output"),
+      decideBuildOutputSave({ jobStatus, saveOnFailure: "" }),
+    );
+  }
+  assert.equal(decideLayerSave({ jobStatus: "failure", saveOnFailure: "true" }, "output").save, true);
+});
+
+test("#626 the shared save gate refuses every layer on a cancelled job", () => {
+  const saved = { status: process.env["INPUT_JOB-STATUS"], event: process.env["GITHUB_EVENT_NAME"], mode: process.env["INPUT_SAVE-CACHE"] };
+  resetSavePolicyLogForTest();
+  process.env["INPUT_SAVE-CACHE"] = "true";
+  try {
+    const lines: string[] = [];
+    process.env["INPUT_JOB-STATUS"] = "cancelled";
+    for (const layer of ["cargo-registry-cache", "solo-toolchain-cache", "cook-cache-base", "soldr-mini-cache"]) {
+      assert.equal(allowCacheSave(layer, (m) => lines.push(m)), false, layer);
+    }
+    assert.ok(lines.some((l) => l.includes("cargo-registry-cache: save skipped: job status cancelled")));
+    resetSavePolicyLogForTest();
+    process.env["INPUT_JOB-STATUS"] = "failure";
+    for (const layer of ["cargo-registry-cache", "solo-toolchain-cache", "cook-cache-base"]) {
+      assert.equal(allowCacheSave(layer, () => {}), true, layer);
+    }
+  } finally {
+    for (const [k, v] of [["INPUT_JOB-STATUS", saved.status], ["GITHUB_EVENT_NAME", saved.event], ["INPUT_SAVE-CACHE", saved.mode]] as const) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+    resetSavePolicyLogForTest();
+  }
+});
+
+test("#626 post.ts refuses the cook delta (a workspace output) on a failed job", () => {
+  const src = fs.readFileSync(path.join(ROOT, "src", "post.ts"), "utf8");
+  const cook = src.indexOf('const cookSaveLayer = core.getState("cookSaveLayer")');
+  assert.ok(cook >= 0, "post.ts has the layered cook save");
+  const block = src.slice(cook, cook + 2500);
+  assert.match(block, /cookSaveLayer === "delta" && !buildOutputGate\.save/);
 });

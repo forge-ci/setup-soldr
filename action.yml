@@ -221,15 +221,18 @@ inputs:
       status at the end of its steps. (An action's own input default cannot
       read the `job` context, so this must come from the workflow.) When it
       is `failure` or `cancelled`, the post step saves no build outputs
-      (build-cache and target-cache): a failed build's store may be partial,
-      and an exact-hit key is never re-saved, so saving it poisons the key
-      (#559). Empty (the default) keeps the old always-save behaviour.
+      (build-cache, target-cache and the cook delta): a failed build's store
+      may be partial, and an exact-hit key is never re-saved, so saving it
+      poisons the key (#559). On `failure` the dependency layers (cook base,
+      cargo registry, toolchain) still save, since they are finalized before
+      the workspace build; on `cancelled` nothing saves (#626). Empty (the
+      default) keeps the old always-save behaviour.
     required: false
     default: ""
   save-on-failure:
     description: >
-      "true" saves build-cache and target-cache even when the job failed or
-      was cancelled (the behaviour before #559). Default "false".
+      "true" saves every layer, build outputs included, even when the job
+      failed or was cancelled (the behaviour before #559). Default "false".
     required: false
     default: "false"
   target-cache-save-min-compiles:
