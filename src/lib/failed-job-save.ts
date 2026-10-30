@@ -16,6 +16,16 @@
 // so the post step sees the job's status at the end of its steps. An empty
 // status (the default) keeps the old always-save behaviour, as does
 // `save-on-failure: true`.
+//
+// setup-soldr#626 splits the layers in two. Output layers (build-cache,
+// target-cache, the cook delta) hold what the failing build produced and are
+// refused on `failure` and `cancelled`, as above. Dependency layers (cook
+// base, cargo registry, toolchain) are finalized before the first workspace
+// compile, so a failing test or lint cannot corrupt them: a `failure` keeps
+// saving them, otherwise a lane that fails deterministically never warms.
+// A `cancelled` job may have been interrupted inside the dependency phase
+// itself, so it saves nothing: `save-policy.ts`'s shared gate applies the
+// dependency rule to every layer.
 
 import { readRawInputs } from "./raw-inputs.js";
 
@@ -48,4 +58,26 @@ export function decideBuildOutputSave(input: { jobStatus: string; saveOnFailure:
 export function readBuildOutputSaveGate(env: Record<string, string | undefined>): BuildOutputSaveDecision {
   const raw = readRawInputs(env);
   return decideBuildOutputSave({ jobStatus: raw.jobStatus, saveOnFailure: raw.saveOnFailure });
+}
+
+export type LayerSaveClass = "dependency" | "output";
+
+/** #626: the job-status decision for one class of layer. */
+export function decideLayerSave(
+  input: { jobStatus: string; saveOnFailure: string },
+  kind: LayerSaveClass,
+): BuildOutputSaveDecision {
+  const output = decideBuildOutputSave(input);
+  if (kind === "output" || output.save) return output;
+  const status = input.jobStatus.trim().toLowerCase();
+  if (status === "failure") {
+    return { save: true, reason: "job status failure (dependency layer, finalized before the workspace build)" };
+  }
+  return output;
+}
+
+/** #626: the dependency-layer gate from the step's inputs. */
+export function readDependencyLayerSaveGate(env: Record<string, string | undefined>): BuildOutputSaveDecision {
+  const raw = readRawInputs(env);
+  return decideLayerSave({ jobStatus: raw.jobStatus, saveOnFailure: raw.saveOnFailure }, "dependency");
 }

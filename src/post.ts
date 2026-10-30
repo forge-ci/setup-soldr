@@ -2245,6 +2245,11 @@ export async function run(): Promise<void> {
       );
       if (!cookRan || cookSaveLayer === "none") {
         log("cook-cache: layered cache warm or cook did not run successfully - skipping save");
+      } else if (cookSaveLayer === "delta" && !buildOutputGate.save) {
+        // #626: the delta is captured from target/ after the workspace build,
+        // so it is a build output (#559). The base layer is dependency-only
+        // and still saves on a failed job.
+        log(`cook-cache-delta: skipping save — ${buildOutputGate.reason}`);
       } else if (!cookTargetDir || !fs.existsSync(cookTargetDir)) {
         log(`cook-cache: target dir ${cookTargetDir} missing - skipping save`);
       } else if (!cookProjectRoot || !fs.existsSync(cookProjectRoot)) {
