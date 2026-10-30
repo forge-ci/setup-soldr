@@ -6,4 +6,4 @@
 // Bumped by `node scripts/bump-default-soldr.mjs <version>` (run by the
 // ingest-soldr-release workflow), which also updates action.yml's
 // `inputs.version.default`; a unit test keeps the two in lockstep.
-export const DEFAULT_SOLDR_VERSION = "0.9.44";
+export const DEFAULT_SOLDR_VERSION = "0.9.45";
