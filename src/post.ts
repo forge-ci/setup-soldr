@@ -60,6 +60,14 @@ import { parseAncestorKey } from "./lib/ancestor-cache.js";
 import { cacheProfileDefault, isLocalRunner, resolveCacheProfileInput } from "./lib/local-profile.js";
 import { allowCacheSave, gatedSaveCache } from "./lib/save-policy.js";
 import {
+  allowS3Save,
+  configFromEnv as s3ConfigFromEnv,
+  credentialValues as s3CredentialValues,
+  l2RootFor as s3L2RootFor,
+  saveFamily as s3SaveFamily,
+  type S3RestoreState,
+} from "./lib/s3-cache.js";
+import {
   deleteCacheEntriesByKeys,
   evictIfOverBudget,
   type CacheEvictionPolicy,
@@ -1662,6 +1670,61 @@ export async function run(): Promise<void> {
     uploadMs: buildSave.phaseTimings?.uploadMs,
     timestamp: new Date().toISOString(),
   });
+
+  // Optional S3 remote cache: upload this run's build-cache archive under
+  // its own key. Shares the build-output, tiny-delta and payload gates
+  // above; the upload itself is gated by allowS3Save (save-cache=false,
+  // save-cache-remote=false, cancelled job). On a wiped remote it seeds
+  // the runner-local L2 dir; only merge_group runs sweep the bucket.
+  const s3 = s3ConfigFromEnv(process.env);
+  const s3StateRaw = core.getState("s3BuildState");
+  if (s3 && s3StateRaw && restoreState.buildCacheEnabled) {
+    for (const secret of s3CredentialValues(process.env)) core.setSecret(secret);
+    const s3Gate = allowS3Save(process.env);
+    try {
+      const s3State = JSON.parse(s3StateRaw) as S3RestoreState;
+      if (!s3Gate.save) {
+        log(`s3-cache: build save skipped: ${s3Gate.reason}`);
+      } else if (!buildOutputGate.save || buildSaveGate.skip || buildSave.status === "oversize-skip") {
+        log(`s3-cache: build save skipped: ${buildSave.skip_reason ?? buildSave.status}`);
+      } else {
+        let archivePath = s3State.exact ? "" : (buildSave.archive_path ?? "");
+        if (!s3State.exact && !(archivePath && fs.existsSync(archivePath))) {
+          const compressed = await compressCache({
+            cacheDir: result.buildCache.path,
+            codec: result.targetCacheCompress,
+            level: result.targetCacheCompressLevel,
+            debug: debugMode,
+            log: debugLog,
+            payloadWarnBytes: payloadPolicy.warnBytes,
+            payloadMaxBytes: payloadPolicy.maxBytes,
+            payloadOversizeAction: payloadPolicy.oversizeAction,
+            payloadTopN: payloadPolicy.topN,
+            payloadProfile: "zccache-build-cache",
+            label: "build-cache",
+            cacheKey: result.buildCache.key,
+          });
+          archivePath = compressed.skippedReason ? "" : (compressed.archivePath ?? "");
+        }
+        if (s3State.exact || archivePath) {
+          await s3SaveFamily(s3.client(), {
+            family: "build",
+            key: result.buildCache.key,
+            archivePath,
+            state: s3State,
+            eventName: process.env["GITHUB_EVENT_NAME"]?.trim() ?? "",
+            limit: s3.limit,
+            l2Root: s3L2RootFor(process.env, result.setupCache.setupCachePath),
+            log,
+          });
+        } else {
+          log("s3-cache: build save skipped: no archive");
+        }
+      }
+    } catch (err) {
+      core.warning(`s3-cache: build save failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
 
   // Target cache. Previously slotted as `notManagedSave()` in the
   // finalSummary — i.e. restored in main.ts but never saved here. That

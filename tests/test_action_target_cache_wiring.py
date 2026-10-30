@@ -103,6 +103,10 @@ EXPECTED_INPUTS = {
     "job-status",
     "save-on-failure",
     "target-cache-save-min-compiles",
+    "s3-bucket",
+    "s3-endpoint",
+    "s3-region",
+    "s3-cache-limit",
 }
 
 

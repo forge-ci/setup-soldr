@@ -9,6 +9,12 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { spawn } from "node:child_process";
 import * as core from "@actions/core";
+import {
+  configFromEnv as s3ConfigFromEnv,
+  credentialValues as s3CredentialValues,
+  l2RootFor as s3L2RootFor,
+  restoreFamily as s3RestoreFamily,
+} from "./lib/s3-cache.js";
 import * as cache from "@actions/cache";
 import * as exec from "@actions/exec";
 import { createLogger } from "./lib/log-utils.js";
@@ -791,14 +797,34 @@ export async function run(): Promise<void> {
     // entry exists. post.ts saves `[archivePath]` (just the .tar.zst), so
     // restore must use the same single-path array. The decompression below
     // unpacks archivePath → buildCachePath afterwards.
-    let restore = await restoreCacheSafe(
-      [archivePath],
-      selectedKey || (localAncestorKey ? result.buildCache.key : legacyKey),
-      selectedKey ? [] : restoreKeys,
-      logger,
-    );
-    if (selectedKey && restore.matchedKey !== selectedKey) {
-      restore = await restoreCacheSafe([archivePath], legacyKey, restoreKeys, logger);
+    // Optional S3 remote cache (off unless s3-bucket + credential env are
+    // set). An S3 or L2-seed hit writes archivePath directly and skips the
+    // actions/cache lookup; a miss falls through to it unchanged.
+    let restore: { hit: boolean; matchedKey: string } = { hit: false, matchedKey: "" };
+    const s3 = s3ConfigFromEnv(process.env);
+    if (s3) {
+      for (const secret of s3CredentialValues(process.env)) core.setSecret(secret);
+      const s3Restore = await s3RestoreFamily(s3.client(), {
+        family: "build",
+        key: selectedKey || result.buildCache.key,
+        restoreKeys: [...(selectedKey ? [result.buildCache.key] : []), ...restoreKeys],
+        archivePath,
+        l2Root: s3L2RootFor(process.env, result.setupCache.setupCachePath),
+        log: (m) => logger.log(m),
+      });
+      core.saveState("s3BuildState", JSON.stringify(s3Restore.state));
+      restore = { hit: false, matchedKey: s3Restore.matchedKey };
+    }
+    if (!restore.matchedKey) {
+      restore = await restoreCacheSafe(
+        [archivePath],
+        selectedKey || (localAncestorKey ? result.buildCache.key : legacyKey),
+        selectedKey ? [] : restoreKeys,
+        logger,
+      );
+      if (selectedKey && restore.matchedKey !== selectedKey) {
+        restore = await restoreCacheSafe([archivePath], legacyKey, restoreKeys, logger);
+      }
     }
     // A donor hit is a starting point; only this source's exact write key may
     // suppress a post-phase save under the existing delta/CACHE-008 gates.

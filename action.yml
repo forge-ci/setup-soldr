@@ -86,6 +86,32 @@ inputs:
       setup-soldr#527.
     required: false
     default: "auto"
+  s3-bucket:
+    description: >
+      Optional S3-compatible bucket (e.g. a DigitalOcean Space) used as a
+      remote build-cache tier in front of actions/cache. Off when empty, or
+      when the SOLDR_S3_CACHE_ACCESS_KEY / SOLDR_S3_CACHE_SECRET_KEY env vars
+      (from workflow secrets) are absent. Objects are stored as
+      <family>/<key>.tar.zst. Every run writes only its own key (pull
+      requests included: the bucket is not ref-scoped); save-cache=false,
+      save-cache-remote=false and a cancelled job still block uploads.
+    required: false
+    default: ""
+  s3-endpoint:
+    description: S3 endpoint host, e.g. nyc3.digitaloceanspaces.com. Required with s3-bucket.
+    required: false
+    default: ""
+  s3-region:
+    description: SigV4 region. Empty derives it from a DigitalOcean endpoint (nyc3), else us-east-1.
+    required: false
+    default: ""
+  s3-cache-limit:
+    description: >
+      High watermark for the bucket (e.g. 50G, 500GiB, 1TB). Only merge_group
+      runs evict, least recently modified first, never the current run's
+      object or anything younger than 30 minutes. Empty means 50G.
+    required: false
+    default: ""
   cache-dir:
     description: Override the runner-local cache/state root used for the installed soldr binary and any managed rustup state rehydrated by this action.
     required: false
