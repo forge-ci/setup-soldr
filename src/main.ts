@@ -77,6 +77,7 @@ import {
   verifyRestoredToolchain,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
+import { coldInstallAfterFailedRepair } from "./lib/solo-poison.js";
 import {
   buildCookBaseCacheKey,
   buildCookBaseCacheRestorePrefix,
@@ -1411,6 +1412,7 @@ export async function run(): Promise<void> {
     core.saveState("soloToolchainInvalidMatchedKey", soloRestoreInvalid ? soloMatchedKey : "");
     core.saveState("soloToolchainRestoredBytes", String(soloRestoredBytes));
     core.saveState("soloToolchainLevel", soloLevel);
+    core.saveState("soloToolchainChannel", result.toolchain.channel);
     statsCollector.record({
       label: "solo-toolchain-cache",
       operation: "restore",
@@ -1489,9 +1491,31 @@ export async function run(): Promise<void> {
         log: (msg) => logger.log(msg),
       });
       if (!repaired.match) {
-        throw new Error(
-          `solo-toolchain-cache: repair did not restore the requested toolchain and targets for key=${soloMatchedKey}`,
-        );
+        // #2342: the in-place repair could not displace the restored
+        // toolchain. Discard it and install from scratch rather than
+        // turning one bad cache entry into a CI outage.
+        await coldInstallAfterFailedRepair({
+          rustupHome: result.rustupHome,
+          channel: result.toolchain.channel,
+          key: soloMatchedKey,
+          warn: (msg) => core.warning(msg),
+          reinstall: async () => ensureRustToolchain({
+            resolveResult: result,
+            setupCacheExactHit: false,
+            bootstrapSoldr: await ctx.getBootstrapSoldr?.(),
+            forceRepair: true,
+          }),
+          verify: async () => verifyRestoredToolchain({
+            expectedRelease: result.toolchain.cacheChannel.trim(),
+            expectedTargets: result.toolchain.targets,
+            expectedComponents: result.toolchain.components,
+            channel: result.toolchain.channel,
+            rustupCommand: process.platform === "win32" ? "rustup.exe" : "rustup",
+            bootstrapSoldr: await ctx.getBootstrapSoldr?.(),
+            allowUnmanagedProbe: !result.enabled,
+            log: (msg) => logger.log(msg),
+          }),
+        });
       }
       logger.log(`solo-toolchain-cache: repaired toolchain and requested targets verified for key=${soloMatchedKey}`);
     }
