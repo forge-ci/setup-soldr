@@ -1181,8 +1181,8 @@ export async function resolveSetup(
     "success.txt",
   );
   const dylintDriverRev = inputs.dylintDriverRev.trim() || "none";
-  const cargoDylintVersion = inputs.cargoDylintVersion.trim() || "6.0.3";
-  const dylintLinkVersion = inputs.dylintLinkVersion.trim() || "6.0.3";
+  const cargoDylintVersion = inputs.cargoDylintVersion.trim() || "6.2.0";
+  const dylintLinkVersion = inputs.dylintLinkVersion.trim() || "6.2.0";
   const customDylintPaths = splitPathInput(inputs.dylintCachePaths).map((p) =>
     path.isAbsolute(expanduser(p, env)) ? resolveAbsolute(p, env) : path.resolve(workspace, p),
   );

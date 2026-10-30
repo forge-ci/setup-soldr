@@ -11,8 +11,8 @@ test("disabled Dylint mode performs no preparation", async () => {
     soldrPath: "/tools/soldr",
     soldrRoot: "/cache/soldr",
     workspace: "/workspace",
-    cargoDylintVersion: "6.0.3",
-    dylintLinkVersion: "6.0.3",
+    cargoDylintVersion: "6.2.0",
+    dylintLinkVersion: "6.2.0",
     execCommand: async () => {
       called = true;
       return 0;
@@ -29,8 +29,8 @@ test("declared dylint-targets each get their own soldr dylint prepare --target c
     soldrPath: "/tools/soldr",
     soldrRoot: "/cache/soldr",
     workspace: "/workspace",
-    cargoDylintVersion: "6.0.3",
-    dylintLinkVersion: "6.0.3",
+    cargoDylintVersion: "6.2.0",
+    dylintLinkVersion: "6.2.0",
     crossTargets: ["x86_64-pc-windows-msvc", "aarch64-apple-darwin"],
     execCommand: async (command, args) => {
       calls.push(args);
@@ -54,8 +54,8 @@ test("a failing cross-target prepare throws with the target name and does not fa
       soldrPath: "/tools/soldr",
       soldrRoot: "/cache/soldr",
       workspace: "/workspace",
-      cargoDylintVersion: "6.0.3",
-      dylintLinkVersion: "6.0.3",
+      cargoDylintVersion: "6.2.0",
+      dylintLinkVersion: "6.2.0",
       crossTargets: ["x86_64-pc-windows-msvc"],
       execCommand: async (_command, args) => (args.includes("--target") ? 1 : 0),
       exists: () => true,
@@ -75,8 +75,8 @@ test("Dylint mode delegates preparation to Soldr and exports managed tool direct
     soldrPath: "/tools/soldr",
     soldrRoot: "/cache/soldr",
     workspace: "/workspace",
-    cargoDylintVersion: "6.0.3",
-    dylintLinkVersion: "6.0.3",
+    cargoDylintVersion: "6.2.0",
+    dylintLinkVersion: "6.2.0",
     execCommand: async (command, args, options) => {
       invocation = {
         command,
@@ -97,8 +97,8 @@ test("Dylint mode delegates preparation to Soldr and exports managed tool direct
     forceManaged: "1",
   });
   assert.deepEqual(paths, [
-    path.join("/cache/soldr", "bin", "cargo-dylint-6.0.3"),
-    path.join("/cache/soldr", "bin", "dylint-link-6.0.3"),
+    path.join("/cache/soldr", "bin", "cargo-dylint-6.2.0"),
+    path.join("/cache/soldr", "bin", "dylint-link-6.2.0"),
   ]);
   assert.deepEqual(added, paths);
 });
@@ -128,8 +128,8 @@ test("a failed Soldr preparation stops setup", async () => {
         soldrPath: "/tools/soldr",
         soldrRoot: "/cache/soldr",
         workspace: "/workspace",
-        cargoDylintVersion: "6.0.3",
-        dylintLinkVersion: "6.0.3",
+        cargoDylintVersion: "6.2.0",
+        dylintLinkVersion: "6.2.0",
         execCommand: async () => 17,
       }),
     /failed with exit code 17/,

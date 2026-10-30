@@ -5,17 +5,17 @@ import test from "node:test";
 const action = readFileSync("action.yml", "utf8");
 const rustCi = readFileSync(".github/workflows/rust-ci.yml", "utf8");
 
-test("action and reusable Rust CI default Dylint tools to Soldr's 6.0.3 pin", () => {
+test("action and reusable Rust CI default Dylint tools to Soldr's 6.2.0 pin", () => {
   for (const name of ["cargo-dylint-version", "dylint-link-version"]) {
     assert.match(
       action,
-      new RegExp(`${name}:[\\s\\S]*?default: "6\\.0\\.3"`),
-      `${name} action default must remain 6.0.3`,
+      new RegExp(`${name}:[\\s\\S]*?default: "6\\.2\\.0"`),
+      `${name} action default must remain 6.2.0`,
     );
     assert.match(
       rustCi,
-      new RegExp(`${name}:[\\s\\S]*?default: "6\\.0\\.3"`),
-      `${name} reusable-workflow default must remain 6.0.3`,
+      new RegExp(`${name}:[\\s\\S]*?default: "6\\.2\\.0"`),
+      `${name} reusable-workflow default must remain 6.2.0`,
     );
   }
 });

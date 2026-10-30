@@ -845,7 +845,7 @@ const DispatcherBase = __nccwpck_require__(68)
 const Pool = __nccwpck_require__(370)
 const Client = __nccwpck_require__(100)
 const util = __nccwpck_require__(77)
-const createRedirectInterceptor = __nccwpck_require__(280)
+const createRedirectInterceptor = __nccwpck_require__(281)
 const { WeakRef, FinalizationRegistry } = __nccwpck_require__(454)()
 
 const kOnConnect = Symbol('onConnect')
@@ -2734,7 +2734,7 @@ exports.isObject = isObject;
 exports.randomUUID = randomUUID;
 exports.uint8ArrayToString = uint8ArrayToString;
 exports.stringToUint8Array = stringToUint8Array;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const tspRuntime = tslib_1.__importStar(__nccwpck_require__(162));
 var aborterUtils_js_1 = __nccwpck_require__(113);
 Object.defineProperty(exports, "cancelablePromiseRace", ({ enumerable: true, get: function () { return aborterUtils_js_1.cancelablePromiseRace; } }));
@@ -2742,7 +2742,7 @@ var createAbortablePromise_js_1 = __nccwpck_require__(286);
 Object.defineProperty(exports, "createAbortablePromise", ({ enumerable: true, get: function () { return createAbortablePromise_js_1.createAbortablePromise; } }));
 var delay_js_1 = __nccwpck_require__(127);
 Object.defineProperty(exports, "delay", ({ enumerable: true, get: function () { return delay_js_1.delay; } }));
-var error_js_1 = __nccwpck_require__(231);
+var error_js_1 = __nccwpck_require__(230);
 Object.defineProperty(exports, "getErrorMessage", ({ enumerable: true, get: function () { return error_js_1.getErrorMessage; } }));
 var typeGuards_js_1 = __nccwpck_require__(123);
 Object.defineProperty(exports, "isDefined", ({ enumerable: true, get: function () { return typeGuards_js_1.isDefined; } }));
@@ -2920,7 +2920,7 @@ module.exports = __toCommonJS(retryPolicy_exports);
 var import_helpers = __nccwpck_require__(497);
 var import_restError = __nccwpck_require__(485);
 var import_AbortError = __nccwpck_require__(10);
-var import_logger = __nccwpck_require__(268);
+var import_logger = __nccwpck_require__(269);
 var import_constants = __nccwpck_require__(51);
 const retryPolicyLogger = (0, import_logger.createClientLogger)("ts-http-runtime retryPolicy");
 const retryPolicyName = "retryPolicy";
@@ -3182,7 +3182,7 @@ var binary_reader_1 = __nccwpck_require__(151);
 Object.defineProperty(exports, "BinaryReader", ({ enumerable: true, get: function () { return binary_reader_1.BinaryReader; } }));
 Object.defineProperty(exports, "binaryReadOptions", ({ enumerable: true, get: function () { return binary_reader_1.binaryReadOptions; } }));
 // Standard IBinaryWriter implementation
-var binary_writer_1 = __nccwpck_require__(273);
+var binary_writer_1 = __nccwpck_require__(274);
 Object.defineProperty(exports, "BinaryWriter", ({ enumerable: true, get: function () { return binary_writer_1.BinaryWriter; } }));
 Object.defineProperty(exports, "binaryWriteOptions", ({ enumerable: true, get: function () { return binary_writer_1.binaryWriteOptions; } }));
 // Int64 and UInt64 implementations required for the binary format
@@ -3212,7 +3212,7 @@ Object.defineProperty(exports, "readMessageOption", ({ enumerable: true, get: fu
 // Message operations via reflection
 var reflection_type_check_1 = __nccwpck_require__(319);
 Object.defineProperty(exports, "ReflectionTypeCheck", ({ enumerable: true, get: function () { return reflection_type_check_1.ReflectionTypeCheck; } }));
-var reflection_create_1 = __nccwpck_require__(223);
+var reflection_create_1 = __nccwpck_require__(222);
 Object.defineProperty(exports, "reflectionCreate", ({ enumerable: true, get: function () { return reflection_create_1.reflectionCreate; } }));
 var reflection_scalar_default_1 = __nccwpck_require__(507);
 Object.defineProperty(exports, "reflectionScalarDefault", ({ enumerable: true, get: function () { return reflection_scalar_default_1.reflectionScalarDefault; } }));
@@ -3421,7 +3421,7 @@ const {
   createDeferredPromise,
   fullyReadBody
 } = __nccwpck_require__(570)
-const { FormData } = __nccwpck_require__(225)
+const { FormData } = __nccwpck_require__(224)
 const { kState } = __nccwpck_require__(15)
 const { webidl } = __nccwpck_require__(499)
 const { DOMException, structuredClone } = __nccwpck_require__(32)
@@ -3429,7 +3429,7 @@ const { Blob, File: NativeFile } = __nccwpck_require__(134)
 const { kBodyUsed } = __nccwpck_require__(211)
 const assert = __nccwpck_require__(581)
 const { isErrored } = __nccwpck_require__(77)
-const { isUint8Array, isArrayBuffer } = __nccwpck_require__(216)
+const { isUint8Array, isArrayBuffer } = __nccwpck_require__(215)
 const { File: UndiciFile } = __nccwpck_require__(397)
 const { parseMIMEType, serializeAMimeType } = __nccwpck_require__(25)
 
@@ -3451,7 +3451,7 @@ const textDecoder = new TextDecoder()
 // https://fetch.spec.whatwg.org/#concept-bodyinit-extract
 function extractBody (object, keepalive = false) {
   if (!ReadableStream) {
-    ReadableStream = (__nccwpck_require__(282).ReadableStream)
+    ReadableStream = (__nccwpck_require__(283).ReadableStream)
   }
 
   // 1. Let stream be null.
@@ -3672,7 +3672,7 @@ function extractBody (object, keepalive = false) {
 function safelyExtractBody (object, keepalive = false) {
   if (!ReadableStream) {
     // istanbul ignore next
-    ReadableStream = (__nccwpck_require__(282).ReadableStream)
+    ReadableStream = (__nccwpck_require__(283).ReadableStream)
   }
 
   // To safely extract a body and a `Content-Type` value from
@@ -4674,7 +4674,7 @@ module.exports = {
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppendBlobImpl = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
 const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
 const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
@@ -5122,7 +5122,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.parseIsolatedSeedTargets = parseIsolatedSeedTargets;
 exports.shouldSeedBuildCacheEntry = shouldSeedBuildCacheEntry;
 exports.seedIsolatedBuildCache = seedIsolatedBuildCache;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const cache_compress_js_1 = __nccwpck_require__(62);
 const TRANSIENT_SEED_SUFFIXES = [".lock", ".lck", ".sock", ".pid", ".tmp", ".temp", ".part", ".partial"];
@@ -6318,14 +6318,14 @@ const {
 } = __nccwpck_require__(32)
 const { kState, kHeaders, kGuard, kRealm } = __nccwpck_require__(15)
 const { webidl } = __nccwpck_require__(499)
-const { FormData } = __nccwpck_require__(225)
+const { FormData } = __nccwpck_require__(224)
 const { getGlobalOrigin } = __nccwpck_require__(156)
 const { URLSerializer } = __nccwpck_require__(25)
 const { kHeadersList, kConstruct } = __nccwpck_require__(211)
 const assert = __nccwpck_require__(581)
 const { types } = __nccwpck_require__(138)
 
-const ReadableStream = globalThis.ReadableStream || (__nccwpck_require__(282).ReadableStream)
+const ReadableStream = globalThis.ReadableStream || (__nccwpck_require__(283).ReadableStream)
 const textEncoder = new TextEncoder('utf-8')
 
 // https://fetch.spec.whatwg.org/#response-class
@@ -7582,7 +7582,7 @@ exports.BaseRequestPolicy = BaseRequestPolicy;
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BlobImpl = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
 const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
 const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
@@ -8790,7 +8790,7 @@ exports.snapshotSourceMtimes = snapshotSourceMtimes;
 exports.replaySourceMtimes = replaySourceMtimes;
 exports.writeSnapshotFile = writeSnapshotFile;
 exports.readSnapshotFile = readSnapshotFile;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const node_crypto_1 = __nccwpck_require__(301);
 const normalize_source_mtime_js_1 = __nccwpck_require__(509);
@@ -9891,7 +9891,7 @@ exports.UnaryCall = UnaryCall;
 
 const { kReadyState, kController, kResponse, kBinaryType, kWebSocketURL } = __nccwpck_require__(111)
 const { states, opcodes } = __nccwpck_require__(513)
-const { MessageEvent, ErrorEvent } = __nccwpck_require__(272)
+const { MessageEvent, ErrorEvent } = __nccwpck_require__(273)
 
 /* globals Blob */
 
@@ -11848,7 +11848,7 @@ const StorageClient_js_1 = __nccwpck_require__(496);
 const tracing_js_1 = __nccwpck_require__(33);
 const utils_common_js_1 = __nccwpck_require__(170);
 const BlobSASSignatureValues_js_1 = __nccwpck_require__(76);
-const BlobLeaseClient_js_1 = __nccwpck_require__(222);
+const BlobLeaseClient_js_1 = __nccwpck_require__(221);
 const Clients_js_1 = __nccwpck_require__(200);
 const BlobBatchClient_js_1 = __nccwpck_require__(440);
 /**
@@ -16142,7 +16142,7 @@ async function * convertIterableToBuffer (iterable) {
 let ReadableStream
 function ReadableStreamFrom (iterable) {
   if (!ReadableStream) {
-    ReadableStream = (__nccwpck_require__(282).ReadableStream)
+    ReadableStream = (__nccwpck_require__(283).ReadableStream)
   }
 
   if (ReadableStream.from) {
@@ -16369,11 +16369,11 @@ __export(src_exports, {
   toHttpHeadersLike: () => import_util.toHttpHeadersLike
 });
 module.exports = __toCommonJS(src_exports);
-var import_extendedClient = __nccwpck_require__(233);
+var import_extendedClient = __nccwpck_require__(232);
 var import_response = __nccwpck_require__(451);
 var import_requestPolicyFactoryPolicy = __nccwpck_require__(69);
 var import_disableKeepAlivePolicy = __nccwpck_require__(8);
-var import_httpClientAdapter = __nccwpck_require__(228);
+var import_httpClientAdapter = __nccwpck_require__(227);
 var import_util = __nccwpck_require__(122);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
@@ -16970,7 +16970,7 @@ const glob = __importStar(__nccwpck_require__(182));
 const io = __importStar(__nccwpck_require__(324));
 const crypto = __importStar(__nccwpck_require__(320));
 const fs = __importStar(__nccwpck_require__(587));
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const semver = __importStar(__nccwpck_require__(194));
 const util = __importStar(__nccwpck_require__(138));
 const constants_1 = __nccwpck_require__(48);
@@ -17558,7 +17558,7 @@ exports.installedSoldrReleaseIsUsable = installedSoldrReleaseIsUsable;
 exports.extractBinary = extractBinary;
 exports.downloadWithHeaders = downloadWithHeaders;
 exports.ensureSoldr = ensureSoldr;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const node_crypto_1 = __nccwpck_require__(301);
 const os = __importStar(__nccwpck_require__(414));
 const path = __importStar(__nccwpck_require__(560));
@@ -17566,7 +17566,7 @@ const core = __importStar(__nccwpck_require__(504));
 const toolrunner_js_1 = __nccwpck_require__(140);
 const tc = __importStar(__nccwpck_require__(575));
 const fzstd = __importStar(__nccwpck_require__(385));
-const log_utils_js_1 = __nccwpck_require__(277);
+const log_utils_js_1 = __nccwpck_require__(278);
 const release_readiness_js_1 = __nccwpck_require__(498);
 const github_api_js_1 = __nccwpck_require__(146);
 const verify_soldr_js_1 = __nccwpck_require__(591);
@@ -19403,7 +19403,7 @@ class Request {
 
       // 2. Set finalBody to the result of creating a proxy for inputBody.
       if (!TransformStream) {
-        TransformStream = (__nccwpck_require__(282).TransformStream)
+        TransformStream = (__nccwpck_require__(283).TransformStream)
       }
 
       // https://streams.spec.whatwg.org/#readablestream-create-a-proxy
@@ -19890,7 +19890,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getOctokit = exports.context = void 0;
-const Context = __importStar(__nccwpck_require__(234));
+const Context = __importStar(__nccwpck_require__(233));
 const utils_1 = __nccwpck_require__(306);
 exports.context = new Context.Context();
 /**
@@ -20067,7 +20067,7 @@ exports.findBundledZccacheDir = findBundledZccacheDir;
 exports.managedReleaseUrl = managedReleaseUrl;
 exports.downloadManagedRelease = downloadManagedRelease;
 exports.seedZccache = seedZccache;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const os = __importStar(__nccwpck_require__(414));
 const path = __importStar(__nccwpck_require__(560));
 const core = __importStar(__nccwpck_require__(504));
@@ -21169,7 +21169,7 @@ function onHTTP2GoAway (code) {
 }
 
 const constants = __nccwpck_require__(490)
-const createRedirectInterceptor = __nccwpck_require__(280)
+const createRedirectInterceptor = __nccwpck_require__(281)
 const EMPTY_BUF = Buffer.alloc(0)
 
 async function lazyllhttp () {
@@ -23044,8 +23044,8 @@ exports.gatedVerdictSave = gatedVerdictSave;
  * `__tests__/save-policy.test.ts` enumerates every raw save call site in
  * `src/` and fails when one bypasses this gate.
  */
-const fs = __importStar(__nccwpck_require__(271));
-const cache = __importStar(__nccwpck_require__(232));
+const fs = __importStar(__nccwpck_require__(272));
+const cache = __importStar(__nccwpck_require__(231));
 // The local-runner signal lives with the cache profile it also drives;
 // re-exported so existing callers keep importing it from here.
 const local_profile_js_1 = __nccwpck_require__(70);
@@ -23248,14 +23248,14 @@ __export(src_exports, {
 });
 module.exports = __toCommonJS(src_exports);
 var import_AbortError = __nccwpck_require__(10);
-var import_logger = __nccwpck_require__(268);
+var import_logger = __nccwpck_require__(269);
 var import_httpHeaders = __nccwpck_require__(533);
 var import_pipelineRequest = __nccwpck_require__(130);
 var import_pipeline = __nccwpck_require__(578);
 var import_restError = __nccwpck_require__(485);
 var import_bytesEncoding = __nccwpck_require__(316);
 var import_defaultHttpClient = __nccwpck_require__(404);
-var import_getClient = __nccwpck_require__(227);
+var import_getClient = __nccwpck_require__(226);
 var import_operationOptionHelpers = __nccwpck_require__(415);
 var import_restError2 = __nccwpck_require__(400);
 // Annotate the CommonJS export names for ESM import in node:
@@ -24537,15 +24537,15 @@ var import_logPolicy = __nccwpck_require__(79);
 var import_multipartPolicy = __nccwpck_require__(298);
 var import_proxyPolicy = __nccwpck_require__(520);
 var import_redirectPolicy = __nccwpck_require__(373);
-var import_systemErrorRetryPolicy = __nccwpck_require__(237);
+var import_systemErrorRetryPolicy = __nccwpck_require__(236);
 var import_throttlingRetryPolicy = __nccwpck_require__(23);
-var import_retryPolicy = __nccwpck_require__(230);
+var import_retryPolicy = __nccwpck_require__(229);
 var import_tracingPolicy = __nccwpck_require__(369);
 var import_defaultRetryPolicy = __nccwpck_require__(59);
 var import_userAgentPolicy = __nccwpck_require__(423);
 var import_tlsPolicy = __nccwpck_require__(410);
 var import_formDataPolicy = __nccwpck_require__(295);
-var import_bearerTokenAuthenticationPolicy = __nccwpck_require__(236);
+var import_bearerTokenAuthenticationPolicy = __nccwpck_require__(235);
 var import_ndJsonPolicy = __nccwpck_require__(261);
 var import_auxiliaryAuthenticationHeaderPolicy = __nccwpck_require__(209);
 var import_agentPolicy = __nccwpck_require__(251);
@@ -25484,7 +25484,7 @@ exports.resolveToolchainCacheChannel = resolveToolchainCacheChannel;
 exports.loadToolchainSpec = loadToolchainSpec;
 exports.systemRustupSatisfiesRequest = systemRustupSatisfiesRequest;
 const node_crypto_1 = __nccwpck_require__(301);
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const toml = __importStar(__nccwpck_require__(438));
 const io = __importStar(__nccwpck_require__(324));
@@ -26395,7 +26395,7 @@ async function setPlatformSpecificData(map) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PbLong = exports.PbULong = exports.detectBi = void 0;
-const goog_varint_1 = __nccwpck_require__(221);
+const goog_varint_1 = __nccwpck_require__(220);
 let BI;
 function detectBi() {
     const dv = new DataView(new ArrayBuffer(8));
@@ -26688,7 +26688,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Path = void 0;
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const pathHelper = __importStar(__nccwpck_require__(241));
 const assert_1 = __importDefault(__nccwpck_require__(581));
 const IS_WINDOWS = process.platform === 'win32';
@@ -26984,7 +26984,7 @@ module.exports = require("util");
 module.exports = minimatch
 minimatch.Minimatch = Minimatch
 
-var path = (function () { try { return __nccwpck_require__(270) } catch (e) {}}()) || {
+var path = (function () { try { return __nccwpck_require__(271) } catch (e) {}}()) || {
   sep: '/'
 }
 minimatch.sep = path.sep
@@ -28028,7 +28028,7 @@ exports.argStringToArray = exports.ToolRunner = void 0;
 const os = __importStar(__nccwpck_require__(105));
 const events = __importStar(__nccwpck_require__(517));
 const child = __importStar(__nccwpck_require__(179));
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const io = __importStar(__nccwpck_require__(324));
 const ioUtil = __importStar(__nccwpck_require__(244));
 const timers_1 = __nccwpck_require__(562);
@@ -29177,7 +29177,7 @@ exports.shouldRefreshToolchain = shouldRefreshToolchain;
 exports.shouldSkipRefreshForExactHit = shouldSkipRefreshForExactHit;
 exports.tryDelegateToSoldrToolchainEnsure = tryDelegateToSoldrToolchainEnsure;
 exports.ensureRustToolchain = ensureRustToolchain;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const os = __importStar(__nccwpck_require__(414));
 const path = __importStar(__nccwpck_require__(560));
 const core = __importStar(__nccwpck_require__(504));
@@ -29185,7 +29185,7 @@ const exec = __importStar(__nccwpck_require__(18));
 const toolrunner_js_1 = __nccwpck_require__(140);
 const io = __importStar(__nccwpck_require__(324));
 const tc = __importStar(__nccwpck_require__(575));
-const log_utils_js_1 = __nccwpck_require__(277);
+const log_utils_js_1 = __nccwpck_require__(278);
 const soldr_toolchain_client_js_1 = __nccwpck_require__(486);
 function rustupInitTargetTriple() {
     const system = process.platform;
@@ -29937,7 +29937,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BinaryReader = exports.binaryReadOptions = void 0;
 const binary_format_contract_1 = __nccwpck_require__(366);
 const pb_long_1 = __nccwpck_require__(132);
-const goog_varint_1 = __nccwpck_require__(221);
+const goog_varint_1 = __nccwpck_require__(220);
 const defaultsRead = {
     readUnknownField: true,
     readerFactory: bytes => new BinaryReader(bytes),
@@ -31161,7 +31161,7 @@ var import_delay = __nccwpck_require__(522);
 var import_random = __nccwpck_require__(557);
 var import_object = __nccwpck_require__(161);
 var import_error = __nccwpck_require__(169);
-var import_sha256 = __nccwpck_require__(218);
+var import_sha256 = __nccwpck_require__(217);
 var import_uuidUtils = __nccwpck_require__(430);
 var import_checkEnvironment = __nccwpck_require__(479);
 var import_bytesEncoding = __nccwpck_require__(316);
@@ -31198,7 +31198,7 @@ __export(internal_exports, {
   createLoggerContext: () => import_logger.createLoggerContext
 });
 module.exports = __toCommonJS(internal_exports);
-var import_logger = __nccwpck_require__(268);
+var import_logger = __nccwpck_require__(269);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
 //# sourceMappingURL=internal.js.map
@@ -31519,7 +31519,7 @@ __export(log_exports, {
   logger: () => logger
 });
 module.exports = __toCommonJS(log_exports);
-var import_logger = __nccwpck_require__(268);
+var import_logger = __nccwpck_require__(269);
 const logger = (0, import_logger.createClientLogger)("ts-http-runtime");
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
@@ -32950,7 +32950,7 @@ const util = __nccwpck_require__(77)
 const { InvalidArgumentError } = errors
 const api = __nccwpck_require__(155)
 const buildConnector = __nccwpck_require__(292)
-const MockClient = __nccwpck_require__(217)
+const MockClient = __nccwpck_require__(216)
 const MockAgent = __nccwpck_require__(409)
 const MockPool = __nccwpck_require__(383)
 const mockErrors = __nccwpck_require__(252)
@@ -32959,7 +32959,7 @@ const RetryHandler = __nccwpck_require__(300)
 const { getGlobalDispatcher, setGlobalDispatcher } = __nccwpck_require__(408)
 const DecoratorHandler = __nccwpck_require__(523)
 const RedirectHandler = __nccwpck_require__(424)
-const createRedirectInterceptor = __nccwpck_require__(280)
+const createRedirectInterceptor = __nccwpck_require__(281)
 
 let hasCrypto
 try {
@@ -33058,7 +33058,7 @@ if (util.nodeMajor > 16 || (util.nodeMajor === 16 && util.nodeMinor >= 8)) {
   module.exports.Headers = __nccwpck_require__(568).Headers
   module.exports.Response = __nccwpck_require__(43).Response
   module.exports.Request = __nccwpck_require__(92).Request
-  module.exports.FormData = __nccwpck_require__(225).FormData
+  module.exports.FormData = __nccwpck_require__(224).FormData
   module.exports.File = __nccwpck_require__(397).File
   module.exports.FileReader = __nccwpck_require__(107).FileReader
 
@@ -33130,12 +33130,12 @@ module.exports = require("child_process");
  * Changes may cause incorrect behavior and will be lost if the code is regenerated.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 tslib_1.__exportStar(__nccwpck_require__(133), exports);
 tslib_1.__exportStar(__nccwpck_require__(196), exports);
 tslib_1.__exportStar(__nccwpck_require__(137), exports);
 tslib_1.__exportStar(__nccwpck_require__(348), exports);
-tslib_1.__exportStar(__nccwpck_require__(226), exports);
+tslib_1.__exportStar(__nccwpck_require__(225), exports);
 tslib_1.__exportStar(__nccwpck_require__(297), exports);
 //# sourceMappingURL=index.js.map
 
@@ -44372,7 +44372,7 @@ const core_auth_1 = __nccwpck_require__(566);
 const core_util_1 = __nccwpck_require__(14);
 const core_util_2 = __nccwpck_require__(14);
 const BlobDownloadResponse_js_1 = __nccwpck_require__(466);
-const BlobQueryResponse_js_1 = __nccwpck_require__(219);
+const BlobQueryResponse_js_1 = __nccwpck_require__(218);
 const storage_common_1 = __nccwpck_require__(303);
 const models_js_1 = __nccwpck_require__(455);
 const PageBlobRangeResponse_js_1 = __nccwpck_require__(31);
@@ -44385,9 +44385,9 @@ const storage_common_2 = __nccwpck_require__(303);
 const constants_js_1 = __nccwpck_require__(164);
 const tracing_js_1 = __nccwpck_require__(33);
 const utils_common_js_1 = __nccwpck_require__(170);
-const utils_js_1 = __nccwpck_require__(220);
+const utils_js_1 = __nccwpck_require__(219);
 const BlobSASSignatureValues_js_1 = __nccwpck_require__(76);
-const BlobLeaseClient_js_1 = __nccwpck_require__(222);
+const BlobLeaseClient_js_1 = __nccwpck_require__(221);
 /**
  * A BlobClient represents a URL to an Azure Storage blob; the blob may be a block blob,
  * append blob, or page blob.
@@ -48482,9 +48482,9 @@ exports.linkDir = linkDir;
 exports.isStampedRealDir = isStampedRealDir;
 exports.copyTree = copyTree;
 exports.publishEntry = publishEntry;
-const node_child_process_1 = __nccwpck_require__(215);
+const node_child_process_1 = __nccwpck_require__(214);
 const crypto = __importStar(__nccwpck_require__(301));
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 exports.TOOL_CACHE_ENV = "SETUP_SOLDR_TOOL_CACHE";
 const TRUTHY = new Set(["1", "true", "yes", "on"]);
@@ -48603,6 +48603,8725 @@ function publishEntry(input) {
 /***/ }),
 
 /***/ 214:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:child_process");
+
+/***/ }),
+
+/***/ 215:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util/types");
+
+/***/ }),
+
+/***/ 216:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { promisify } = __nccwpck_require__(138)
+const Client = __nccwpck_require__(100)
+const { buildMockDispatch } = __nccwpck_require__(7)
+const {
+  kDispatches,
+  kMockAgent,
+  kClose,
+  kOriginalClose,
+  kOrigin,
+  kOriginalDispatch,
+  kConnected
+} = __nccwpck_require__(518)
+const { MockInterceptor } = __nccwpck_require__(152)
+const Symbols = __nccwpck_require__(211)
+const { InvalidArgumentError } = __nccwpck_require__(537)
+
+/**
+ * MockClient provides an API that extends the Client to influence the mockDispatches.
+ */
+class MockClient extends Client {
+  constructor (origin, opts) {
+    super(origin, opts)
+
+    if (!opts || !opts.agent || typeof opts.agent.dispatch !== 'function') {
+      throw new InvalidArgumentError('Argument opts.agent must implement Agent')
+    }
+
+    this[kMockAgent] = opts.agent
+    this[kOrigin] = origin
+    this[kDispatches] = []
+    this[kConnected] = 1
+    this[kOriginalDispatch] = this.dispatch
+    this[kOriginalClose] = this.close.bind(this)
+
+    this.dispatch = buildMockDispatch.call(this)
+    this.close = this[kClose]
+  }
+
+  get [Symbols.kConnected] () {
+    return this[kConnected]
+  }
+
+  /**
+   * Sets up the base interceptor for mocking replies from undici.
+   */
+  intercept (opts) {
+    return new MockInterceptor(opts, this[kDispatches])
+  }
+
+  async [kClose] () {
+    await promisify(this[kOriginalClose])()
+    this[kConnected] = 0
+    this[kMockAgent][Symbols.kClients].delete(this[kOrigin])
+  }
+}
+
+module.exports = MockClient
+
+
+/***/ }),
+
+/***/ 217:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var sha256_exports = {};
+__export(sha256_exports, {
+  computeSha256Hash: () => computeSha256Hash,
+  computeSha256Hmac: () => computeSha256Hmac
+});
+module.exports = __toCommonJS(sha256_exports);
+var import_node_crypto = __nccwpck_require__(301);
+async function computeSha256Hmac(key, stringToSign, encoding) {
+  const decodedKey = Buffer.from(key, "base64");
+  return (0, import_node_crypto.createHmac)("sha256", decodedKey).update(stringToSign).digest(encoding);
+}
+async function computeSha256Hash(content, encoding) {
+  return (0, import_node_crypto.createHash)("sha256").update(content).digest(encoding);
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+//# sourceMappingURL=sha256.js.map
+
+
+/***/ }),
+
+/***/ 218:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BlobQueryResponse = void 0;
+const core_util_1 = __nccwpck_require__(14);
+const BlobQuickQueryStream_js_1 = __nccwpck_require__(552);
+/**
+ * ONLY AVAILABLE IN NODE.JS RUNTIME.
+ *
+ * BlobQueryResponse implements BlobDownloadResponseModel interface, and in Node.js runtime it will
+ * parse avro data returned by blob query.
+ */
+class BlobQueryResponse {
+    /**
+     * Indicates that the service supports
+     * requests for partial file content.
+     *
+     * @readonly
+     */
+    get acceptRanges() {
+        return this.originalResponse.acceptRanges;
+    }
+    /**
+     * Returns if it was previously specified
+     * for the file.
+     *
+     * @readonly
+     */
+    get cacheControl() {
+        return this.originalResponse.cacheControl;
+    }
+    /**
+     * Returns the value that was specified
+     * for the 'x-ms-content-disposition' header and specifies how to process the
+     * response.
+     *
+     * @readonly
+     */
+    get contentDisposition() {
+        return this.originalResponse.contentDisposition;
+    }
+    /**
+     * Returns the value that was specified
+     * for the Content-Encoding request header.
+     *
+     * @readonly
+     */
+    get contentEncoding() {
+        return this.originalResponse.contentEncoding;
+    }
+    /**
+     * Returns the value that was specified
+     * for the Content-Language request header.
+     *
+     * @readonly
+     */
+    get contentLanguage() {
+        return this.originalResponse.contentLanguage;
+    }
+    /**
+     * The current sequence number for a
+     * page blob. This header is not returned for block blobs or append blobs.
+     *
+     * @readonly
+     */
+    get blobSequenceNumber() {
+        return this.originalResponse.blobSequenceNumber;
+    }
+    /**
+     * The blob's type. Possible values include:
+     * 'BlockBlob', 'PageBlob', 'AppendBlob'.
+     *
+     * @readonly
+     */
+    get blobType() {
+        return this.originalResponse.blobType;
+    }
+    /**
+     * The number of bytes present in the
+     * response body.
+     *
+     * @readonly
+     */
+    get contentLength() {
+        return this.originalResponse.contentLength;
+    }
+    /**
+     * If the file has an MD5 hash and the
+     * request is to read the full file, this response header is returned so that
+     * the client can check for message content integrity. If the request is to
+     * read a specified range and the 'x-ms-range-get-content-md5' is set to
+     * true, then the request returns an MD5 hash for the range, as long as the
+     * range size is less than or equal to 4 MB. If neither of these sets of
+     * conditions is true, then no value is returned for the 'Content-MD5'
+     * header.
+     *
+     * @readonly
+     */
+    get contentMD5() {
+        return this.originalResponse.contentMD5;
+    }
+    /**
+     * Indicates the range of bytes returned if
+     * the client requested a subset of the file by setting the Range request
+     * header.
+     *
+     * @readonly
+     */
+    get contentRange() {
+        return this.originalResponse.contentRange;
+    }
+    /**
+     * The content type specified for the file.
+     * The default content type is 'application/octet-stream'
+     *
+     * @readonly
+     */
+    get contentType() {
+        return this.originalResponse.contentType;
+    }
+    /**
+     * Conclusion time of the last attempted
+     * Copy File operation where this file was the destination file. This value
+     * can specify the time of a completed, aborted, or failed copy attempt.
+     *
+     * @readonly
+     */
+    get copyCompletedOn() {
+        return undefined;
+    }
+    /**
+     * String identifier for the last attempted Copy
+     * File operation where this file was the destination file.
+     *
+     * @readonly
+     */
+    get copyId() {
+        return this.originalResponse.copyId;
+    }
+    /**
+     * Contains the number of bytes copied and
+     * the total bytes in the source in the last attempted Copy File operation
+     * where this file was the destination file. Can show between 0 and
+     * Content-Length bytes copied.
+     *
+     * @readonly
+     */
+    get copyProgress() {
+        return this.originalResponse.copyProgress;
+    }
+    /**
+     * URL up to 2KB in length that specifies the
+     * source file used in the last attempted Copy File operation where this file
+     * was the destination file.
+     *
+     * @readonly
+     */
+    get copySource() {
+        return this.originalResponse.copySource;
+    }
+    /**
+     * State of the copy operation
+     * identified by 'x-ms-copy-id'. Possible values include: 'pending',
+     * 'success', 'aborted', 'failed'
+     *
+     * @readonly
+     */
+    get copyStatus() {
+        return this.originalResponse.copyStatus;
+    }
+    /**
+     * Only appears when
+     * x-ms-copy-status is failed or pending. Describes cause of fatal or
+     * non-fatal copy operation failure.
+     *
+     * @readonly
+     */
+    get copyStatusDescription() {
+        return this.originalResponse.copyStatusDescription;
+    }
+    /**
+     * When a blob is leased,
+     * specifies whether the lease is of infinite or fixed duration. Possible
+     * values include: 'infinite', 'fixed'.
+     *
+     * @readonly
+     */
+    get leaseDuration() {
+        return this.originalResponse.leaseDuration;
+    }
+    /**
+     * Lease state of the blob. Possible
+     * values include: 'available', 'leased', 'expired', 'breaking', 'broken'.
+     *
+     * @readonly
+     */
+    get leaseState() {
+        return this.originalResponse.leaseState;
+    }
+    /**
+     * The current lease status of the
+     * blob. Possible values include: 'locked', 'unlocked'.
+     *
+     * @readonly
+     */
+    get leaseStatus() {
+        return this.originalResponse.leaseStatus;
+    }
+    /**
+     * A UTC date/time value generated by the service that
+     * indicates the time at which the response was initiated.
+     *
+     * @readonly
+     */
+    get date() {
+        return this.originalResponse.date;
+    }
+    /**
+     * The number of committed blocks
+     * present in the blob. This header is returned only for append blobs.
+     *
+     * @readonly
+     */
+    get blobCommittedBlockCount() {
+        return this.originalResponse.blobCommittedBlockCount;
+    }
+    /**
+     * The ETag contains a value that you can use to
+     * perform operations conditionally, in quotes.
+     *
+     * @readonly
+     */
+    get etag() {
+        return this.originalResponse.etag;
+    }
+    /**
+     * The error code.
+     *
+     * @readonly
+     */
+    get errorCode() {
+        return this.originalResponse.errorCode;
+    }
+    /**
+     * The value of this header is set to
+     * true if the file data and application metadata are completely encrypted
+     * using the specified algorithm. Otherwise, the value is set to false (when
+     * the file is unencrypted, or if only parts of the file/application metadata
+     * are encrypted).
+     *
+     * @readonly
+     */
+    get isServerEncrypted() {
+        return this.originalResponse.isServerEncrypted;
+    }
+    /**
+     * If the blob has a MD5 hash, and if
+     * request contains range header (Range or x-ms-range), this response header
+     * is returned with the value of the whole blob's MD5 value. This value may
+     * or may not be equal to the value returned in Content-MD5 header, with the
+     * latter calculated from the requested range.
+     *
+     * @readonly
+     */
+    get blobContentMD5() {
+        return this.originalResponse.blobContentMD5;
+    }
+    /**
+     * Returns the date and time the file was last
+     * modified. Any operation that modifies the file or its properties updates
+     * the last modified time.
+     *
+     * @readonly
+     */
+    get lastModified() {
+        return this.originalResponse.lastModified;
+    }
+    /**
+     * A name-value pair
+     * to associate with a file storage object.
+     *
+     * @readonly
+     */
+    get metadata() {
+        return this.originalResponse.metadata;
+    }
+    /**
+     * This header uniquely identifies the request
+     * that was made and can be used for troubleshooting the request.
+     *
+     * @readonly
+     */
+    get requestId() {
+        return this.originalResponse.requestId;
+    }
+    /**
+     * If a client request id header is sent in the request, this header will be present in the
+     * response with the same value.
+     *
+     * @readonly
+     */
+    get clientRequestId() {
+        return this.originalResponse.clientRequestId;
+    }
+    /**
+     * Indicates the version of the File service used
+     * to execute the request.
+     *
+     * @readonly
+     */
+    get version() {
+        return this.originalResponse.version;
+    }
+    /**
+     * The SHA-256 hash of the encryption key used to encrypt the blob. This value is only returned
+     * when the blob was encrypted with a customer-provided key.
+     *
+     * @readonly
+     */
+    get encryptionKeySha256() {
+        return this.originalResponse.encryptionKeySha256;
+    }
+    /**
+     * If the request is to read a specified range and the x-ms-range-get-content-crc64 is set to
+     * true, then the request returns a crc64 for the range, as long as the range size is less than
+     * or equal to 4 MB. If both x-ms-range-get-content-crc64 & x-ms-range-get-content-md5 is
+     * specified in the same request, it will fail with 400(Bad Request)
+     */
+    get contentCrc64() {
+        return this.originalResponse.contentCrc64;
+    }
+    /**
+     * The response body as a browser Blob.
+     * Always undefined in node.js.
+     *
+     * @readonly
+     */
+    get blobBody() {
+        return undefined;
+    }
+    /**
+     * The response body as a node.js Readable stream.
+     * Always undefined in the browser.
+     *
+     * It will parse avor data returned by blob query.
+     *
+     * @readonly
+     */
+    get readableStreamBody() {
+        return core_util_1.isNodeLike ? this.blobDownloadStream : undefined;
+    }
+    /**
+     * The HTTP response.
+     */
+    get _response() {
+        return this.originalResponse._response;
+    }
+    originalResponse;
+    blobDownloadStream;
+    /**
+     * Creates an instance of BlobQueryResponse.
+     *
+     * @param originalResponse -
+     * @param options -
+     */
+    constructor(originalResponse, options = {}) {
+        this.originalResponse = originalResponse;
+        this.blobDownloadStream = new BlobQuickQueryStream_js_1.BlobQuickQueryStream(this.originalResponse.readableStreamBody, options);
+    }
+}
+exports.BlobQueryResponse = BlobQueryResponse;
+//# sourceMappingURL=BlobQueryResponse.js.map
+
+/***/ }),
+
+/***/ 219:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.fsCreateReadStream = exports.fsStat = void 0;
+exports.streamToBuffer = streamToBuffer;
+exports.streamToBuffer2 = streamToBuffer2;
+exports.streamToBuffer3 = streamToBuffer3;
+exports.readStreamToLocalFile = readStreamToLocalFile;
+const tslib_1 = __nccwpck_require__(234);
+const node_fs_1 = tslib_1.__importDefault(__nccwpck_require__(272));
+const node_util_1 = tslib_1.__importDefault(__nccwpck_require__(407));
+const constants_js_1 = __nccwpck_require__(164);
+/**
+ * Reads a readable stream into buffer. Fill the buffer from offset to end.
+ *
+ * @param stream - A Node.js Readable stream
+ * @param buffer - Buffer to be filled, length must greater than or equal to offset
+ * @param offset - From which position in the buffer to be filled, inclusive
+ * @param end - To which position in the buffer to be filled, exclusive
+ * @param encoding - Encoding of the Readable stream
+ */
+async function streamToBuffer(stream, buffer, offset, end, encoding) {
+    let pos = 0; // Position in stream
+    const count = end - offset; // Total amount of data needed in stream
+    return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error(`The operation cannot be completed in timeout.`)), constants_js_1.REQUEST_TIMEOUT);
+        stream.on("readable", () => {
+            if (pos >= count) {
+                clearTimeout(timeout);
+                resolve();
+                return;
+            }
+            let chunk = stream.read();
+            if (!chunk) {
+                return;
+            }
+            if (typeof chunk === "string") {
+                chunk = Buffer.from(chunk, encoding);
+            }
+            // How much data needed in this chunk
+            const chunkLength = pos + chunk.length > count ? count - pos : chunk.length;
+            buffer.fill(chunk.slice(0, chunkLength), offset + pos, offset + pos + chunkLength);
+            pos += chunkLength;
+        });
+        stream.on("end", () => {
+            clearTimeout(timeout);
+            if (pos < count) {
+                reject(new Error(`Stream drains before getting enough data needed. Data read: ${pos}, data need: ${count}`));
+            }
+            resolve();
+        });
+        stream.on("error", (msg) => {
+            clearTimeout(timeout);
+            reject(msg);
+        });
+    });
+}
+/**
+ * Reads a readable stream into buffer entirely.
+ *
+ * @param stream - A Node.js Readable stream
+ * @param buffer - Buffer to be filled, length must greater than or equal to offset
+ * @param encoding - Encoding of the Readable stream
+ * @returns with the count of bytes read.
+ * @throws `RangeError` If buffer size is not big enough.
+ */
+async function streamToBuffer2(stream, buffer, encoding) {
+    let pos = 0; // Position in stream
+    const bufferSize = buffer.length;
+    return new Promise((resolve, reject) => {
+        stream.on("readable", () => {
+            let chunk = stream.read();
+            if (!chunk) {
+                return;
+            }
+            if (typeof chunk === "string") {
+                chunk = Buffer.from(chunk, encoding);
+            }
+            if (pos + chunk.length > bufferSize) {
+                reject(new Error(`Stream exceeds buffer size. Buffer size: ${bufferSize}`));
+                return;
+            }
+            buffer.fill(chunk, pos, pos + chunk.length);
+            pos += chunk.length;
+        });
+        stream.on("end", () => {
+            resolve(pos);
+        });
+        stream.on("error", reject);
+    });
+}
+/**
+ * Reads a readable stream into a buffer.
+ *
+ * @param stream - A Node.js Readable stream
+ * @param encoding - Encoding of the Readable stream
+ * @returns with the count of bytes read.
+ */
+async function streamToBuffer3(readableStream, encoding) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        readableStream.on("data", (data) => {
+            chunks.push(typeof data === "string" ? Buffer.from(data, encoding) : data);
+        });
+        readableStream.on("end", () => {
+            resolve(Buffer.concat(chunks));
+        });
+        readableStream.on("error", reject);
+    });
+}
+/**
+ * ONLY AVAILABLE IN NODE.JS RUNTIME.
+ *
+ * Writes the content of a readstream to a local file. Returns a Promise which is completed after the file handle is closed.
+ *
+ * @param rs - The read stream.
+ * @param file - Destination file path.
+ */
+async function readStreamToLocalFile(rs, file) {
+    return new Promise((resolve, reject) => {
+        const ws = node_fs_1.default.createWriteStream(file);
+        rs.on("error", (err) => {
+            reject(err);
+        });
+        ws.on("error", (err) => {
+            reject(err);
+        });
+        ws.on("close", resolve);
+        rs.pipe(ws);
+    });
+}
+/**
+ * ONLY AVAILABLE IN NODE.JS RUNTIME.
+ *
+ * Promisified version of fs.stat().
+ */
+exports.fsStat = node_util_1.default.promisify(node_fs_1.default.stat);
+exports.fsCreateReadStream = node_fs_1.default.createReadStream;
+//# sourceMappingURL=utils.js.map
+
+/***/ }),
+
+/***/ 220:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Copyright 2008 Google Inc.  All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+// * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// Code generated by the Protocol Buffer compiler is owned by the owner
+// of the input file used when generating it.  This code is not
+// standalone and requires a support library to be linked with it.  This
+// support library is itself covered by the above license.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.varint32read = exports.varint32write = exports.int64toString = exports.int64fromString = exports.varint64write = exports.varint64read = void 0;
+/**
+ * Read a 64 bit varint as two JS numbers.
+ *
+ * Returns tuple:
+ * [0]: low bits
+ * [0]: high bits
+ *
+ * Copyright 2008 Google Inc.  All rights reserved.
+ *
+ * See https://github.com/protocolbuffers/protobuf/blob/8a71927d74a4ce34efe2d8769fda198f52d20d12/js/experimental/runtime/kernel/buffer_decoder.js#L175
+ */
+function varint64read() {
+    let lowBits = 0;
+    let highBits = 0;
+    for (let shift = 0; shift < 28; shift += 7) {
+        let b = this.buf[this.pos++];
+        lowBits |= (b & 0x7F) << shift;
+        if ((b & 0x80) == 0) {
+            this.assertBounds();
+            return [lowBits, highBits];
+        }
+    }
+    let middleByte = this.buf[this.pos++];
+    // last four bits of the first 32 bit number
+    lowBits |= (middleByte & 0x0F) << 28;
+    // 3 upper bits are part of the next 32 bit number
+    highBits = (middleByte & 0x70) >> 4;
+    if ((middleByte & 0x80) == 0) {
+        this.assertBounds();
+        return [lowBits, highBits];
+    }
+    for (let shift = 3; shift <= 31; shift += 7) {
+        let b = this.buf[this.pos++];
+        highBits |= (b & 0x7F) << shift;
+        if ((b & 0x80) == 0) {
+            this.assertBounds();
+            return [lowBits, highBits];
+        }
+    }
+    throw new Error('invalid varint');
+}
+exports.varint64read = varint64read;
+/**
+ * Write a 64 bit varint, given as two JS numbers, to the given bytes array.
+ *
+ * Copyright 2008 Google Inc.  All rights reserved.
+ *
+ * See https://github.com/protocolbuffers/protobuf/blob/8a71927d74a4ce34efe2d8769fda198f52d20d12/js/experimental/runtime/kernel/writer.js#L344
+ */
+function varint64write(lo, hi, bytes) {
+    for (let i = 0; i < 28; i = i + 7) {
+        const shift = lo >>> i;
+        const hasNext = !((shift >>> 7) == 0 && hi == 0);
+        const byte = (hasNext ? shift | 0x80 : shift) & 0xFF;
+        bytes.push(byte);
+        if (!hasNext) {
+            return;
+        }
+    }
+    const splitBits = ((lo >>> 28) & 0x0F) | ((hi & 0x07) << 4);
+    const hasMoreBits = !((hi >> 3) == 0);
+    bytes.push((hasMoreBits ? splitBits | 0x80 : splitBits) & 0xFF);
+    if (!hasMoreBits) {
+        return;
+    }
+    for (let i = 3; i < 31; i = i + 7) {
+        const shift = hi >>> i;
+        const hasNext = !((shift >>> 7) == 0);
+        const byte = (hasNext ? shift | 0x80 : shift) & 0xFF;
+        bytes.push(byte);
+        if (!hasNext) {
+            return;
+        }
+    }
+    bytes.push((hi >>> 31) & 0x01);
+}
+exports.varint64write = varint64write;
+// constants for binary math
+const TWO_PWR_32_DBL = (1 << 16) * (1 << 16);
+/**
+ * Parse decimal string of 64 bit integer value as two JS numbers.
+ *
+ * Returns tuple:
+ * [0]: minus sign?
+ * [1]: low bits
+ * [2]: high bits
+ *
+ * Copyright 2008 Google Inc.
+ */
+function int64fromString(dec) {
+    // Check for minus sign.
+    let minus = dec[0] == '-';
+    if (minus)
+        dec = dec.slice(1);
+    // Work 6 decimal digits at a time, acting like we're converting base 1e6
+    // digits to binary. This is safe to do with floating point math because
+    // Number.isSafeInteger(ALL_32_BITS * 1e6) == true.
+    const base = 1e6;
+    let lowBits = 0;
+    let highBits = 0;
+    function add1e6digit(begin, end) {
+        // Note: Number('') is 0.
+        const digit1e6 = Number(dec.slice(begin, end));
+        highBits *= base;
+        lowBits = lowBits * base + digit1e6;
+        // Carry bits from lowBits to highBits
+        if (lowBits >= TWO_PWR_32_DBL) {
+            highBits = highBits + ((lowBits / TWO_PWR_32_DBL) | 0);
+            lowBits = lowBits % TWO_PWR_32_DBL;
+        }
+    }
+    add1e6digit(-24, -18);
+    add1e6digit(-18, -12);
+    add1e6digit(-12, -6);
+    add1e6digit(-6);
+    return [minus, lowBits, highBits];
+}
+exports.int64fromString = int64fromString;
+/**
+ * Format 64 bit integer value (as two JS numbers) to decimal string.
+ *
+ * Copyright 2008 Google Inc.
+ */
+function int64toString(bitsLow, bitsHigh) {
+    // Skip the expensive conversion if the number is small enough to use the
+    // built-in conversions.
+    if ((bitsHigh >>> 0) <= 0x1FFFFF) {
+        return '' + (TWO_PWR_32_DBL * bitsHigh + (bitsLow >>> 0));
+    }
+    // What this code is doing is essentially converting the input number from
+    // base-2 to base-1e7, which allows us to represent the 64-bit range with
+    // only 3 (very large) digits. Those digits are then trivial to convert to
+    // a base-10 string.
+    // The magic numbers used here are -
+    // 2^24 = 16777216 = (1,6777216) in base-1e7.
+    // 2^48 = 281474976710656 = (2,8147497,6710656) in base-1e7.
+    // Split 32:32 representation into 16:24:24 representation so our
+    // intermediate digits don't overflow.
+    let low = bitsLow & 0xFFFFFF;
+    let mid = (((bitsLow >>> 24) | (bitsHigh << 8)) >>> 0) & 0xFFFFFF;
+    let high = (bitsHigh >> 16) & 0xFFFF;
+    // Assemble our three base-1e7 digits, ignoring carries. The maximum
+    // value in a digit at this step is representable as a 48-bit integer, which
+    // can be stored in a 64-bit floating point number.
+    let digitA = low + (mid * 6777216) + (high * 6710656);
+    let digitB = mid + (high * 8147497);
+    let digitC = (high * 2);
+    // Apply carries from A to B and from B to C.
+    let base = 10000000;
+    if (digitA >= base) {
+        digitB += Math.floor(digitA / base);
+        digitA %= base;
+    }
+    if (digitB >= base) {
+        digitC += Math.floor(digitB / base);
+        digitB %= base;
+    }
+    // Convert base-1e7 digits to base-10, with optional leading zeroes.
+    function decimalFrom1e7(digit1e7, needLeadingZeros) {
+        let partial = digit1e7 ? String(digit1e7) : '';
+        if (needLeadingZeros) {
+            return '0000000'.slice(partial.length) + partial;
+        }
+        return partial;
+    }
+    return decimalFrom1e7(digitC, /*needLeadingZeros=*/ 0) +
+        decimalFrom1e7(digitB, /*needLeadingZeros=*/ digitC) +
+        // If the final 1e7 digit didn't need leading zeros, we would have
+        // returned via the trivial code path at the top.
+        decimalFrom1e7(digitA, /*needLeadingZeros=*/ 1);
+}
+exports.int64toString = int64toString;
+/**
+ * Write a 32 bit varint, signed or unsigned. Same as `varint64write(0, value, bytes)`
+ *
+ * Copyright 2008 Google Inc.  All rights reserved.
+ *
+ * See https://github.com/protocolbuffers/protobuf/blob/1b18833f4f2a2f681f4e4a25cdf3b0a43115ec26/js/binary/encoder.js#L144
+ */
+function varint32write(value, bytes) {
+    if (value >= 0) {
+        // write value as varint 32
+        while (value > 0x7f) {
+            bytes.push((value & 0x7f) | 0x80);
+            value = value >>> 7;
+        }
+        bytes.push(value);
+    }
+    else {
+        for (let i = 0; i < 9; i++) {
+            bytes.push(value & 127 | 128);
+            value = value >> 7;
+        }
+        bytes.push(1);
+    }
+}
+exports.varint32write = varint32write;
+/**
+ * Read an unsigned 32 bit varint.
+ *
+ * See https://github.com/protocolbuffers/protobuf/blob/8a71927d74a4ce34efe2d8769fda198f52d20d12/js/experimental/runtime/kernel/buffer_decoder.js#L220
+ */
+function varint32read() {
+    let b = this.buf[this.pos++];
+    let result = b & 0x7F;
+    if ((b & 0x80) == 0) {
+        this.assertBounds();
+        return result;
+    }
+    b = this.buf[this.pos++];
+    result |= (b & 0x7F) << 7;
+    if ((b & 0x80) == 0) {
+        this.assertBounds();
+        return result;
+    }
+    b = this.buf[this.pos++];
+    result |= (b & 0x7F) << 14;
+    if ((b & 0x80) == 0) {
+        this.assertBounds();
+        return result;
+    }
+    b = this.buf[this.pos++];
+    result |= (b & 0x7F) << 21;
+    if ((b & 0x80) == 0) {
+        this.assertBounds();
+        return result;
+    }
+    // Extract only last 4 bits
+    b = this.buf[this.pos++];
+    result |= (b & 0x0F) << 28;
+    for (let readBytes = 5; ((b & 0x80) !== 0) && readBytes < 10; readBytes++)
+        b = this.buf[this.pos++];
+    if ((b & 0x80) != 0)
+        throw new Error('invalid varint');
+    this.assertBounds();
+    // Result can have 32 bits, convert it to unsigned
+    return result >>> 0;
+}
+exports.varint32read = varint32read;
+
+
+/***/ }),
+
+/***/ 221:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.BlobLeaseClient = void 0;
+const core_util_1 = __nccwpck_require__(14);
+const constants_js_1 = __nccwpck_require__(164);
+const tracing_js_1 = __nccwpck_require__(33);
+const utils_common_js_1 = __nccwpck_require__(170);
+/**
+ * A client that manages leases for a {@link ContainerClient} or a {@link BlobClient}.
+ */
+class BlobLeaseClient {
+    _leaseId;
+    _url;
+    _containerOrBlobOperation;
+    _isContainer;
+    /**
+     * Gets the lease Id.
+     *
+     * @readonly
+     */
+    get leaseId() {
+        return this._leaseId;
+    }
+    /**
+     * Gets the url.
+     *
+     * @readonly
+     */
+    get url() {
+        return this._url;
+    }
+    /**
+     * Creates an instance of BlobLeaseClient.
+     * @param client - The client to make the lease operation requests.
+     * @param leaseId - Initial proposed lease id.
+     */
+    constructor(client, leaseId) {
+        const clientContext = client.storageClientContext;
+        this._url = client.url;
+        if (client.name === undefined) {
+            this._isContainer = true;
+            this._containerOrBlobOperation = clientContext.container;
+        }
+        else {
+            this._isContainer = false;
+            this._containerOrBlobOperation = clientContext.blob;
+        }
+        if (!leaseId) {
+            leaseId = (0, core_util_1.randomUUID)();
+        }
+        this._leaseId = leaseId;
+    }
+    /**
+     * Establishes and manages a lock on a container for delete operations, or on a blob
+     * for write and delete operations.
+     * The lock duration can be 15 to 60 seconds, or can be infinite.
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
+     * and
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
+     *
+     * @param duration - Must be between 15 to 60 seconds, or infinite (-1)
+     * @param options - option to configure lease management operations.
+     * @returns Response data for acquire lease operation.
+     */
+    async acquireLease(duration, options = {}) {
+        if (this._isContainer &&
+            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
+                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
+                options.conditions?.tagConditions)) {
+            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
+        }
+        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-acquireLease", options, async (updatedOptions) => {
+            return (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.acquireLease({
+                abortSignal: options.abortSignal,
+                duration,
+                modifiedAccessConditions: {
+                    ...options.conditions,
+                    ifTags: options.conditions?.tagConditions,
+                },
+                proposedLeaseId: this._leaseId,
+                tracingOptions: updatedOptions.tracingOptions,
+            }));
+        });
+    }
+    /**
+     * To change the ID of the lease.
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
+     * and
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
+     *
+     * @param proposedLeaseId - the proposed new lease Id.
+     * @param options - option to configure lease management operations.
+     * @returns Response data for change lease operation.
+     */
+    async changeLease(proposedLeaseId, options = {}) {
+        if (this._isContainer &&
+            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
+                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
+                options.conditions?.tagConditions)) {
+            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
+        }
+        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-changeLease", options, async (updatedOptions) => {
+            const response = (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.changeLease(this._leaseId, proposedLeaseId, {
+                abortSignal: options.abortSignal,
+                modifiedAccessConditions: {
+                    ...options.conditions,
+                    ifTags: options.conditions?.tagConditions,
+                },
+                tracingOptions: updatedOptions.tracingOptions,
+            }));
+            this._leaseId = proposedLeaseId;
+            return response;
+        });
+    }
+    /**
+     * To free the lease if it is no longer needed so that another client may
+     * immediately acquire a lease against the container or the blob.
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
+     * and
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
+     *
+     * @param options - option to configure lease management operations.
+     * @returns Response data for release lease operation.
+     */
+    async releaseLease(options = {}) {
+        if (this._isContainer &&
+            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
+                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
+                options.conditions?.tagConditions)) {
+            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
+        }
+        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-releaseLease", options, async (updatedOptions) => {
+            return (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.releaseLease(this._leaseId, {
+                abortSignal: options.abortSignal,
+                modifiedAccessConditions: {
+                    ...options.conditions,
+                    ifTags: options.conditions?.tagConditions,
+                },
+                tracingOptions: updatedOptions.tracingOptions,
+            }));
+        });
+    }
+    /**
+     * To renew the lease.
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
+     * and
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
+     *
+     * @param options - Optional option to configure lease management operations.
+     * @returns Response data for renew lease operation.
+     */
+    async renewLease(options = {}) {
+        if (this._isContainer &&
+            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
+                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
+                options.conditions?.tagConditions)) {
+            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
+        }
+        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-renewLease", options, async (updatedOptions) => {
+            return this._containerOrBlobOperation.renewLease(this._leaseId, {
+                abortSignal: options.abortSignal,
+                modifiedAccessConditions: {
+                    ...options.conditions,
+                    ifTags: options.conditions?.tagConditions,
+                },
+                tracingOptions: updatedOptions.tracingOptions,
+            });
+        });
+    }
+    /**
+     * To end the lease but ensure that another client cannot acquire a new lease
+     * until the current lease period has expired.
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
+     * and
+     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
+     *
+     * @param breakPeriod - Break period
+     * @param options - Optional options to configure lease management operations.
+     * @returns Response data for break lease operation.
+     */
+    async breakLease(breakPeriod, options = {}) {
+        if (this._isContainer &&
+            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
+                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
+                options.conditions?.tagConditions)) {
+            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
+        }
+        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-breakLease", options, async (updatedOptions) => {
+            const operationOptions = {
+                abortSignal: options.abortSignal,
+                breakPeriod,
+                modifiedAccessConditions: {
+                    ...options.conditions,
+                    ifTags: options.conditions?.tagConditions,
+                },
+                tracingOptions: updatedOptions.tracingOptions,
+            };
+            return (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.breakLease(operationOptions));
+        });
+    }
+}
+exports.BlobLeaseClient = BlobLeaseClient;
+//# sourceMappingURL=BlobLeaseClient.js.map
+
+/***/ }),
+
+/***/ 222:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.reflectionCreate = void 0;
+const reflection_scalar_default_1 = __nccwpck_require__(507);
+const message_type_contract_1 = __nccwpck_require__(445);
+/**
+ * Creates an instance of the generic message, using the field
+ * information.
+ */
+function reflectionCreate(type) {
+    /**
+     * This ternary can be removed in the next major version.
+     * The `Object.create()` code path utilizes a new `messagePrototype`
+     * property on the `IMessageType` which has this same `MESSAGE_TYPE`
+     * non-enumerable property on it. Doing it this way means that we only
+     * pay the cost of `Object.defineProperty()` once per `IMessageType`
+     * class of once per "instance". The falsy code path is only provided
+     * for backwards compatibility in cases where the runtime library is
+     * updated without also updating the generated code.
+     */
+    const msg = type.messagePrototype
+        ? Object.create(type.messagePrototype)
+        : Object.defineProperty({}, message_type_contract_1.MESSAGE_TYPE, { value: type });
+    for (let field of type.fields) {
+        let name = field.localName;
+        if (field.opt)
+            continue;
+        if (field.oneof)
+            msg[field.oneof] = { oneofKind: undefined };
+        else if (field.repeat)
+            msg[name] = [];
+        else
+            switch (field.kind) {
+                case "scalar":
+                    msg[name] = reflection_scalar_default_1.reflectionScalarDefault(field.T, field.L);
+                    break;
+                case "enum":
+                    // we require 0 to be default value for all enums
+                    msg[name] = 0;
+                    break;
+                case "map":
+                    msg[name] = {};
+                    break;
+            }
+    }
+    return msg;
+}
+exports.reflectionCreate = reflectionCreate;
+
+
+/***/ }),
+
+/***/ 223:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.storageBrowserPolicyName = void 0;
+exports.storageBrowserPolicy = storageBrowserPolicy;
+const core_util_1 = __nccwpck_require__(14);
+const constants_js_1 = __nccwpck_require__(38);
+const utils_common_js_1 = __nccwpck_require__(521);
+/**
+ * The programmatic identifier of the StorageBrowserPolicy.
+ */
+exports.storageBrowserPolicyName = "storageBrowserPolicy";
+/**
+ * storageBrowserPolicy is a policy used to prevent browsers from caching requests
+ * and to remove cookies and explicit content-length headers.
+ */
+function storageBrowserPolicy() {
+    return {
+        name: exports.storageBrowserPolicyName,
+        async sendRequest(request, next) {
+            if (core_util_1.isNodeLike) {
+                return next(request);
+            }
+            if (request.method === "GET" || request.method === "HEAD") {
+                request.url = (0, utils_common_js_1.setURLParameter)(request.url, constants_js_1.URLConstants.Parameters.FORCE_BROWSER_NO_CACHE, new Date().getTime().toString());
+            }
+            request.headers.delete(constants_js_1.HeaderConstants.COOKIE);
+            // According to XHR standards, content-length should be fully controlled by browsers
+            request.headers.delete(constants_js_1.HeaderConstants.CONTENT_LENGTH);
+            return next(request);
+        },
+    };
+}
+//# sourceMappingURL=StorageBrowserPolicyV2.js.map
+
+/***/ }),
+
+/***/ 224:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { isBlobLike, toUSVString, makeIterator } = __nccwpck_require__(570)
+const { kState } = __nccwpck_require__(15)
+const { File: UndiciFile, FileLike, isFileLike } = __nccwpck_require__(397)
+const { webidl } = __nccwpck_require__(499)
+const { Blob, File: NativeFile } = __nccwpck_require__(134)
+
+/** @type {globalThis['File']} */
+const File = NativeFile ?? UndiciFile
+
+// https://xhr.spec.whatwg.org/#formdata
+class FormData {
+  constructor (form) {
+    if (form !== undefined) {
+      throw webidl.errors.conversionFailed({
+        prefix: 'FormData constructor',
+        argument: 'Argument 1',
+        types: ['undefined']
+      })
+    }
+
+    this[kState] = []
+  }
+
+  append (name, value, filename = undefined) {
+    webidl.brandCheck(this, FormData)
+
+    webidl.argumentLengthCheck(arguments, 2, { header: 'FormData.append' })
+
+    if (arguments.length === 3 && !isBlobLike(value)) {
+      throw new TypeError(
+        "Failed to execute 'append' on 'FormData': parameter 2 is not of type 'Blob'"
+      )
+    }
+
+    // 1. Let value be value if given; otherwise blobValue.
+
+    name = webidl.converters.USVString(name)
+    value = isBlobLike(value)
+      ? webidl.converters.Blob(value, { strict: false })
+      : webidl.converters.USVString(value)
+    filename = arguments.length === 3
+      ? webidl.converters.USVString(filename)
+      : undefined
+
+    // 2. Let entry be the result of creating an entry with
+    // name, value, and filename if given.
+    const entry = makeEntry(name, value, filename)
+
+    // 3. Append entry to this’s entry list.
+    this[kState].push(entry)
+  }
+
+  delete (name) {
+    webidl.brandCheck(this, FormData)
+
+    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.delete' })
+
+    name = webidl.converters.USVString(name)
+
+    // The delete(name) method steps are to remove all entries whose name
+    // is name from this’s entry list.
+    this[kState] = this[kState].filter(entry => entry.name !== name)
+  }
+
+  get (name) {
+    webidl.brandCheck(this, FormData)
+
+    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.get' })
+
+    name = webidl.converters.USVString(name)
+
+    // 1. If there is no entry whose name is name in this’s entry list,
+    // then return null.
+    const idx = this[kState].findIndex((entry) => entry.name === name)
+    if (idx === -1) {
+      return null
+    }
+
+    // 2. Return the value of the first entry whose name is name from
+    // this’s entry list.
+    return this[kState][idx].value
+  }
+
+  getAll (name) {
+    webidl.brandCheck(this, FormData)
+
+    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.getAll' })
+
+    name = webidl.converters.USVString(name)
+
+    // 1. If there is no entry whose name is name in this’s entry list,
+    // then return the empty list.
+    // 2. Return the values of all entries whose name is name, in order,
+    // from this’s entry list.
+    return this[kState]
+      .filter((entry) => entry.name === name)
+      .map((entry) => entry.value)
+  }
+
+  has (name) {
+    webidl.brandCheck(this, FormData)
+
+    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.has' })
+
+    name = webidl.converters.USVString(name)
+
+    // The has(name) method steps are to return true if there is an entry
+    // whose name is name in this’s entry list; otherwise false.
+    return this[kState].findIndex((entry) => entry.name === name) !== -1
+  }
+
+  set (name, value, filename = undefined) {
+    webidl.brandCheck(this, FormData)
+
+    webidl.argumentLengthCheck(arguments, 2, { header: 'FormData.set' })
+
+    if (arguments.length === 3 && !isBlobLike(value)) {
+      throw new TypeError(
+        "Failed to execute 'set' on 'FormData': parameter 2 is not of type 'Blob'"
+      )
+    }
+
+    // The set(name, value) and set(name, blobValue, filename) method steps
+    // are:
+
+    // 1. Let value be value if given; otherwise blobValue.
+
+    name = webidl.converters.USVString(name)
+    value = isBlobLike(value)
+      ? webidl.converters.Blob(value, { strict: false })
+      : webidl.converters.USVString(value)
+    filename = arguments.length === 3
+      ? toUSVString(filename)
+      : undefined
+
+    // 2. Let entry be the result of creating an entry with name, value, and
+    // filename if given.
+    const entry = makeEntry(name, value, filename)
+
+    // 3. If there are entries in this’s entry list whose name is name, then
+    // replace the first such entry with entry and remove the others.
+    const idx = this[kState].findIndex((entry) => entry.name === name)
+    if (idx !== -1) {
+      this[kState] = [
+        ...this[kState].slice(0, idx),
+        entry,
+        ...this[kState].slice(idx + 1).filter((entry) => entry.name !== name)
+      ]
+    } else {
+      // 4. Otherwise, append entry to this’s entry list.
+      this[kState].push(entry)
+    }
+  }
+
+  entries () {
+    webidl.brandCheck(this, FormData)
+
+    return makeIterator(
+      () => this[kState].map(pair => [pair.name, pair.value]),
+      'FormData',
+      'key+value'
+    )
+  }
+
+  keys () {
+    webidl.brandCheck(this, FormData)
+
+    return makeIterator(
+      () => this[kState].map(pair => [pair.name, pair.value]),
+      'FormData',
+      'key'
+    )
+  }
+
+  values () {
+    webidl.brandCheck(this, FormData)
+
+    return makeIterator(
+      () => this[kState].map(pair => [pair.name, pair.value]),
+      'FormData',
+      'value'
+    )
+  }
+
+  /**
+   * @param {(value: string, key: string, self: FormData) => void} callbackFn
+   * @param {unknown} thisArg
+   */
+  forEach (callbackFn, thisArg = globalThis) {
+    webidl.brandCheck(this, FormData)
+
+    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.forEach' })
+
+    if (typeof callbackFn !== 'function') {
+      throw new TypeError(
+        "Failed to execute 'forEach' on 'FormData': parameter 1 is not of type 'Function'."
+      )
+    }
+
+    for (const [key, value] of this) {
+      callbackFn.apply(thisArg, [value, key, this])
+    }
+  }
+}
+
+FormData.prototype[Symbol.iterator] = FormData.prototype.entries
+
+Object.defineProperties(FormData.prototype, {
+  [Symbol.toStringTag]: {
+    value: 'FormData',
+    configurable: true
+  }
+})
+
+/**
+ * @see https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#create-an-entry
+ * @param {string} name
+ * @param {string|Blob} value
+ * @param {?string} filename
+ * @returns
+ */
+function makeEntry (name, value, filename) {
+  // 1. Set name to the result of converting name into a scalar value string.
+  // "To convert a string into a scalar value string, replace any surrogates
+  //  with U+FFFD."
+  // see: https://nodejs.org/dist/latest-v18.x/docs/api/buffer.html#buftostringencoding-start-end
+  name = Buffer.from(name).toString('utf8')
+
+  // 2. If value is a string, then set value to the result of converting
+  //    value into a scalar value string.
+  if (typeof value === 'string') {
+    value = Buffer.from(value).toString('utf8')
+  } else {
+    // 3. Otherwise:
+
+    // 1. If value is not a File object, then set value to a new File object,
+    //    representing the same bytes, whose name attribute value is "blob"
+    if (!isFileLike(value)) {
+      value = value instanceof Blob
+        ? new File([value], 'blob', { type: value.type })
+        : new FileLike(value, 'blob', { type: value.type })
+    }
+
+    // 2. If filename is given, then set value to a new File object,
+    //    representing the same bytes, whose name attribute is filename.
+    if (filename !== undefined) {
+      /** @type {FilePropertyBag} */
+      const options = {
+        type: value.type,
+        lastModified: value.lastModified
+      }
+
+      value = (NativeFile && value instanceof NativeFile) || value instanceof UndiciFile
+        ? new File([value], filename, options)
+        : new FileLike(value, filename, options)
+    }
+  }
+
+  // 4. Return an entry whose name is name and whose value is value.
+  return { name, value }
+}
+
+module.exports = { FormData }
+
+
+/***/ }),
+
+/***/ 225:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT License.
+ *
+ * Code generated by Microsoft (R) AutoRest Code Generator.
+ * Changes may cause incorrect behavior and will be lost if the code is regenerated.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+//# sourceMappingURL=appendBlob.js.map
+
+/***/ }),
+
+/***/ 226:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var getClient_exports = {};
+__export(getClient_exports, {
+  getClient: () => getClient
+});
+module.exports = __toCommonJS(getClient_exports);
+var import_clientHelpers = __nccwpck_require__(541);
+var import_sendRequest = __nccwpck_require__(491);
+var import_urlHelpers = __nccwpck_require__(356);
+var import_checkEnvironment = __nccwpck_require__(479);
+function getClient(endpoint, clientOptions = {}) {
+  const pipeline = clientOptions.pipeline ?? (0, import_clientHelpers.createDefaultPipeline)(clientOptions);
+  if (clientOptions.additionalPolicies?.length) {
+    for (const { policy, position } of clientOptions.additionalPolicies) {
+      const afterPhase = position === "perRetry" ? "Sign" : void 0;
+      pipeline.addPolicy(policy, {
+        afterPhase
+      });
+    }
+  }
+  const { allowInsecureConnection, httpClient } = clientOptions;
+  const endpointUrl = clientOptions.endpoint ?? endpoint;
+  const client = (path, ...args) => {
+    const getUrl = (requestOptions) => (0, import_urlHelpers.buildRequestUrl)(endpointUrl, path, args, { allowInsecureConnection, ...requestOptions });
+    return {
+      get: (requestOptions = {}) => {
+        return buildOperation(
+          "GET",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      },
+      post: (requestOptions = {}) => {
+        return buildOperation(
+          "POST",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      },
+      put: (requestOptions = {}) => {
+        return buildOperation(
+          "PUT",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      },
+      patch: (requestOptions = {}) => {
+        return buildOperation(
+          "PATCH",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      },
+      delete: (requestOptions = {}) => {
+        return buildOperation(
+          "DELETE",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      },
+      head: (requestOptions = {}) => {
+        return buildOperation(
+          "HEAD",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      },
+      options: (requestOptions = {}) => {
+        return buildOperation(
+          "OPTIONS",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      },
+      trace: (requestOptions = {}) => {
+        return buildOperation(
+          "TRACE",
+          getUrl(requestOptions),
+          pipeline,
+          requestOptions,
+          allowInsecureConnection,
+          httpClient
+        );
+      }
+    };
+  };
+  return {
+    path: client,
+    pathUnchecked: client,
+    pipeline
+  };
+}
+function buildOperation(method, url, pipeline, options, allowInsecureConnection, httpClient) {
+  allowInsecureConnection = options.allowInsecureConnection ?? allowInsecureConnection;
+  return {
+    then: function(onFulfilled, onrejected) {
+      return (0, import_sendRequest.sendRequest)(
+        method,
+        url,
+        pipeline,
+        { ...options, allowInsecureConnection },
+        httpClient
+      ).then(onFulfilled, onrejected);
+    },
+    async asBrowserStream() {
+      if (import_checkEnvironment.isNodeLike) {
+        throw new Error(
+          "`asBrowserStream` is supported only in the browser environment. Use `asNodeStream` instead to obtain the response body stream. If you require a Web stream of the response in Node, consider using `Readable.toWeb` on the result of `asNodeStream`."
+        );
+      } else {
+        return (0, import_sendRequest.sendRequest)(
+          method,
+          url,
+          pipeline,
+          { ...options, allowInsecureConnection, responseAsStream: true },
+          httpClient
+        );
+      }
+    },
+    async asNodeStream() {
+      if (import_checkEnvironment.isNodeLike) {
+        return (0, import_sendRequest.sendRequest)(
+          method,
+          url,
+          pipeline,
+          { ...options, allowInsecureConnection, responseAsStream: true },
+          httpClient
+        );
+      } else {
+        throw new Error(
+          "`isNodeStream` is not supported in the browser environment. Use `asBrowserStream` to obtain the response body stream."
+        );
+      }
+    }
+  };
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+//# sourceMappingURL=getClient.js.map
+
+
+/***/ }),
+
+/***/ 227:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var httpClientAdapter_exports = {};
+__export(httpClientAdapter_exports, {
+  convertHttpClient: () => convertHttpClient
+});
+module.exports = __toCommonJS(httpClientAdapter_exports);
+var import_response = __nccwpck_require__(451);
+var import_util = __nccwpck_require__(122);
+function convertHttpClient(requestPolicyClient) {
+  return {
+    sendRequest: async (request) => {
+      const response = await requestPolicyClient.sendRequest(
+        (0, import_util.toWebResourceLike)(request, { createProxy: true })
+      );
+      return (0, import_response.toPipelineResponse)(response);
+    }
+  };
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+//# sourceMappingURL=httpClientAdapter.js.map
+
+
+/***/ }),
+
+/***/ 228:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.YANK_AUDIT_WORKER_ARG = void 0;
+exports.readRegistryDependencies = readRegistryDependencies;
+exports.cratesIoSparsePath = cratesIoSparsePath;
+exports.auditDependencyYanks = auditDependencyYanks;
+exports.writeYankAuditResult = writeYankAuditResult;
+exports.readYankAuditResult = readYankAuditResult;
+exports.waitForYankAuditResult = waitForYankAuditResult;
+exports.resolveYankAuditResult = resolveYankAuditResult;
+exports.runYankAuditWorker = runYankAuditWorker;
+const fs = __importStar(__nccwpck_require__(272));
+const path = __importStar(__nccwpck_require__(560));
+const toml = __importStar(__nccwpck_require__(438));
+exports.YANK_AUDIT_WORKER_ARG = "--setup-soldr-yank-audit-worker";
+const CRATES_IO_GIT_INDEX = "registry+https://github.com/rust-lang/crates.io-index";
+const CRATES_IO_SPARSE_INDEX = "sparse+https://index.crates.io/";
+function isCratesIoSource(source) {
+    return source === CRATES_IO_GIT_INDEX || source === CRATES_IO_SPARSE_INDEX;
+}
+function readRegistryDependencies(lockfilePath) {
+    const parsed = toml.parse(fs.readFileSync(lockfilePath, "utf8"));
+    const seen = new Set();
+    const dependencies = [];
+    for (const pkg of Array.isArray(parsed.package) ? parsed.package : []) {
+        if (typeof pkg.name !== "string" || typeof pkg.version !== "string")
+            continue;
+        if (typeof pkg.source !== "string" ||
+            (!pkg.source.startsWith("registry+") && !pkg.source.startsWith("sparse+")))
+            continue;
+        const key = `${pkg.source}\0${pkg.name}\0${pkg.version}`;
+        if (seen.has(key))
+            continue;
+        seen.add(key);
+        dependencies.push({ name: pkg.name, version: pkg.version, source: pkg.source });
+    }
+    return dependencies;
+}
+function cratesIoSparsePath(crateName) {
+    const name = crateName.toLowerCase();
+    if (name.length === 1)
+        return `1/${name}`;
+    if (name.length === 2)
+        return `2/${name}`;
+    if (name.length === 3)
+        return `3/${name[0]}/${name}`;
+    return `${name.slice(0, 2)}/${name.slice(2, 4)}/${name}`;
+}
+async function fetchCrateYanks(crateName, versions, fetchImpl, timeoutMs, overallSignal) {
+    const controller = new AbortController();
+    const abortForOverallDeadline = () => controller.abort();
+    overallSignal.addEventListener("abort", abortForOverallDeadline, { once: true });
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetchImpl(`https://index.crates.io/${cratesIoSparsePath(crateName)}`, {
+            headers: {
+                "Accept": "text/plain",
+                "User-Agent": "setup-soldr-yank-audit/1",
+            },
+            signal: controller.signal,
+        });
+        if (!response.ok)
+            throw new Error(`HTTP ${response.status}`);
+        const records = new Map();
+        for (const line of (await response.text()).split(/\r?\n/)) {
+            if (!line.trim())
+                continue;
+            const record = JSON.parse(line);
+            if (typeof record.vers === "string" && typeof record.yanked === "boolean") {
+                records.set(record.vers, record.yanked);
+            }
+        }
+        const checked = [];
+        const yanked = [];
+        for (const version of versions) {
+            if (!records.has(version)) {
+                throw new Error(`version ${crateName} ${version} absent from sparse index`);
+            }
+            const dependency = { name: crateName, version };
+            checked.push(dependency);
+            if (records.get(version))
+                yanked.push(dependency);
+        }
+        return { checked, yanked };
+    }
+    finally {
+        clearTimeout(timeout);
+        overallSignal.removeEventListener("abort", abortForOverallDeadline);
+    }
+}
+async function auditDependencyYanks(dependencies, options = {}) {
+    const fetchImpl = options.fetchImpl ?? fetch;
+    const timeoutMs = options.requestTimeoutMs ?? 30_000;
+    const concurrency = Math.max(1, options.concurrency ?? 12);
+    const overallTimeoutMs = Math.max(1, options.overallTimeoutMs ?? 45_000);
+    const overallController = new AbortController();
+    let overallTimeout;
+    const deadline = new Promise((resolve) => {
+        overallTimeout = setTimeout(() => {
+            overallController.abort();
+            resolve("deadline");
+        }, overallTimeoutMs);
+    });
+    const errors = [];
+    const yanked = [];
+    let checkedCount = 0;
+    const byCrate = new Map();
+    for (const dependency of dependencies) {
+        if (!isCratesIoSource(dependency.source)) {
+            errors.push(`${dependency.name} ${dependency.version}: registry ${dependency.source} is not supported`);
+            continue;
+        }
+        const versions = byCrate.get(dependency.name) ?? new Set();
+        versions.add(dependency.version);
+        byCrate.set(dependency.name, versions);
+    }
+    const work = [...byCrate.entries()];
+    let index = 0;
+    let omittedErrors = 0;
+    const recordError = (message) => {
+        if (errors.length < 20)
+            errors.push(message);
+        else
+            omittedErrors += 1;
+    };
+    const worker = async () => {
+        while (true) {
+            const item = work[index++];
+            if (!item)
+                return;
+            const [crateName, versions] = item;
+            try {
+                if (overallController.signal.aborted) {
+                    throw new Error(`audit deadline exceeded after ${overallTimeoutMs}ms`);
+                }
+                const result = await fetchCrateYanks(crateName, [...versions], fetchImpl, timeoutMs, overallController.signal);
+                checkedCount += result.checked.length;
+                yanked.push(...result.yanked);
+            }
+            catch (err) {
+                recordError(`${crateName}: ${err instanceof Error ? err.message : String(err)}`);
+            }
+        }
+    };
+    let outcome;
+    try {
+        const completed = Promise.all(Array.from({ length: Math.min(concurrency, work.length) }, () => worker())).then(() => "complete");
+        outcome = await Promise.race([completed, deadline]);
+    }
+    finally {
+        clearTimeout(overallTimeout);
+    }
+    if (outcome === "deadline") {
+        return {
+            status: "not-checked",
+            checkedAt: new Date().toISOString(),
+            dependencyCount: dependencies.length,
+            checkedCount,
+            yanked: [...yanked],
+            errors: [`audit deadline exceeded after ${overallTimeoutMs}ms`],
+            auditTimedOut: true,
+        };
+    }
+    if (omittedErrors > 0)
+        errors.push(`${omittedErrors} additional registry errors omitted`);
+    const base = {
+        checkedAt: new Date().toISOString(),
+        dependencyCount: dependencies.length,
+        checkedCount,
+    };
+    if (yanked.length > 0) {
+        return { ...base, status: "yanked", yanked, errors };
+    }
+    if (errors.length > 0) {
+        return { ...base, status: "not-checked", yanked: [], errors };
+    }
+    return { ...base, status: "clean", yanked: [], errors: [] };
+}
+function writeYankAuditResult(resultPath, result) {
+    fs.mkdirSync(path.dirname(resultPath), { recursive: true });
+    const temporaryPath = `${resultPath}.${process.pid}.tmp`;
+    fs.writeFileSync(temporaryPath, `${JSON.stringify(result)}\n`, "utf8");
+    fs.renameSync(temporaryPath, resultPath);
+}
+function readYankAuditResult(resultPath) {
+    try {
+        const result = JSON.parse(fs.readFileSync(resultPath, "utf8"));
+        if (!["pending", "clean", "yanked", "not-checked"].includes(result.status))
+            return null;
+        return result;
+    }
+    catch {
+        return null;
+    }
+}
+async function waitForYankAuditResult(resultPath, options = {}) {
+    const timeoutMs = options.timeoutMs ?? 60_000;
+    const pollMs = options.pollMs ?? 250;
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        const result = readYankAuditResult(resultPath);
+        if (result && result.status !== "pending")
+            return result;
+        await new Promise((resolve) => setTimeout(resolve, pollMs));
+    }
+    return {
+        status: "not-checked",
+        checkedAt: new Date().toISOString(),
+        errors: [`audit did not finish within ${timeoutMs}ms`],
+        joinTimedOut: true,
+    };
+}
+/** Join an overlapped audit only until its own deadline, then recheck locally. */
+async function resolveYankAuditResult(resultPath, recheck, options = {}) {
+    const backgroundDeadlineMs = options.backgroundDeadlineMs ?? 50_000;
+    const fallbackDeadlineMs = options.fallbackDeadlineMs ?? 45_000;
+    const remaining = Math.max(0, backgroundDeadlineMs - (Date.now() - (options.startedAtMs ?? Date.now())));
+    const existing = readYankAuditResult(resultPath);
+    if (existing?.yanked?.length)
+        return { ...existing, status: "yanked" };
+    if (existing && (existing.status === "clean" || existing.status === "yanked"))
+        return existing;
+    if ((!existing || existing.status === "pending") && remaining > 0) {
+        const joined = await waitForYankAuditResult(resultPath, { timeoutMs: remaining });
+        if (joined.yanked?.length)
+            return { ...joined, status: "yanked" };
+        if (joined.status === "clean" || joined.status === "yanked")
+            return joined;
+    }
+    let timer;
+    try {
+        return await Promise.race([
+            recheck(),
+            new Promise((resolve) => {
+                timer = setTimeout(() => resolve({ status: "not-checked", errors: ["foreground recheck deadline exceeded"] }), fallbackDeadlineMs);
+            }),
+        ]);
+    }
+    catch (error) {
+        return { status: "not-checked", errors: [error instanceof Error ? error.message : String(error)] };
+    }
+    finally {
+        if (timer)
+            clearTimeout(timer);
+    }
+}
+async function runYankAuditWorker(configPath, resultPath) {
+    try {
+        writeYankAuditResult(resultPath, { status: "pending", workerPid: process.pid });
+        const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+        const result = await auditDependencyYanks(config.dependencies, {
+            requestTimeoutMs: config.requestTimeoutMs,
+            overallTimeoutMs: config.overallTimeoutMs,
+        });
+        writeYankAuditResult(resultPath, result);
+    }
+    catch (err) {
+        writeYankAuditResult(resultPath, {
+            status: "not-checked",
+            checkedAt: new Date().toISOString(),
+            errors: [err instanceof Error ? err.message : String(err)],
+        });
+    }
+}
+
+
+/***/ }),
+
+/***/ 229:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var retryPolicy_exports = {};
+__export(retryPolicy_exports, {
+  retryPolicy: () => retryPolicy
+});
+module.exports = __toCommonJS(retryPolicy_exports);
+var import_logger = __nccwpck_require__(47);
+var import_constants = __nccwpck_require__(174);
+var import_policies = __nccwpck_require__(315);
+const retryPolicyLogger = (0, import_logger.createClientLogger)("core-rest-pipeline retryPolicy");
+function retryPolicy(strategies, options = { maxRetries: import_constants.DEFAULT_RETRY_POLICY_COUNT }) {
+  return (0, import_policies.retryPolicy)(strategies, {
+    logger: retryPolicyLogger,
+    ...options
+  });
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 230:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getErrorMessage = getErrorMessage;
+const util_1 = __nccwpck_require__(162);
+/**
+ * Given what is thought to be an error object, return the message if possible.
+ * If the message is missing, returns a stringified version of the input.
+ * @param e - Something thrown from a try block
+ * @returns The error message or a string of the input
+ */
+function getErrorMessage(e) {
+    if ((0, util_1.isError)(e)) {
+        return e.message;
+    }
+    else {
+        let stringified;
+        try {
+            if (typeof e === "object" && e) {
+                stringified = JSON.stringify(e);
+            }
+            else {
+                stringified = String(e);
+            }
+        }
+        catch (err) {
+            stringified = "[unable to stringify input]";
+        }
+        return `Unknown error ${stringified}`;
+    }
+}
+//# sourceMappingURL=error.js.map
+
+/***/ }),
+
+/***/ 231:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.saveCache = exports.restoreCache = exports.isFeatureAvailable = exports.FinalizeCacheError = exports.ReserveCacheError = exports.ValidationError = void 0;
+const core = __importStar(__nccwpck_require__(504));
+const path = __importStar(__nccwpck_require__(271));
+const utils = __importStar(__nccwpck_require__(83));
+const cacheHttpClient = __importStar(__nccwpck_require__(36));
+const cacheTwirpClient = __importStar(__nccwpck_require__(67));
+const config_1 = __nccwpck_require__(39);
+const tar_1 = __nccwpck_require__(481);
+const http_client_1 = __nccwpck_require__(313);
+class ValidationError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ValidationError';
+        Object.setPrototypeOf(this, ValidationError.prototype);
+    }
+}
+exports.ValidationError = ValidationError;
+class ReserveCacheError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ReserveCacheError';
+        Object.setPrototypeOf(this, ReserveCacheError.prototype);
+    }
+}
+exports.ReserveCacheError = ReserveCacheError;
+class FinalizeCacheError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FinalizeCacheError';
+        Object.setPrototypeOf(this, FinalizeCacheError.prototype);
+    }
+}
+exports.FinalizeCacheError = FinalizeCacheError;
+function checkPaths(paths) {
+    if (!paths || paths.length === 0) {
+        throw new ValidationError(`Path Validation Error: At least one directory or file path is required`);
+    }
+}
+function checkKey(key) {
+    if (key.length > 512) {
+        throw new ValidationError(`Key Validation Error: ${key} cannot be larger than 512 characters.`);
+    }
+    const regex = /^[^,]*$/;
+    if (!regex.test(key)) {
+        throw new ValidationError(`Key Validation Error: ${key} cannot contain commas.`);
+    }
+}
+/**
+ * isFeatureAvailable to check the presence of Actions cache service
+ *
+ * @returns boolean return true if Actions cache service feature is available, otherwise false
+ */
+function isFeatureAvailable() {
+    const cacheServiceVersion = (0, config_1.getCacheServiceVersion)();
+    // Check availability based on cache service version
+    switch (cacheServiceVersion) {
+        case 'v2':
+            // For v2, we need ACTIONS_RESULTS_URL
+            return !!process.env['ACTIONS_RESULTS_URL'];
+        case 'v1':
+        default:
+            // For v1, we only need ACTIONS_CACHE_URL
+            return !!process.env['ACTIONS_CACHE_URL'];
+    }
+}
+exports.isFeatureAvailable = isFeatureAvailable;
+/**
+ * Restores cache from keys
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
+ * @param downloadOptions cache download options
+ * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @returns string returns the key for the cache hit, otherwise returns undefined
+ */
+function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const cacheServiceVersion = (0, config_1.getCacheServiceVersion)();
+        core.debug(`Cache service version: ${cacheServiceVersion}`);
+        checkPaths(paths);
+        switch (cacheServiceVersion) {
+            case 'v2':
+                return yield restoreCacheV2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive);
+            case 'v1':
+            default:
+                return yield restoreCacheV1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive);
+        }
+    });
+}
+exports.restoreCache = restoreCache;
+/**
+ * Restores cache using the legacy Cache Service
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
+ * @param options cache download options
+ * @param enableCrossOsArchive an optional boolean enabled to restore on Windows any cache created on any platform
+ * @returns string returns the key for the cache hit, otherwise returns undefined
+ */
+function restoreCacheV1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        restoreKeys = restoreKeys || [];
+        const keys = [primaryKey, ...restoreKeys];
+        core.debug('Resolved Keys:');
+        core.debug(JSON.stringify(keys));
+        if (keys.length > 10) {
+            throw new ValidationError(`Key Validation Error: Keys are limited to a maximum of 10.`);
+        }
+        for (const key of keys) {
+            checkKey(key);
+        }
+        const compressionMethod = yield utils.getCompressionMethod();
+        let archivePath = '';
+        try {
+            // path are needed to compute version
+            const cacheEntry = yield cacheHttpClient.getCacheEntry(keys, paths, {
+                compressionMethod,
+                enableCrossOsArchive
+            });
+            if (!(cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.archiveLocation)) {
+                // Cache not found
+                return undefined;
+            }
+            if (options === null || options === void 0 ? void 0 : options.lookupOnly) {
+                core.info('Lookup only - skipping download');
+                return cacheEntry.cacheKey;
+            }
+            archivePath = path.join(yield utils.createTempDirectory(), utils.getCacheFileName(compressionMethod));
+            core.debug(`Archive Path: ${archivePath}`);
+            // Download the cache from the cache entry
+            yield cacheHttpClient.downloadCache(cacheEntry.archiveLocation, archivePath, options);
+            if (core.isDebug()) {
+                yield (0, tar_1.listTar)(archivePath, compressionMethod);
+            }
+            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+            core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
+            yield (0, tar_1.extractTar)(archivePath, compressionMethod);
+            core.info('Cache restored successfully');
+            return cacheEntry.cacheKey;
+        }
+        catch (error) {
+            const typedError = error;
+            if (typedError.name === ValidationError.name) {
+                throw error;
+            }
+            else {
+                // warn on cache restore failure and continue build
+                // Log server errors (5xx) as errors, all other errors as warnings
+                if (typedError instanceof http_client_1.HttpClientError &&
+                    typeof typedError.statusCode === 'number' &&
+                    typedError.statusCode >= 500) {
+                    core.error(`Failed to restore: ${error.message}`);
+                }
+                else {
+                    core.warning(`Failed to restore: ${error.message}`);
+                }
+            }
+        }
+        finally {
+            // Try to delete the archive to save space
+            try {
+                yield utils.unlinkFile(archivePath);
+            }
+            catch (error) {
+                core.debug(`Failed to delete archive: ${error}`);
+            }
+        }
+        return undefined;
+    });
+}
+/**
+ * Restores cache using Cache Service v2
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching
+ * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
+ * @param downloadOptions cache download options
+ * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
+ * @returns string returns the key for the cache hit, otherwise returns undefined
+ */
+function restoreCacheV2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Override UploadOptions to force the use of Azure
+        options = Object.assign(Object.assign({}, options), { useAzureSdk: true });
+        restoreKeys = restoreKeys || [];
+        const keys = [primaryKey, ...restoreKeys];
+        core.debug('Resolved Keys:');
+        core.debug(JSON.stringify(keys));
+        if (keys.length > 10) {
+            throw new ValidationError(`Key Validation Error: Keys are limited to a maximum of 10.`);
+        }
+        for (const key of keys) {
+            checkKey(key);
+        }
+        let archivePath = '';
+        try {
+            const twirpClient = cacheTwirpClient.internalCacheTwirpClient();
+            const compressionMethod = yield utils.getCompressionMethod();
+            const request = {
+                key: primaryKey,
+                restoreKeys,
+                version: utils.getCacheVersion(paths, compressionMethod, enableCrossOsArchive)
+            };
+            const response = yield twirpClient.GetCacheEntryDownloadURL(request);
+            if (!response.ok) {
+                core.debug(`Cache not found for version ${request.version} of keys: ${keys.join(', ')}`);
+                return undefined;
+            }
+            const isRestoreKeyMatch = request.key !== response.matchedKey;
+            if (isRestoreKeyMatch) {
+                core.info(`Cache hit for restore-key: ${response.matchedKey}`);
+            }
+            else {
+                core.info(`Cache hit for: ${response.matchedKey}`);
+            }
+            if (options === null || options === void 0 ? void 0 : options.lookupOnly) {
+                core.info('Lookup only - skipping download');
+                return response.matchedKey;
+            }
+            archivePath = path.join(yield utils.createTempDirectory(), utils.getCacheFileName(compressionMethod));
+            core.debug(`Archive path: ${archivePath}`);
+            core.debug(`Starting download of archive to: ${archivePath}`);
+            yield cacheHttpClient.downloadCache(response.signedDownloadUrl, archivePath, options);
+            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+            core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
+            if (core.isDebug()) {
+                yield (0, tar_1.listTar)(archivePath, compressionMethod);
+            }
+            yield (0, tar_1.extractTar)(archivePath, compressionMethod);
+            core.info('Cache restored successfully');
+            return response.matchedKey;
+        }
+        catch (error) {
+            const typedError = error;
+            if (typedError.name === ValidationError.name) {
+                throw error;
+            }
+            else {
+                // Supress all non-validation cache related errors because caching should be optional
+                // Log server errors (5xx) as errors, all other errors as warnings
+                if (typedError instanceof http_client_1.HttpClientError &&
+                    typeof typedError.statusCode === 'number' &&
+                    typedError.statusCode >= 500) {
+                    core.error(`Failed to restore: ${error.message}`);
+                }
+                else {
+                    core.warning(`Failed to restore: ${error.message}`);
+                }
+            }
+        }
+        finally {
+            try {
+                if (archivePath) {
+                    yield utils.unlinkFile(archivePath);
+                }
+            }
+            catch (error) {
+                core.debug(`Failed to delete archive: ${error}`);
+            }
+        }
+        return undefined;
+    });
+}
+/**
+ * Saves a list of files with the specified key
+ *
+ * @param paths a list of file paths to be cached
+ * @param key an explicit key for restoring the cache
+ * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
+ * @param options cache upload options
+ * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
+ */
+function saveCache(paths, key, options, enableCrossOsArchive = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const cacheServiceVersion = (0, config_1.getCacheServiceVersion)();
+        core.debug(`Cache service version: ${cacheServiceVersion}`);
+        checkPaths(paths);
+        checkKey(key);
+        switch (cacheServiceVersion) {
+            case 'v2':
+                return yield saveCacheV2(paths, key, options, enableCrossOsArchive);
+            case 'v1':
+            default:
+                return yield saveCacheV1(paths, key, options, enableCrossOsArchive);
+        }
+    });
+}
+exports.saveCache = saveCache;
+/**
+ * Save cache using the legacy Cache Service
+ *
+ * @param paths
+ * @param key
+ * @param options
+ * @param enableCrossOsArchive
+ * @returns
+ */
+function saveCacheV1(paths, key, options, enableCrossOsArchive = false) {
+    var _a, _b, _c, _d, _e;
+    return __awaiter(this, void 0, void 0, function* () {
+        const compressionMethod = yield utils.getCompressionMethod();
+        let cacheId = -1;
+        const cachePaths = yield utils.resolvePaths(paths);
+        core.debug('Cache Paths:');
+        core.debug(`${JSON.stringify(cachePaths)}`);
+        if (cachePaths.length === 0) {
+            throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
+        }
+        const archiveFolder = yield utils.createTempDirectory();
+        const archivePath = path.join(archiveFolder, utils.getCacheFileName(compressionMethod));
+        core.debug(`Archive Path: ${archivePath}`);
+        try {
+            yield (0, tar_1.createTar)(archiveFolder, cachePaths, compressionMethod);
+            if (core.isDebug()) {
+                yield (0, tar_1.listTar)(archivePath, compressionMethod);
+            }
+            const fileSizeLimit = 10 * 1024 * 1024 * 1024; // 10GB per repo limit
+            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+            core.debug(`File Size: ${archiveFileSize}`);
+            // For GHES, this check will take place in ReserveCache API with enterprise file size limit
+            if (archiveFileSize > fileSizeLimit && !(0, config_1.isGhes)()) {
+                throw new Error(`Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`);
+            }
+            core.debug('Reserving Cache');
+            const reserveCacheResponse = yield cacheHttpClient.reserveCache(key, paths, {
+                compressionMethod,
+                enableCrossOsArchive,
+                cacheSize: archiveFileSize
+            });
+            if ((_a = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.result) === null || _a === void 0 ? void 0 : _a.cacheId) {
+                cacheId = (_b = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.result) === null || _b === void 0 ? void 0 : _b.cacheId;
+            }
+            else if ((reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.statusCode) === 400) {
+                throw new Error((_d = (_c = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.error) === null || _c === void 0 ? void 0 : _c.message) !== null && _d !== void 0 ? _d : `Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`);
+            }
+            else {
+                throw new ReserveCacheError(`Unable to reserve cache with key ${key}, another job may be creating this cache. More details: ${(_e = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.error) === null || _e === void 0 ? void 0 : _e.message}`);
+            }
+            core.debug(`Saving Cache (ID: ${cacheId})`);
+            yield cacheHttpClient.saveCache(cacheId, archivePath, '', options);
+        }
+        catch (error) {
+            const typedError = error;
+            if (typedError.name === ValidationError.name) {
+                throw error;
+            }
+            else if (typedError.name === ReserveCacheError.name) {
+                core.info(`Failed to save: ${typedError.message}`);
+            }
+            else {
+                // Log server errors (5xx) as errors, all other errors as warnings
+                if (typedError instanceof http_client_1.HttpClientError &&
+                    typeof typedError.statusCode === 'number' &&
+                    typedError.statusCode >= 500) {
+                    core.error(`Failed to save: ${typedError.message}`);
+                }
+                else {
+                    core.warning(`Failed to save: ${typedError.message}`);
+                }
+            }
+        }
+        finally {
+            // Try to delete the archive to save space
+            try {
+                yield utils.unlinkFile(archivePath);
+            }
+            catch (error) {
+                core.debug(`Failed to delete archive: ${error}`);
+            }
+        }
+        return cacheId;
+    });
+}
+/**
+ * Save cache using Cache Service v2
+ *
+ * @param paths a list of file paths to restore from the cache
+ * @param key an explicit key for restoring the cache
+ * @param options cache upload options
+ * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
+ * @returns
+ */
+function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Override UploadOptions to force the use of Azure
+        // ...options goes first because we want to override the default values
+        // set in UploadOptions with these specific figures
+        options = Object.assign(Object.assign({}, options), { uploadChunkSize: 64 * 1024 * 1024, uploadConcurrency: 8, useAzureSdk: true });
+        const compressionMethod = yield utils.getCompressionMethod();
+        const twirpClient = cacheTwirpClient.internalCacheTwirpClient();
+        let cacheId = -1;
+        const cachePaths = yield utils.resolvePaths(paths);
+        core.debug('Cache Paths:');
+        core.debug(`${JSON.stringify(cachePaths)}`);
+        if (cachePaths.length === 0) {
+            throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
+        }
+        const archiveFolder = yield utils.createTempDirectory();
+        const archivePath = path.join(archiveFolder, utils.getCacheFileName(compressionMethod));
+        core.debug(`Archive Path: ${archivePath}`);
+        try {
+            yield (0, tar_1.createTar)(archiveFolder, cachePaths, compressionMethod);
+            if (core.isDebug()) {
+                yield (0, tar_1.listTar)(archivePath, compressionMethod);
+            }
+            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
+            core.debug(`File Size: ${archiveFileSize}`);
+            // Set the archive size in the options, will be used to display the upload progress
+            options.archiveSizeBytes = archiveFileSize;
+            core.debug('Reserving Cache');
+            const version = utils.getCacheVersion(paths, compressionMethod, enableCrossOsArchive);
+            const request = {
+                key,
+                version
+            };
+            let signedUploadUrl;
+            try {
+                const response = yield twirpClient.CreateCacheEntry(request);
+                if (!response.ok) {
+                    if (response.message) {
+                        core.warning(`Cache reservation failed: ${response.message}`);
+                    }
+                    throw new Error(response.message || 'Response was not ok');
+                }
+                signedUploadUrl = response.signedUploadUrl;
+            }
+            catch (error) {
+                core.debug(`Failed to reserve cache: ${error}`);
+                throw new ReserveCacheError(`Unable to reserve cache with key ${key}, another job may be creating this cache.`);
+            }
+            core.debug(`Attempting to upload cache located at: ${archivePath}`);
+            yield cacheHttpClient.saveCache(cacheId, archivePath, signedUploadUrl, options);
+            const finalizeRequest = {
+                key,
+                version,
+                sizeBytes: `${archiveFileSize}`
+            };
+            const finalizeResponse = yield twirpClient.FinalizeCacheEntryUpload(finalizeRequest);
+            core.debug(`FinalizeCacheEntryUploadResponse: ${finalizeResponse.ok}`);
+            if (!finalizeResponse.ok) {
+                if (finalizeResponse.message) {
+                    throw new FinalizeCacheError(finalizeResponse.message);
+                }
+                throw new Error(`Unable to finalize cache with key ${key}, another job may be finalizing this cache.`);
+            }
+            cacheId = parseInt(finalizeResponse.entryId);
+        }
+        catch (error) {
+            const typedError = error;
+            if (typedError.name === ValidationError.name) {
+                throw error;
+            }
+            else if (typedError.name === ReserveCacheError.name) {
+                core.info(`Failed to save: ${typedError.message}`);
+            }
+            else if (typedError.name === FinalizeCacheError.name) {
+                core.warning(typedError.message);
+            }
+            else {
+                // Log server errors (5xx) as errors, all other errors as warnings
+                if (typedError instanceof http_client_1.HttpClientError &&
+                    typeof typedError.statusCode === 'number' &&
+                    typedError.statusCode >= 500) {
+                    core.error(`Failed to save: ${typedError.message}`);
+                }
+                else {
+                    core.warning(`Failed to save: ${typedError.message}`);
+                }
+            }
+        }
+        finally {
+            // Try to delete the archive to save space
+            try {
+                yield utils.unlinkFile(archivePath);
+            }
+            catch (error) {
+                core.debug(`Failed to delete archive: ${error}`);
+            }
+        }
+        return cacheId;
+    });
+}
+//# sourceMappingURL=cache.js.map
+
+/***/ }),
+
+/***/ 232:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var extendedClient_exports = {};
+__export(extendedClient_exports, {
+  ExtendedServiceClient: () => ExtendedServiceClient
+});
+module.exports = __toCommonJS(extendedClient_exports);
+var import_disableKeepAlivePolicy = __nccwpck_require__(8);
+var import_core_rest_pipeline = __nccwpck_require__(114);
+var import_core_client = __nccwpck_require__(480);
+var import_response = __nccwpck_require__(451);
+class ExtendedServiceClient extends import_core_client.ServiceClient {
+  constructor(options) {
+    super(options);
+    if (options.keepAliveOptions?.enable === false && !(0, import_disableKeepAlivePolicy.pipelineContainsDisableKeepAlivePolicy)(this.pipeline)) {
+      this.pipeline.addPolicy((0, import_disableKeepAlivePolicy.createDisableKeepAlivePolicy)());
+    }
+    if (options.redirectOptions?.handleRedirects === false) {
+      this.pipeline.removePolicy({
+        name: import_core_rest_pipeline.redirectPolicyName
+      });
+    }
+  }
+  /**
+   * Compatible send operation request function.
+   *
+   * @param operationArguments - Operation arguments
+   * @param operationSpec - Operation Spec
+   * @returns
+   */
+  async sendOperationRequest(operationArguments, operationSpec) {
+    const userProvidedCallBack = operationArguments?.options?.onResponse;
+    let lastResponse;
+    function onResponse(rawResponse, flatResponse, error) {
+      lastResponse = rawResponse;
+      if (userProvidedCallBack) {
+        userProvidedCallBack(rawResponse, flatResponse, error);
+      }
+    }
+    operationArguments.options = {
+      ...operationArguments.options,
+      onResponse
+    };
+    const result = await super.sendOperationRequest(operationArguments, operationSpec);
+    if (lastResponse) {
+      Object.defineProperty(result, "_response", {
+        value: (0, import_response.toCompatResponse)(lastResponse)
+      });
+    }
+    return result;
+  }
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+//# sourceMappingURL=extendedClient.js.map
+
+
+/***/ }),
+
+/***/ 233:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Context = void 0;
+const fs_1 = __nccwpck_require__(587);
+const os_1 = __nccwpck_require__(105);
+class Context {
+    /**
+     * Hydrate the context from the environment
+     */
+    constructor() {
+        var _a, _b, _c;
+        this.payload = {};
+        if (process.env.GITHUB_EVENT_PATH) {
+            if ((0, fs_1.existsSync)(process.env.GITHUB_EVENT_PATH)) {
+                this.payload = JSON.parse((0, fs_1.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
+            }
+            else {
+                const path = process.env.GITHUB_EVENT_PATH;
+                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${os_1.EOL}`);
+            }
+        }
+        this.eventName = process.env.GITHUB_EVENT_NAME;
+        this.sha = process.env.GITHUB_SHA;
+        this.ref = process.env.GITHUB_REF;
+        this.workflow = process.env.GITHUB_WORKFLOW;
+        this.action = process.env.GITHUB_ACTION;
+        this.actor = process.env.GITHUB_ACTOR;
+        this.job = process.env.GITHUB_JOB;
+        this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT, 10);
+        this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
+        this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
+        this.apiUrl = (_a = process.env.GITHUB_API_URL) !== null && _a !== void 0 ? _a : `https://api.github.com`;
+        this.serverUrl = (_b = process.env.GITHUB_SERVER_URL) !== null && _b !== void 0 ? _b : `https://github.com`;
+        this.graphqlUrl =
+            (_c = process.env.GITHUB_GRAPHQL_URL) !== null && _c !== void 0 ? _c : `https://api.github.com/graphql`;
+    }
+    get issue() {
+        const payload = this.payload;
+        return Object.assign(Object.assign({}, this.repo), { number: (payload.issue || payload.pull_request || payload).number });
+    }
+    get repo() {
+        if (process.env.GITHUB_REPOSITORY) {
+            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+            return { owner, repo };
+        }
+        if (this.payload.repository) {
+            return {
+                owner: this.payload.repository.owner.login,
+                repo: this.payload.repository.name
+            };
+        }
+        throw new Error("context.repo requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
+    }
+}
+exports.Context = Context;
+//# sourceMappingURL=context.js.map
+
+/***/ }),
+
+/***/ 234:
+/***/ ((module) => {
+
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global global, define, Symbol, Reflect, Promise, SuppressedError, Iterator */
+var __extends;
+var __assign;
+var __rest;
+var __decorate;
+var __param;
+var __esDecorate;
+var __runInitializers;
+var __propKey;
+var __setFunctionName;
+var __metadata;
+var __awaiter;
+var __generator;
+var __exportStar;
+var __values;
+var __read;
+var __spread;
+var __spreadArrays;
+var __spreadArray;
+var __await;
+var __asyncGenerator;
+var __asyncDelegator;
+var __asyncValues;
+var __makeTemplateObject;
+var __importStar;
+var __importDefault;
+var __classPrivateFieldGet;
+var __classPrivateFieldSet;
+var __classPrivateFieldIn;
+var __createBinding;
+var __addDisposableResource;
+var __disposeResources;
+var __rewriteRelativeImportExtension;
+(function (factory) {
+    var root = typeof global === "object" ? global : typeof self === "object" ? self : typeof this === "object" ? this : {};
+    if (typeof define === "function" && define.amd) {
+        define("tslib", ["exports"], function (exports) { factory(createExporter(root, createExporter(exports))); });
+    }
+    else if ( true && typeof module.exports === "object") {
+        factory(createExporter(root, createExporter(module.exports)));
+    }
+    else {
+        factory(createExporter(root));
+    }
+    function createExporter(exports, previous) {
+        if (exports !== root) {
+            if (typeof Object.create === "function") {
+                Object.defineProperty(exports, "__esModule", { value: true });
+            }
+            else {
+                exports.__esModule = true;
+            }
+        }
+        return function (id, v) { return exports[id] = previous ? previous(id, v) : v; };
+    }
+})
+(function (exporter) {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+
+    __extends = function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+
+    __assign = Object.assign || function (t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+
+    __rest = function (s, e) {
+        var t = {};
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+            t[p] = s[p];
+        if (s != null && typeof Object.getOwnPropertySymbols === "function")
+            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                    t[p[i]] = s[p[i]];
+            }
+        return t;
+    };
+
+    __decorate = function (decorators, target, key, desc) {
+        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+
+    __param = function (paramIndex, decorator) {
+        return function (target, key) { decorator(target, key, paramIndex); }
+    };
+
+    __esDecorate = function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+        function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+        var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+        var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+        var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+        var _, done = false;
+        for (var i = decorators.length - 1; i >= 0; i--) {
+            var context = {};
+            for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+            for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+            context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+            var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+            if (kind === "accessor") {
+                if (result === void 0) continue;
+                if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+                if (_ = accept(result.get)) descriptor.get = _;
+                if (_ = accept(result.set)) descriptor.set = _;
+                if (_ = accept(result.init)) initializers.unshift(_);
+            }
+            else if (_ = accept(result)) {
+                if (kind === "field") initializers.unshift(_);
+                else descriptor[key] = _;
+            }
+        }
+        if (target) Object.defineProperty(target, contextIn.name, descriptor);
+        done = true;
+    };
+
+    __runInitializers = function (thisArg, initializers, value) {
+        var useValue = arguments.length > 2;
+        for (var i = 0; i < initializers.length; i++) {
+            value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+        }
+        return useValue ? value : void 0;
+    };
+
+    __propKey = function (x) {
+        return typeof x === "symbol" ? x : "".concat(x);
+    };
+
+    __setFunctionName = function (f, name, prefix) {
+        if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+        return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+    };
+
+    __metadata = function (metadataKey, metadataValue) {
+        if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+    };
+
+    __awaiter = function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+
+    __generator = function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+        return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (g && (g = 0, op[0] && (_ = 0)), _) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
+
+    __exportStar = function(m, o) {
+        for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
+    };
+
+    __createBinding = Object.create ? (function(o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        var desc = Object.getOwnPropertyDescriptor(m, k);
+        if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+            desc = { enumerable: true, get: function() { return m[k]; } };
+        }
+        Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        o[k2] = m[k];
+    });
+
+    __values = function (o) {
+        var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+        if (m) return m.call(o);
+        if (o && typeof o.length === "number") return {
+            next: function () {
+                if (o && i >= o.length) o = void 0;
+                return { value: o && o[i++], done: !o };
+            }
+        };
+        throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+    };
+
+    __read = function (o, n) {
+        var m = typeof Symbol === "function" && o[Symbol.iterator];
+        if (!m) return o;
+        var i = m.call(o), r, ar = [], e;
+        try {
+            while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+        }
+        catch (error) { e = { error: error }; }
+        finally {
+            try {
+                if (r && !r.done && (m = i["return"])) m.call(i);
+            }
+            finally { if (e) throw e.error; }
+        }
+        return ar;
+    };
+
+    /** @deprecated */
+    __spread = function () {
+        for (var ar = [], i = 0; i < arguments.length; i++)
+            ar = ar.concat(__read(arguments[i]));
+        return ar;
+    };
+
+    /** @deprecated */
+    __spreadArrays = function () {
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++)
+            for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+                r[k] = a[j];
+        return r;
+    };
+
+    __spreadArray = function (to, from, pack) {
+        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+            if (ar || !(i in from)) {
+                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+                ar[i] = from[i];
+            }
+        }
+        return to.concat(ar || Array.prototype.slice.call(from));
+    };
+
+    __await = function (v) {
+        return this instanceof __await ? (this.v = v, this) : new __await(v);
+    };
+
+    __asyncGenerator = function (thisArg, _arguments, generator) {
+        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var g = generator.apply(thisArg, _arguments || []), i, q = [];
+        return i = Object.create((typeof AsyncIterator === "function" ? AsyncIterator : Object).prototype), verb("next"), verb("throw"), verb("return", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;
+        function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }
+        function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }
+        function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+        function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
+        function fulfill(value) { resume("next", value); }
+        function reject(value) { resume("throw", value); }
+        function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+    };
+
+    __asyncDelegator = function (o) {
+        var i, p;
+        return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
+        function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
+    };
+
+    __asyncValues = function (o) {
+        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var m = o[Symbol.asyncIterator], i;
+        return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+        function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+        function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+    };
+
+    __makeTemplateObject = function (cooked, raw) {
+        if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+        return cooked;
+    };
+
+    var __setModuleDefault = Object.create ? (function(o, v) {
+        Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+        o["default"] = v;
+    };
+
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+
+    __importStar = function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+
+    __importDefault = function (mod) {
+        return (mod && mod.__esModule) ? mod : { "default": mod };
+    };
+
+    __classPrivateFieldGet = function (receiver, state, kind, f) {
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+    };
+
+    __classPrivateFieldSet = function (receiver, state, value, kind, f) {
+        if (kind === "m") throw new TypeError("Private method is not writable");
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+        return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+    };
+
+    __classPrivateFieldIn = function (state, receiver) {
+        if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
+        return typeof state === "function" ? receiver === state : state.has(receiver);
+    };
+
+    __addDisposableResource = function (env, value, async) {
+        if (value !== null && value !== void 0) {
+            if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
+            var dispose, inner;
+            if (async) {
+                if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+                dispose = value[Symbol.asyncDispose];
+            }
+            if (dispose === void 0) {
+                if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+                dispose = value[Symbol.dispose];
+                if (async) inner = dispose;
+            }
+            if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+            if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
+            env.stack.push({ value: value, dispose: dispose, async: async });
+        }
+        else if (async) {
+            env.stack.push({ async: true });
+        }
+        return value;
+    };
+
+    var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+        var e = new Error(message);
+        return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+    };
+
+    __disposeResources = function (env) {
+        function fail(e) {
+            env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+            env.hasError = true;
+        }
+        var r, s = 0;
+        function next() {
+            while (r = env.stack.pop()) {
+                try {
+                    if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
+                    if (r.dispose) {
+                        var result = r.dispose.call(r.value);
+                        if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
+                    }
+                    else s |= 1;
+                }
+                catch (e) {
+                    fail(e);
+                }
+            }
+            if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
+            if (env.hasError) throw env.error;
+        }
+        return next();
+    };
+
+    __rewriteRelativeImportExtension = function (path, preserveJsx) {
+        if (typeof path === "string" && /^\.\.?\//.test(path)) {
+            return path.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function (m, tsx, d, ext, cm) {
+                return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : (d + ext + "." + cm.toLowerCase() + "js");
+            });
+        }
+        return path;
+    };
+
+    exporter("__extends", __extends);
+    exporter("__assign", __assign);
+    exporter("__rest", __rest);
+    exporter("__decorate", __decorate);
+    exporter("__param", __param);
+    exporter("__esDecorate", __esDecorate);
+    exporter("__runInitializers", __runInitializers);
+    exporter("__propKey", __propKey);
+    exporter("__setFunctionName", __setFunctionName);
+    exporter("__metadata", __metadata);
+    exporter("__awaiter", __awaiter);
+    exporter("__generator", __generator);
+    exporter("__exportStar", __exportStar);
+    exporter("__createBinding", __createBinding);
+    exporter("__values", __values);
+    exporter("__read", __read);
+    exporter("__spread", __spread);
+    exporter("__spreadArrays", __spreadArrays);
+    exporter("__spreadArray", __spreadArray);
+    exporter("__await", __await);
+    exporter("__asyncGenerator", __asyncGenerator);
+    exporter("__asyncDelegator", __asyncDelegator);
+    exporter("__asyncValues", __asyncValues);
+    exporter("__makeTemplateObject", __makeTemplateObject);
+    exporter("__importStar", __importStar);
+    exporter("__importDefault", __importDefault);
+    exporter("__classPrivateFieldGet", __classPrivateFieldGet);
+    exporter("__classPrivateFieldSet", __classPrivateFieldSet);
+    exporter("__classPrivateFieldIn", __classPrivateFieldIn);
+    exporter("__addDisposableResource", __addDisposableResource);
+    exporter("__disposeResources", __disposeResources);
+    exporter("__rewriteRelativeImportExtension", __rewriteRelativeImportExtension);
+});
+
+0 && (0);
+
+
+/***/ }),
+
+/***/ 235:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var bearerTokenAuthenticationPolicy_exports = {};
+__export(bearerTokenAuthenticationPolicy_exports, {
+  bearerTokenAuthenticationPolicy: () => bearerTokenAuthenticationPolicy,
+  bearerTokenAuthenticationPolicyName: () => bearerTokenAuthenticationPolicyName,
+  parseChallenges: () => parseChallenges
+});
+module.exports = __toCommonJS(bearerTokenAuthenticationPolicy_exports);
+var import_tokenCycler = __nccwpck_require__(177);
+var import_log = __nccwpck_require__(199);
+var import_restError = __nccwpck_require__(387);
+const bearerTokenAuthenticationPolicyName = "bearerTokenAuthenticationPolicy";
+async function trySendRequest(request, next) {
+  try {
+    return [await next(request), void 0];
+  } catch (e) {
+    if ((0, import_restError.isRestError)(e) && e.response) {
+      return [e.response, e];
+    } else {
+      throw e;
+    }
+  }
+}
+async function defaultAuthorizeRequest(options) {
+  const { scopes, getAccessToken, request } = options;
+  const getTokenOptions = {
+    abortSignal: request.abortSignal,
+    tracingOptions: request.tracingOptions,
+    enableCae: true
+  };
+  const accessToken = await getAccessToken(scopes, getTokenOptions);
+  if (accessToken) {
+    options.request.headers.set("Authorization", `Bearer ${accessToken.token}`);
+  }
+}
+function isChallengeResponse(response) {
+  return response.status === 401 && response.headers.has("WWW-Authenticate");
+}
+async function authorizeRequestOnCaeChallenge(onChallengeOptions, caeClaims) {
+  const { scopes } = onChallengeOptions;
+  const accessToken = await onChallengeOptions.getAccessToken(scopes, {
+    enableCae: true,
+    claims: caeClaims
+  });
+  if (!accessToken) {
+    return false;
+  }
+  onChallengeOptions.request.headers.set(
+    "Authorization",
+    `${accessToken.tokenType ?? "Bearer"} ${accessToken.token}`
+  );
+  return true;
+}
+function bearerTokenAuthenticationPolicy(options) {
+  const { credential, scopes, challengeCallbacks } = options;
+  const logger = options.logger || import_log.logger;
+  const callbacks = {
+    authorizeRequest: challengeCallbacks?.authorizeRequest?.bind(challengeCallbacks) ?? defaultAuthorizeRequest,
+    authorizeRequestOnChallenge: challengeCallbacks?.authorizeRequestOnChallenge?.bind(challengeCallbacks)
+  };
+  const getAccessToken = credential ? (0, import_tokenCycler.createTokenCycler)(
+    credential
+    /* , options */
+  ) : () => Promise.resolve(null);
+  return {
+    name: bearerTokenAuthenticationPolicyName,
+    /**
+     * If there's no challenge parameter:
+     * - It will try to retrieve the token using the cache, or the credential's getToken.
+     * - Then it will try the next policy with or without the retrieved token.
+     *
+     * It uses the challenge parameters to:
+     * - Skip a first attempt to get the token from the credential if there's no cached token,
+     *   since it expects the token to be retrievable only after the challenge.
+     * - Prepare the outgoing request if the `prepareRequest` method has been provided.
+     * - Send an initial request to receive the challenge if it fails.
+     * - Process a challenge if the response contains it.
+     * - Retrieve a token with the challenge information, then re-send the request.
+     */
+    async sendRequest(request, next) {
+      if (!request.url.toLowerCase().startsWith("https://")) {
+        throw new Error(
+          "Bearer token authentication is not permitted for non-TLS protected (non-https) URLs."
+        );
+      }
+      await callbacks.authorizeRequest({
+        scopes: Array.isArray(scopes) ? scopes : [scopes],
+        request,
+        getAccessToken,
+        logger
+      });
+      let response;
+      let error;
+      let shouldSendRequest;
+      [response, error] = await trySendRequest(request, next);
+      if (isChallengeResponse(response)) {
+        let claims = getCaeChallengeClaims(response.headers.get("WWW-Authenticate"));
+        if (claims) {
+          let parsedClaim;
+          try {
+            parsedClaim = atob(claims);
+          } catch (e) {
+            logger.warning(
+              `The WWW-Authenticate header contains "claims" that cannot be parsed. Unable to perform the Continuous Access Evaluation authentication flow. Unparsable claims: ${claims}`
+            );
+            return response;
+          }
+          shouldSendRequest = await authorizeRequestOnCaeChallenge(
+            {
+              scopes: Array.isArray(scopes) ? scopes : [scopes],
+              response,
+              request,
+              getAccessToken,
+              logger
+            },
+            parsedClaim
+          );
+          if (shouldSendRequest) {
+            [response, error] = await trySendRequest(request, next);
+          }
+        } else if (callbacks.authorizeRequestOnChallenge) {
+          shouldSendRequest = await callbacks.authorizeRequestOnChallenge({
+            scopes: Array.isArray(scopes) ? scopes : [scopes],
+            request,
+            response,
+            getAccessToken,
+            logger
+          });
+          if (shouldSendRequest) {
+            [response, error] = await trySendRequest(request, next);
+          }
+          if (isChallengeResponse(response)) {
+            claims = getCaeChallengeClaims(response.headers.get("WWW-Authenticate"));
+            if (claims) {
+              let parsedClaim;
+              try {
+                parsedClaim = atob(claims);
+              } catch (e) {
+                logger.warning(
+                  `The WWW-Authenticate header contains "claims" that cannot be parsed. Unable to perform the Continuous Access Evaluation authentication flow. Unparsable claims: ${claims}`
+                );
+                return response;
+              }
+              shouldSendRequest = await authorizeRequestOnCaeChallenge(
+                {
+                  scopes: Array.isArray(scopes) ? scopes : [scopes],
+                  response,
+                  request,
+                  getAccessToken,
+                  logger
+                },
+                parsedClaim
+              );
+              if (shouldSendRequest) {
+                [response, error] = await trySendRequest(request, next);
+              }
+            }
+          }
+        }
+      }
+      if (error) {
+        throw error;
+      } else {
+        return response;
+      }
+    }
+  };
+}
+function parseChallenges(challenges) {
+  const challengeRegex = /(\w+)\s+((?:\w+=(?:"[^"]*"|[^,]*),?\s*)+)/g;
+  const paramRegex = /(\w+)="([^"]*)"/g;
+  const parsedChallenges = [];
+  let match;
+  while ((match = challengeRegex.exec(challenges)) !== null) {
+    const scheme = match[1];
+    const paramsString = match[2];
+    const params = {};
+    let paramMatch;
+    while ((paramMatch = paramRegex.exec(paramsString)) !== null) {
+      params[paramMatch[1]] = paramMatch[2];
+    }
+    parsedChallenges.push({ scheme, params });
+  }
+  return parsedChallenges;
+}
+function getCaeChallengeClaims(challenges) {
+  if (!challenges) {
+    return;
+  }
+  const parsedChallenges = parseChallenges(challenges);
+  return parsedChallenges.find(
+    (x) => x.scheme === "Bearer" && x.params.claims && x.params.error === "insufficient_claims"
+  )?.params.claims;
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 236:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var systemErrorRetryPolicy_exports = {};
+__export(systemErrorRetryPolicy_exports, {
+  systemErrorRetryPolicy: () => systemErrorRetryPolicy,
+  systemErrorRetryPolicyName: () => systemErrorRetryPolicyName
+});
+module.exports = __toCommonJS(systemErrorRetryPolicy_exports);
+var import_policies = __nccwpck_require__(315);
+const systemErrorRetryPolicyName = import_policies.systemErrorRetryPolicyName;
+function systemErrorRetryPolicy(options = {}) {
+  return (0, import_policies.systemErrorRetryPolicy)(options);
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 237:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// Top-level resolve-setup entry point. Owned by Agent 1.
+//
+// Full port of resolve_setup.py::main(). Reads INPUT_* / GITHUB_* env vars,
+// resolves the toolchain spec, derives all cache keys, computes the env
+// exports + outputs the orchestrator needs.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.pythonDefaultJson = exports.buildOutputs = exports.detectMuslCcEnv = exports.detectUserLinkerEnv = exports.parseRustBacktrace = exports.parseCacheShutdownOnIdleSeconds = exports.readRawInputs = void 0;
+exports.setupEnabled = setupEnabled;
+exports.resolveRustupStrategy = resolveRustupStrategy;
+exports.detectZccachePrivateOverlap = detectZccachePrivateOverlap;
+exports.detectZccacheTestBinOptIn = detectZccacheTestBinOptIn;
+exports.detectCiTestsTargetTreeRefusal = detectCiTestsTargetTreeRefusal;
+exports.resolveLocalSourceIdentity = resolveLocalSourceIdentity;
+exports.resolveLocalSourceVersion = resolveLocalSourceVersion;
+exports.resolveManifestWorkspace = resolveManifestWorkspace;
+exports.resolveSetup = resolveSetup;
+exports.applyResolveResult = applyResolveResult;
+const os = __importStar(__nccwpck_require__(414));
+const path = __importStar(__nccwpck_require__(560));
+const fs = __importStar(__nccwpck_require__(272));
+const node_child_process_1 = __nccwpck_require__(214);
+const core = __importStar(__nccwpck_require__(504));
+const toml = __importStar(__nccwpck_require__(438));
+const cache_keys_js_1 = __nccwpck_require__(340);
+const blessed_cross_prepare_js_1 = __nccwpck_require__(275);
+const log_utils_js_1 = __nccwpck_require__(278);
+const cache_encrypt_js_1 = __nccwpck_require__(257);
+const dylint_nightly_js_1 = __nccwpck_require__(376);
+const detect_musl_cc_js_1 = __nccwpck_require__(452);
+Object.defineProperty(exports, "detectMuslCcEnv", ({ enumerable: true, get: function () { return detect_musl_cc_js_1.detectMuslCcEnv; } }));
+const build_outputs_js_1 = __nccwpck_require__(86);
+Object.defineProperty(exports, "buildOutputs", ({ enumerable: true, get: function () { return build_outputs_js_1.buildOutputs; } }));
+const raw_inputs_js_1 = __nccwpck_require__(584);
+Object.defineProperty(exports, "readRawInputs", ({ enumerable: true, get: function () { return raw_inputs_js_1.readRawInputs; } }));
+const local_profile_js_1 = __nccwpck_require__(70);
+const phase_timing_js_1 = __nccwpck_require__(569);
+const input_parsers_js_1 = __nccwpck_require__(95);
+Object.defineProperty(exports, "detectUserLinkerEnv", ({ enumerable: true, get: function () { return input_parsers_js_1.detectUserLinkerEnv; } }));
+Object.defineProperty(exports, "parseCacheShutdownOnIdleSeconds", ({ enumerable: true, get: function () { return input_parsers_js_1.parseCacheShutdownOnIdleSeconds; } }));
+Object.defineProperty(exports, "parseRustBacktrace", ({ enumerable: true, get: function () { return input_parsers_js_1.parseRustBacktrace; } }));
+const fetch_release_js_1 = __nccwpck_require__(203);
+const cargo_registry_archive_js_1 = __nccwpck_require__(586);
+const soldr_load_shim_js_1 = __nccwpck_require__(542);
+const python_json_js_1 = __nccwpck_require__(11);
+Object.defineProperty(exports, "pythonDefaultJson", ({ enumerable: true, get: function () { return python_json_js_1.pythonDefaultJson; } }));
+const toolchain_js_1 = __nccwpck_require__(125);
+const FALSY_VALUES = new Set(["0", "false", "no", "off"]);
+const TRUTHY_VALUES = new Set(["1", "true", "yes", "on"]);
+function setupEnabled(input) {
+    const value = input.trim() || "true";
+    if (!TRUTHY_VALUES.has(value.toLowerCase()) && !FALSY_VALUES.has(value.toLowerCase())) {
+        throw new Error(`invalid 'enable' input: '${value}'. Allowed: true | false`);
+    }
+    return !FALSY_VALUES.has(value.toLowerCase());
+}
+const ALLOWED_LINKER_VALUES = [
+    "default",
+    "platform-default",
+    "ld",
+    "mold",
+    "rust-lld",
+    "fast",
+];
+// CARGO_MAKEFLAGS / MAKEFLAGS describe an in-process jobserver pipe whose
+// FDs are closed once the producing process exits. Forwarding via $GITHUB_ENV
+// causes "failed to connect to jobserver" warnings in every downstream step.
+// See setup-soldr#71.
+const GITHUB_ENV_DENY_LIST = new Set(["CARGO_MAKEFLAGS", "MAKEFLAGS"]);
+function expanduser(p, env) {
+    if (!p)
+        return p;
+    if (p.startsWith("~")) {
+        const home = env["HOME"] || env["USERPROFILE"] || "";
+        if (p === "~")
+            return home;
+        if (p.startsWith("~/") || p.startsWith("~\\")) {
+            return path.join(home, p.slice(2));
+        }
+    }
+    return p;
+}
+function resolveAbsolute(p, env) {
+    return path.resolve(expanduser(p, env));
+}
+function isFalsy(value) {
+    return FALSY_VALUES.has(value.trim().toLowerCase());
+}
+function isTruthy(value) {
+    return TRUTHY_VALUES.has(value.trim().toLowerCase());
+}
+function defaultHomeDir(env, name) {
+    const home = env["HOME"] || env["USERPROFILE"] || os.homedir();
+    return path.resolve(path.join(home, name));
+}
+function parseOptInBool(inputName, value, defaultValue = false) {
+    const raw = value.trim().toLowerCase();
+    if (!raw)
+        return defaultValue;
+    if (TRUTHY_VALUES.has(raw))
+        return true;
+    if (FALSY_VALUES.has(raw))
+        return false;
+    throw new Error(`invalid '${inputName}' input: '${value}'. Allowed: true | false`);
+}
+function semverAtLeast(value, minimum) {
+    const parse = (v) => {
+        const m = v.trim().replace(/^v/, "").match(/^(\d+)\.(\d+)\.(\d+)/);
+        if (!m)
+            return null;
+        return [Number(m[1]), Number(m[2]), Number(m[3])];
+    };
+    const got = parse(value);
+    const want = parse(minimum);
+    if (!got || !want)
+        return false;
+    for (let i = 0; i < 3; i += 1) {
+        if (got[i] > want[i])
+            return true;
+        if (got[i] < want[i])
+            return false;
+    }
+    return true;
+}
+function rustHostTriple(runnerOs, runnerArch) {
+    const osName = runnerOs.trim().toLowerCase();
+    const archName = runnerArch.trim().toLowerCase();
+    const arch = archName === "x64" || archName === "amd64"
+        ? "x86_64"
+        : archName === "arm64" || archName === "aarch64"
+            ? "aarch64"
+            : archName === "x86" || archName === "ia32"
+                ? "i686"
+                : (0, cache_keys_js_1.sanitizeFragment)(archName || "unknown");
+    if (osName === "windows" || osName === "win32")
+        return `${arch}-pc-windows-msvc`;
+    if (osName === "macos" || osName === "darwin")
+        return `${arch}-apple-darwin`;
+    if (osName === "linux")
+        return `${arch}-unknown-linux-gnu`;
+    return `${arch}-${(0, cache_keys_js_1.sanitizeFragment)(osName || "unknown")}`;
+}
+function splitPathInput(value) {
+    return value
+        .split(/[\r\n,]+/g)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0);
+}
+function defaultDylintCachePaths(cargoHome, driverPath) {
+    return [
+        path.join(cargoHome, "bin", "cargo-dylint*"),
+        path.join(cargoHome, "bin", "dylint-link*"),
+        path.join(cargoHome, ".crates.toml"),
+        path.join(cargoHome, ".crates2.json"),
+        driverPath,
+    ];
+}
+function makeDirs(...paths) {
+    for (const p of paths) {
+        fs.mkdirSync(p, { recursive: true });
+    }
+}
+/**
+ * Pure helper: decide the final rustup strategy from the requested one and
+ * the host platform. On macOS we always override `system` to `managed` to
+ * avoid the pre-installed rustup toolchain conflicts (see setup-soldr#105).
+ *
+ * GitHub-hosted `macos-15` (ARM) runners ship with a stable rustup toolchain
+ * that already includes `clippy`. Downstream actions that try to install a
+ * different toolchain with clippy hit
+ *   detected conflict: 'bin/cargo-clippy'
+ * because rustup component add refuses to overwrite the existing binary in
+ * the shared rustup home. Forcing the managed strategy gives setup-soldr its
+ * own private rustup home so the pre-installed components cannot collide.
+ *
+ * `explicit` (user-provided RUSTUP_HOME) is left untouched on every platform
+ * — opting in to a specific home means accepting any conflicts that come
+ * with it.
+ */
+function resolveRustupStrategy(opts) {
+    const { requested, platform, warn } = opts;
+    if (platform === "darwin" && requested === "system") {
+        warn?.("setup-soldr: forcing rustup strategy to 'managed' on macOS to avoid " +
+            "pre-installed rustup toolchain component conflicts (e.g. " +
+            "\"detected conflict: 'bin/cargo-clippy'\" on macos-15 runners). " +
+            "See https://github.com/zackees/setup-soldr/issues/105 for context. " +
+            "This may change which setup-cache key is used compared to other " +
+            "platforms.");
+        return "managed";
+    }
+    return requested;
+}
+/**
+ * Detect the `SOLDR_ZCCACHE_PRIVATE` ↔ `ZCCACHE_CACHE_DIR` overlap.
+ *
+ * soldr#807 added `SOLDR_ZCCACHE_PRIVATE` as an opt-in that reroutes the
+ * managed zccache cache to `<cwd>/.zccache` — but only when
+ * `ZCCACHE_CACHE_DIR` is *not* explicitly set. setup-soldr always sets
+ * `ZCCACHE_CACHE_DIR` to `<soldr-root>/cache/zccache`, so when a workflow
+ * also sets `SOLDR_ZCCACHE_PRIVATE=1` (truthy: `1`/`true`/`yes`/`on`)
+ * the env var becomes a silent no-op. Return a warning string the caller
+ * should surface via `core.warning`; return `null` otherwise.
+ */
+function detectZccachePrivateOverlap(env) {
+    const raw = (env["SOLDR_ZCCACHE_PRIVATE"] ?? "").trim().toLowerCase();
+    if (!TRUTHY_VALUES.has(raw))
+        return null;
+    return ("setup-soldr: SOLDR_ZCCACHE_PRIVATE is set but will be ignored — " +
+        "setup-soldr pins ZCCACHE_CACHE_DIR=<soldr-root>/cache/zccache " +
+        "explicitly, and soldr#807 makes explicit ZCCACHE_CACHE_DIR take " +
+        "precedence over the private-session opt-in. The zccache cache " +
+        "will stay in setup-soldr's managed location, not <cwd>/.zccache. " +
+        "Unset ZCCACHE_CACHE_DIR (or run outside setup-soldr) to use the " +
+        "private cache path.");
+}
+/**
+ * Detect a job-level `ZCCACHE_CACHE_TEST_BINS` opt-in (soldr#2931 /
+ * setup-soldr#496).
+ *
+ * zccache#1527 made the compiler service refuse `--test` harness link products
+ * at cache admission *by default*, because a test executable statically links
+ * the whole dependency graph: its identity key changes with any transitive
+ * input while its size is measured in tens of megabytes, so it is the single
+ * worst size-per-stability trade in the store. `ZCCACHE_CACHE_TEST_BINS=1` is
+ * the escape hatch that turns that exclusion back off.
+ *
+ * setup-soldr never sets that variable (see the env-export block below), but a
+ * workflow can set it at the job/step level and it would then silently reverse
+ * the tier-3 rule for every compile this action wraps. Return a warning string
+ * the caller should surface via `core.warning`; return `null` otherwise.
+ * Mirrors `detectZccachePrivateOverlap` above — the detector is pure so it can
+ * be unit-tested without a runner.
+ */
+function detectZccacheTestBinOptIn(env) {
+    const raw = (env["ZCCACHE_CACHE_TEST_BINS"] ?? "").trim().toLowerCase();
+    if (!TRUTHY_VALUES.has(raw))
+        return null;
+    return ("setup-soldr: ZCCACHE_CACHE_TEST_BINS is set truthy in this job's " +
+        "environment, which re-enables caching of linked test binaries. " +
+        "soldr#2931 classifies linked test products (integration-test " +
+        "executables, benches, examples built for tests, doctest products and " +
+        "their debug sidecars) as tier-3 'none' — never cacheable at any layer, " +
+        "because their identity key is maximally unstable relative to their " +
+        "size. zccache#1527 excludes them by default and setup-soldr " +
+        "deliberately never sets this variable. Unset it unless you are " +
+        "knowingly reproducing the 3.3 GB nextest-archive failure that " +
+        "exhausted a hosted Windows runner's disk (os error 112). See " +
+        "https://github.com/zackees/soldr/issues/2931.");
+}
+/**
+ * Decide whether a `ci-tests: true` lane must refuse the bulk `target/`
+ * snapshot that `build-cache-mode: full` would otherwise persist
+ * (soldr#2931 / setup-soldr#496).
+ *
+ * WHY THIS EXISTS. `build-cache-mode: full` + target caching is the only
+ * configuration in this action that saves the *entire* `target/` directory
+ * (see the `targetTreeCacheEnabled` branch below, where `targetCachePaths`
+ * becomes `[targetCachePath, targetCacheBundlePath]`). `target/<profile>/deps/`
+ * is where every linked test executable lands, so a bulk snapshot is by
+ * construction a snapshot of tier-3 artifacts. soldr's own repo is the worked
+ * example: `crates/soldr-cli/tests/` had 98 top-level files, each compiled into
+ * its own executable statically linking the whole dependency graph, which
+ * produced a 3,302,138,143-byte nextest archive and exhausted a hosted Windows
+ * runner's disk with `os error 112`.
+ *
+ * A ci-test lane is the *worst possible producer* for that snapshot, because
+ * linked test products are not a side effect of the lane — they are its entire
+ * output. So `ci-tests: true` carries a cache-ownership contract: this job will
+ * not persist a bulk target tree.
+ *
+ * WHY THE REFUSAL IS ABSOLUTE RATHER THAN EXPLICIT-INPUT-WINS. The
+ * `cache-preset` convention in this file is "explicit fine-grained input beats
+ * the preset" — a preset is a bundle of *defaults*, so anything the user
+ * actually typed outranks it. That rule governs preset-vs-explicit; it does not
+ * govern explicit-vs-explicit, which is what this conflict is: `ci-tests` and
+ * `build-cache-mode` are both things the user typed. Note also that no preset
+ * can even reach this state — `cache-preset: full` resolves `buildCacheMode` to
+ * `"thin"`, so the bulk-snapshot path is reachable only from an explicit
+ * `build-cache-mode: full` (or the deprecated `target-cache-mode: full`). If
+ * explicit input won here, the contract would be unreachable and this code
+ * would be a no-op.
+ *
+ * For explicit-vs-explicit cache-layer conflicts this file already refuses
+ * outright: `dylint-output-cache` + `build-cache-mode=full` *throws*. We soften
+ * that to warn-and-degrade because, unlike the Dylint overlap, the degraded
+ * result is still correct — the bounded thin bundle plus the per-unit zccache
+ * store carry the lane, just with a smaller warm set — and hard-failing an
+ * existing workflow over a cache-shape preference is disproportionate. The
+ * escape hatch is free and needs no new input surface: a job that genuinely
+ * wants a bulk `target/` snapshot simply does not opt into the `ci-tests`
+ * profile.
+ *
+ * Returns the warning to surface via `core.warning`, or `null` when the
+ * configuration is already compliant. Pure so it can be unit-tested directly,
+ * matching the `detectZccachePrivateOverlap` idiom above.
+ */
+function detectCiTestsTargetTreeRefusal(opts) {
+    const { ciTestsEnabled, buildCacheEnabled, targetCacheRequested, buildCacheMode } = opts;
+    if (!ciTestsEnabled)
+        return null;
+    if (buildCacheMode !== "full")
+        return null;
+    // Mirrors the `targetTreeCacheEnabled` predicate below: no bulk snapshot is
+    // taken unless build-cache is on AND target caching was requested, so there
+    // is nothing to refuse in any other combination.
+    if (!buildCacheEnabled || !targetCacheRequested)
+        return null;
+    return ("setup-soldr: refusing build-cache-mode=full on a ci-tests lane; " +
+        "degrading to 'thin'. `ci-tests: true` declares that this job's product " +
+        "is linked test binaries (integration-test executables, benches, " +
+        "examples built for tests, doctest products and their debug sidecars), " +
+        "and mode 'full' persists a bulk snapshot of the whole target/ " +
+        "directory — which on such a lane is almost entirely those products. " +
+        "soldr#2931 classifies them as tier-3 'none': never cacheable at any " +
+        "layer. Only tier-1 cook dependency compilation and the tier-2 per-unit " +
+        "zccache store are durable, and both survive this degrade. The worked " +
+        "example is soldr's own repo, where 98 top-level integration-test files " +
+        "each linked their own executable and produced a 3,302,138,143-byte " +
+        "archive that exhausted a hosted Windows runner's disk (os error 112). " +
+        "If you really want a bulk target/ snapshot on this job, drop " +
+        "`ci-tests: true`. See https://github.com/zackees/soldr/issues/2931 and " +
+        "https://github.com/zackees/setup-soldr/issues/496.");
+}
+// `fetchReleaseTagDefault` and `resolveSoldrReleaseVersion` live in
+// ./fetch-release.js — used directly from resolveSetup() below.
+function resolveLocalSourceIdentity(sourcePath) {
+    const runGit = (args) => (0, node_child_process_1.execFileSync)("git", ["-C", sourcePath, ...args], {
+        encoding: "utf8",
+        maxBuffer: 4 * 1024 * 1024,
+        windowsHide: true,
+    }).trim();
+    let head;
+    try {
+        head = runGit(["rev-parse", "HEAD"]);
+    }
+    catch (error) {
+        throw new Error(`source-path must be a Git checkout with a resolvable HEAD: ${sourcePath}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    return `local-${head}`;
+}
+function resolveLocalSourceVersion(sourcePath) {
+    const manifestPath = path.join(sourcePath, "Cargo.toml");
+    let parsed;
+    try {
+        parsed = toml.parse(fs.readFileSync(manifestPath, "utf8"));
+    }
+    catch (error) {
+        throw new Error(`failed to parse local Soldr Cargo.toml at ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    const root = parsed;
+    const workspace = root["workspace"];
+    const packageTable = workspace?.["package"];
+    const version = packageTable?.["version"];
+    if (typeof version !== "string" || !/^\d+\.\d+\.\d+(?:[-+].*)?$/.test(version)) {
+        throw new Error(`local Soldr Cargo.toml has no valid workspace.package.version: ${manifestPath}`);
+    }
+    return version;
+}
+function resolveManifestWorkspace(targetDir, workspace) {
+    let current = path.dirname(path.resolve(targetDir));
+    while (true) {
+        if (fs.existsSync(path.join(current, "Cargo.toml")))
+            return current;
+        const parent = path.dirname(current);
+        if (parent === current)
+            break;
+        current = parent;
+    }
+    return path.resolve(workspace);
+}
+/**
+ * Resolve setup state. The orchestrator calls this once at the start of the
+ * action and uses the returned ResolveResult to drive every subsequent step.
+ */
+async function resolveSetup(ctx, inputs, deps) {
+    const env = { ...ctx.env };
+    // ---- timing seed ----
+    const logStart = String(Math.floor(Date.now() / 1000));
+    const timestamps = (inputs.timestamps && inputs.timestamps.trim()) || "true";
+    const timestampFormatRaw = (inputs.timestampFormat || "").trim().toLowerCase();
+    const VALID_TIMESTAMP_FORMATS = ["mmss", "seconds"];
+    if (timestampFormatRaw && !VALID_TIMESTAMP_FORMATS.includes(timestampFormatRaw)) {
+        throw new Error(`invalid timestamp-format '${inputs.timestampFormat}'; expected one of ${VALID_TIMESTAMP_FORMATS.join(", ")}`);
+    }
+    const timestampFormat = timestampFormatRaw || "mmss";
+    env["SETUP_SOLDR_LOG_START_EPOCH"] = logStart;
+    env["SETUP_SOLDR_TIMESTAMPS"] = timestamps;
+    env["SETUP_SOLDR_TIMESTAMP_FORMAT"] = timestampFormat;
+    // ---- #387 Feature 1: cache encryption ----
+    // Validate the key shape NOW (fail fast on a malformed key) and mark the
+    // raw value as a GitHub Actions secret so any incidental log line that
+    // captures it is auto-redacted. We do NOT keep the parsed Buffer in
+    // ResolveResult — downstream cache layers re-read SETUP_SOLDR_CACHE_ENCRYPT_KEY
+    // at the time of use and re-parse, so the key only exists in memory inside
+    // the closure that needs it.
+    const cacheEncryptKeyRaw = (inputs.cacheEncryptKey || "").trim();
+    if (cacheEncryptKeyRaw) {
+        core.setSecret(cacheEncryptKeyRaw);
+        // Throw early with a clean diagnostic when the key shape is wrong. The
+        // raw value is never echoed back in the error message.
+        (0, cache_encrypt_js_1.parseEncryptionKey)(cacheEncryptKeyRaw);
+    }
+    const cacheEncryptOnFailureRaw = (inputs.cacheEncryptOnFailure || "error")
+        .trim()
+        .toLowerCase();
+    if (cacheEncryptOnFailureRaw && !["error", "skip"].includes(cacheEncryptOnFailureRaw)) {
+        throw new Error(`invalid cache-encrypt-on-failure '${inputs.cacheEncryptOnFailure}'; expected 'error' or 'skip'`);
+    }
+    const cacheEncryptOnFailure = cacheEncryptOnFailureRaw === "skip" ? "skip" : "error";
+    if (cacheEncryptKeyRaw) {
+        env["SETUP_SOLDR_CACHE_ENCRYPT_KEY"] = cacheEncryptKeyRaw;
+        env["SETUP_SOLDR_CACHE_ENCRYPT_ON_FAILURE"] = cacheEncryptOnFailure;
+    }
+    const logger = ctx.logger ?? (0, log_utils_js_1.createLogger)(env);
+    const log = (msg) => logger.log(msg);
+    if (!ctx.workspace) {
+        throw new Error("ACTION_WORKSPACE / ctx.workspace must be set");
+    }
+    const workspace = path.resolve(ctx.workspace);
+    const runnerTemp = ctx.runnerTemp
+        ? path.resolve(ctx.runnerTemp)
+        : path.resolve(path.join(workspace, ".tmp"));
+    const ciTestsEnabled = parseOptInBool("ci-tests", inputs.ciTests, false);
+    // Dylint has its own nightly/driver compatibility matrix and is deliberately
+    // not folded into ci-tests. The ci-test resource contract shares the stable
+    // compile domain; callers opt into Dylint separately when they need it.
+    const dylintModeEnabled = parseOptInBool("dylint", inputs.dylint, false);
+    const explicitCargoRegistryCache = inputs.cargoRegistryCache.trim();
+    // ---- cache-preset resolution (#251) ----
+    // The umbrella `cache-preset` fills any cache-affecting input the consumer
+    // left unset; explicit fine-grained inputs always win. Resolved BEFORE the
+    // per-layer reads below so downstream logic only sees the post-preset
+    // values. The historical default of each input is the fallback when
+    // neither an explicit value nor a preset is set, which keeps behavior
+    // identical for consumers who never set `cache-preset`.
+    const cachePresetRaw = inputs.cachePreset.trim().toLowerCase();
+    const validCachePresets = ["minimal", "foundation", "full"];
+    if (cachePresetRaw && !validCachePresets.includes(cachePresetRaw)) {
+        throw new Error(`invalid cache-preset '${inputs.cachePreset}'; expected one of ${validCachePresets.join(", ")}`);
+    }
+    const cachePresetEffective = (cachePresetRaw || "");
+    const cachePresetMap = {
+        minimal: {
+            buildCache: "false",
+            targetCache: "false",
+            cargoRegistryCache: "true",
+            prebuildDeps: "soldr-cook",
+            buildCacheMode: "",
+        },
+        foundation: {
+            buildCache: "true",
+            targetCache: "false",
+            cargoRegistryCache: "true",
+            prebuildDeps: "soldr-cook",
+            buildCacheMode: "",
+        },
+        full: {
+            buildCache: "true",
+            targetCache: "true",
+            cargoRegistryCache: "true",
+            prebuildDeps: "soldr-cook",
+            buildCacheMode: "thin",
+        },
+    };
+    const cachePresetCfg = cachePresetEffective ? cachePresetMap[cachePresetEffective] : null;
+    // Explicit non-empty user value wins; else preset value when a preset is
+    // set; else leave empty so the existing downstream fall-through
+    // (`inputs.X.trim() || "<historical default>"`) applies as before. This
+    // preserves behavior for consumers who never set `cache-preset` — only
+    // unset inputs *under a preset* are filled here. Mutating `inputs` folds
+    // the resolution into the single source of truth that downstream code
+    // (here + main.ts + cook-cache.ts) reads from.
+    if (cachePresetCfg) {
+        const fillFromPreset = (explicit, presetValue) => {
+            const e = explicit.trim();
+            return e ? e : presetValue;
+        };
+        inputs.buildCache = fillFromPreset(inputs.buildCache, cachePresetCfg.buildCache);
+        inputs.targetCache = fillFromPreset(inputs.targetCache, cachePresetCfg.targetCache);
+        inputs.cargoRegistryCache = fillFromPreset(inputs.cargoRegistryCache, cachePresetCfg.cargoRegistryCache);
+        inputs.prebuildDeps = fillFromPreset(inputs.prebuildDeps, cachePresetCfg.prebuildDeps);
+        inputs.buildCacheMode = fillFromPreset(inputs.buildCacheMode, cachePresetCfg.buildCacheMode);
+    }
+    if (dylintModeEnabled) {
+        if (!explicitCargoRegistryCache)
+            inputs.cargoRegistryCache = "true";
+        // Ordinary cook is stable/build-shaped and cannot warm Dylint's isolated
+        // nightly/check-shaped tree. Dylint mode therefore always disables it.
+        inputs.prebuildDeps = "none";
+    }
+    // ---- cache roots ----
+    const requestedCacheDir = inputs.cacheDir.trim();
+    const cacheRoot = requestedCacheDir
+        ? resolveAbsolute(requestedCacheDir, env)
+        : path.resolve(path.join(runnerTemp, "setup-soldr"));
+    const soldrRoot = path.join(path.dirname(cacheRoot), `${path.basename(cacheRoot)}-soldr`);
+    const cargoHomeInput = (env["CARGO_HOME"] ?? "").trim();
+    const cargoHome = cargoHomeInput
+        ? resolveAbsolute(cargoHomeInput, env)
+        : defaultHomeDir(env, ".cargo");
+    const binDir = path.join(cacheRoot, "bin");
+    const setupCachePath = cacheRoot;
+    const soldrBinCachePath = path.join(soldrRoot, "bin");
+    const zccacheCacheDir = path.join(soldrRoot, "cache", "zccache");
+    const thinTargetCacheBundlePath = path.join(path.dirname(cacheRoot), `${path.basename(cacheRoot)}-target-thin`);
+    // When the action is disabled (`enable: false`), we write a script-based
+    // passthrough stub at soldrPath instead of installing the real binary.
+    // The stub is a bash script on Unix and a .cmd shim on Windows — Windows
+    // cannot spawn a script via the .exe extension without a real PE, so
+    // soldrPath must end in .cmd in passthrough mode.
+    const enabled = setupEnabled(inputs.enable);
+    const soldrBinary = enabled
+        ? process.platform === "win32"
+            ? "soldr.exe"
+            : "soldr"
+        : process.platform === "win32"
+            ? "soldr.cmd"
+            : "soldr";
+    const soldrPath = path.join(binDir, soldrBinary);
+    // ---- toolchain ----
+    // #302: sub-phase timing on the awaits inside resolve so we can see
+    // which step is dominating (toolchain-spec / rustup-probe / hash walks
+    // / soldr-version fetch). Cheap finally-block bookkeeping; no behavior
+    // change for callers.
+    const toolchain = await (0, phase_timing_js_1.timeSubPhase)("resolve", "toolchain-spec", () => (0, toolchain_js_1.loadToolchainSpec)({
+        workspace,
+        toolchainFile: inputs.toolchainFile || "rust-toolchain.toml",
+        toolchainOverride: inputs.toolchain,
+        log,
+    }));
+    const crossTarget = (0, blessed_cross_prepare_js_1.parseSingleCrossTarget)(inputs.crossTargets);
+    toolchain.targets = (0, blessed_cross_prepare_js_1.mergeToolchainTargets)(toolchain.targets, crossTarget);
+    // ---- rustup home selection ----
+    const explicitRustupHome = (env["RUSTUP_HOME"] ?? "").trim();
+    let rustupHome;
+    let rustupStrategy;
+    if (explicitRustupHome) {
+        rustupHome = resolveAbsolute(explicitRustupHome, env);
+        rustupStrategy = "explicit";
+    }
+    else {
+        const runnerRustupHome = defaultHomeDir(env, ".rustup");
+        let satisfied = false;
+        if (deps?.systemRustupOverride) {
+            satisfied = await (0, phase_timing_js_1.timeSubPhase)("resolve", "rustup-probe", () => deps.systemRustupOverride(cargoHome, runnerRustupHome, toolchain));
+        }
+        else {
+            satisfied = await (0, phase_timing_js_1.timeSubPhase)("resolve", "rustup-probe", () => (0, toolchain_js_1.systemRustupSatisfiesRequest)({
+                cargoHome,
+                rustupHome: runnerRustupHome,
+                bootstrapSoldr: enabled ? ctx.bootstrapSoldr : undefined,
+                getBootstrapSoldr: enabled ? ctx.getBootstrapSoldr : undefined,
+                allowUnmanagedProbe: !enabled,
+                toolchain,
+                env,
+                logger,
+                deps: deps?.systemRustup,
+            }));
+        }
+        if (satisfied) {
+            rustupHome = runnerRustupHome;
+            rustupStrategy = "system";
+        }
+        else {
+            rustupHome = path.join(cacheRoot, "rustup-home");
+            rustupStrategy = "managed";
+        }
+        // Platform override: macOS pre-installed rustup toolchains conflict with
+        // downstream component adds (setup-soldr#105). Force `managed` when the
+        // initial selection landed on `system` so we get a private rustup home.
+        const overridden = resolveRustupStrategy({
+            requested: rustupStrategy,
+            platform: process.platform,
+            warn: (msg) => logger.warning(msg),
+        });
+        if (overridden !== rustupStrategy) {
+            rustupStrategy = overridden;
+            if (rustupStrategy === "managed") {
+                rustupHome = path.join(cacheRoot, "rustup-home");
+            }
+        }
+    }
+    let setupCachePathsList = (0, cache_keys_js_1.setupCachePaths)(setupCachePath, binDir, soldrBinCachePath, rustupHome);
+    let setupCacheLayoutValue = (0, cache_keys_js_1.setupCacheLayout)(setupCachePath, rustupHome);
+    if (dylintModeEnabled) {
+        // The Dylint foundation owns exact nightly toolchain paths. Do not let
+        // setup-cache's broad rustup directories overlap that layer or carry a
+        // Dylint nightly into a later non-Dylint job.
+        const rustupOwnedPaths = new Set([
+            path.normalize(path.join(rustupHome, "update-hashes")),
+            path.normalize(path.join(rustupHome, "settings.toml")),
+            path.normalize(path.join(rustupHome, "toolchains")),
+        ]);
+        setupCachePathsList = setupCachePathsList
+            .split(/\r?\n/)
+            .filter((candidate) => !rustupOwnedPaths.has(path.normalize(candidate)))
+            .join("\n");
+        setupCacheLayoutValue = "bin+soldr-bin";
+    }
+    for (const dir of [
+        cacheRoot,
+        soldrRoot,
+        path.join(soldrRoot, "cache"),
+        soldrBinCachePath,
+        cargoHome,
+        path.join(cargoHome, "bin"),
+        rustupHome,
+        binDir,
+        zccacheCacheDir,
+        thinTargetCacheBundlePath,
+    ]) {
+        makeDirs(dir);
+    }
+    const soldrRepo = inputs.repo.trim() || "zackees/soldr";
+    const sourcePathInput = inputs.sourcePath.trim();
+    let soldrSourcePath = "";
+    let soldrSourceIdentity = "";
+    let soldrSourceVersion = "";
+    if (sourcePathInput) {
+        soldrSourcePath = expanduser(sourcePathInput, env);
+        if (!path.isAbsolute(soldrSourcePath))
+            soldrSourcePath = path.join(workspace, soldrSourcePath);
+        soldrSourcePath = path.resolve(soldrSourcePath);
+        if (!fs.existsSync(path.join(soldrSourcePath, "Cargo.toml"))) {
+            throw new Error(`source-path does not contain Cargo.toml: ${soldrSourcePath}`);
+        }
+        [soldrSourceIdentity, soldrSourceVersion] = await (0, phase_timing_js_1.timeSubPhase)("resolve", "soldr-source", async () => [
+            resolveLocalSourceIdentity(soldrSourcePath),
+            resolveLocalSourceVersion(soldrSourcePath),
+        ]);
+    }
+    const soldrRef = soldrSourcePath ? "local-source" : inputs.ref.trim();
+    const soldrVersionRequested = soldrSourcePath ? "" : inputs.version.trim();
+    const soldrVersionResolved = soldrSourcePath
+        ? soldrSourceVersion
+        : await (0, phase_timing_js_1.timeSubPhase)("resolve", "soldr-version", () => (0, fetch_release_js_1.resolveSoldrReleaseVersion)(soldrRepo, soldrVersionRequested, soldrRef, env, deps));
+    const toolchainSignature = {
+        channel: toolchain.cacheChannel,
+        profile: toolchain.profile,
+        components: toolchain.components,
+        targets: toolchain.targets,
+        source: toolchain.source,
+        file_hash: toolchain.fileHash,
+        setup_cache_layout: setupCacheLayoutValue,
+        soldr_repo: soldrRepo,
+        soldr_ref: soldrRef || "release",
+        soldr_source_identity: soldrSourceIdentity,
+        soldr_version: soldrVersionResolved || soldrRef || "source-ref",
+    };
+    // Python uses json.dumps(sort_keys=True) without compact separators here,
+    // so canonical_json_stringify is wrong; mirror Python's default separators
+    // (", " and ": ") to match byte-for-byte.
+    const signatureString = (0, python_json_js_1.pythonDefaultJson)(toolchainSignature);
+    const { createHash } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 301, 23));
+    const digest = createHash("sha256").update(signatureString, "utf8").digest("hex").slice(0, 16);
+    // setup-soldr#625: the build cache (zccache store) keys on a digest of the
+    // toolchain WITHOUT the soldr identity, and carries the soldr digest as the
+    // key's last segment instead. The exact key still records which soldr wrote
+    // the store, but the job-scoped restore fallback no longer changes on every
+    // soldr release, so a new release restores the previous store and rebuilds
+    // only the delta. rustc release, components, targets, profile, os and arch
+    // all stay in the fallback.
+    const { soldr_repo: _soldrRepo, soldr_ref: _soldrRef, soldr_source_identity: _soldrSourceIdentity, soldr_version: _soldrVersion, ...soldrFreeSignature } = toolchainSignature;
+    const buildCacheDigest = createHash("sha256")
+        .update((0, python_json_js_1.pythonDefaultJson)(soldrFreeSignature), "utf8").digest("hex").slice(0, 16);
+    const soldrDigest = createHash("sha256")
+        .update((0, python_json_js_1.pythonDefaultJson)({
+        soldr_repo: _soldrRepo,
+        soldr_ref: _soldrRef,
+        soldr_source_identity: _soldrSourceIdentity,
+        soldr_version: _soldrVersion,
+    }), "utf8").digest("hex").slice(0, 16);
+    const runnerOs = (0, cache_keys_js_1.sanitizeFragment)((env["ACTION_OS"]?.trim() || env["RUNNER_OS"]?.trim() || process.platform).toLowerCase());
+    const runnerArch = (0, cache_keys_js_1.sanitizeFragment)((env["ACTION_ARCH"]?.trim() || env["RUNNER_ARCH"]?.trim() || process.arch).toLowerCase());
+    const cachePrefix = `setup-soldr-v4-${runnerOs}-${runnerArch}`;
+    let cacheKey = `${cachePrefix}-${digest}`;
+    const targetDirInput = inputs.targetDir.trim() || "target";
+    let targetCachePath = expanduser(targetDirInput, env);
+    if (!path.isAbsolute(targetCachePath)) {
+        targetCachePath = path.join(workspace, targetCachePath);
+    }
+    targetCachePath = path.resolve(targetCachePath);
+    const manifestWorkspace = resolveManifestWorkspace(targetCachePath, workspace);
+    // #295-followup: parallelize the independent manifest and Cargo-config
+    // walks. Manifests are rooted at the nearest Cargo.toml ancestor of the
+    // selected target directory (falling back to the action workspace), so
+    // nonstandard target layouts stay correct while a tracked development tool
+    // checkout under `_vender/` cannot add unrelated traversal.
+    const [wsManifestHash, cargoConfigHashValue] = await (0, phase_timing_js_1.timeSubPhase)("resolve", "ws-hash", () => Promise.all([(0, cache_keys_js_1.workspaceManifestHash)(manifestWorkspace), (0, cache_keys_js_1.cargoConfigHash)(workspace)]));
+    const suffix = inputs.cacheKeySuffix.trim();
+    const sanitizedSuffix = suffix ? (0, cache_keys_js_1.sanitizeFragment)(suffix) : "";
+    if (suffix) {
+        cacheKey = `${cacheKey}-${sanitizedSuffix}`;
+    }
+    // ---- build cache ----
+    const githubSha = (env["GITHUB_SHA"] ?? "").trim() || "nosha";
+    let parentSha = (env["ACTION_PARENT_SHA"] ?? "").trim();
+    if (parentSha === githubSha) {
+        parentSha = "";
+    }
+    // v3 (#625): the soldr digest moved from the toolchain segment to the end.
+    const buildCachePrefix = `setup-soldr-buildcache-v3-${runnerOs}-${runnerArch}`;
+    const buildCacheToolchainPrefix = `${buildCachePrefix}-${buildCacheDigest}-`;
+    // Build-cache key (setup-soldr#237): platform + toolchain (digest) + per-job
+    // suffix + Cargo.lock — but NOT the commit SHA. Dropping the SHA is the fix:
+    // it made the key exact-miss on every commit, after which the fallback grabbed
+    // a *different* job's archive → 0 hits. We KEEP the per-job suffix (and scope
+    // the fallback to it, see the BuildCachePlan below) so each job restores its
+    // OWN store, warm across commits — sharing one store across jobs that compile
+    // different things (check vs doc vs test) was over-broad and still hit 0%.
+    // Assembled below once `cargoLockHash` is known.
+    // ---- target cache ----
+    makeDirs(targetCachePath);
+    const lockfilePath = (0, cache_keys_js_1.resolveLockfilePath)(workspace, targetCachePath, inputs.lockfile);
+    const cargoLockHash = lockfilePath
+        ? await (0, phase_timing_js_1.timeSubPhase)("resolve", "lock-hash", () => (0, cache_keys_js_1.shortFileHash)(lockfilePath, "no-lock"))
+        : "no-lock";
+    // setup-soldr#237: per-job, SHA-independent build-cache key. The per-job
+    // suffix keeps each job restoring its own store; dropping the SHA makes it
+    // warm across commits. The fallback (BuildCachePlan below) is scoped to this
+    // job prefix only, never another job's store.
+    const buildCacheJobPrefix = `${buildCacheToolchainPrefix}${sanitizedSuffix ? `${sanitizedSuffix}-` : ""}`;
+    const buildCacheKey = `${buildCacheJobPrefix}${cargoLockHash}-s${soldrDigest}`;
+    const buildCacheParentKey = "";
+    const legacyTargetCacheModeInput = inputs.targetCacheMode;
+    const legacyTargetCacheMode = (0, cache_keys_js_1.normalizeLegacyTargetCacheMode)(legacyTargetCacheModeInput, log);
+    const targetCacheProfile = (0, cache_keys_js_1.normalizeTargetCacheProfile)(inputs.targetCacheProfile);
+    // #418: thin-v3 may select a cook-partitioned durable slice only once Soldr
+    // can prove every Cargo fingerprint/build-script path's package owner. That
+    // closure is not available yet, so the action and Soldr deliberately agree
+    // on the safe zccache-all fallback. The policy+mode are part of the cache
+    // namespace; do not let a v1/v2 bundle restore into this contract.
+    const targetCachePolicyKey = targetCacheProfile === "thin-v3"
+        ? "thin-v3-lifetime-partition-v1-zccache-all-v1"
+        : targetCacheProfile;
+    // `cache: "false"` is the umbrella switch. It originally only gated the
+    // action-managed setup-cache (soldr binary + rustup state), but consumers
+    // reasonably expect it to mean "no caching at all" — so when the umbrella
+    // is off we force every per-layer flag off too AND tell soldr to skip its
+    // zccache build-cache wrapper. See zccache#307 / zackees/setup-soldr#118
+    // follow-up.
+    const cacheUmbrellaEnabled = !isFalsy(inputs.cache.trim() || "true");
+    const explicitTargetCacheInput = inputs.targetCache.trim();
+    const targetCacheInputRaw = explicitTargetCacheInput ||
+        (legacyTargetCacheMode && legacyTargetCacheMode !== "off" ? "true" : "false");
+    const targetCacheRequested = cacheUmbrellaEnabled &&
+        !isFalsy(targetCacheInputRaw) &&
+        legacyTargetCacheMode !== "off";
+    const explicitBuildCacheMode = inputs.buildCacheMode.trim();
+    let buildCacheMode = (0, cache_keys_js_1.normalizeBuildCacheMode)(inputs.buildCacheMode, legacyTargetCacheModeInput, !explicitBuildCacheMode && targetCacheRequested, log);
+    const buildCacheInputRaw = inputs.buildCache.trim() || "true";
+    // Restored dependency caches cannot be audited for yanked crates without
+    // a Cargo.lock. Do not restore or save those caches in that case.
+    const lockfileAvailable = cargoLockHash !== "no-lock";
+    const buildCacheEnabled = cacheUmbrellaEnabled && lockfileAvailable && !isFalsy(buildCacheInputRaw);
+    if (cacheUmbrellaEnabled && !lockfileAvailable && !isFalsy(buildCacheInputRaw)) {
+        log("build-cache: disabled because no Cargo.lock is available for dependency audit");
+    }
+    // soldr#2931 / setup-soldr#496: `ci-tests: true` carries a cache-ownership
+    // contract — a lane whose entire product is linked test binaries may not
+    // persist a bulk `target/` snapshot. Degrade the mode to 'thin' BEFORE
+    // anything downstream reads it, so the whole cascade (runtime mode, target
+    // cache key prefixes, target cache paths, soft budget, the env exports and
+    // the log summary) is consistently thin rather than a full-mode key pointing
+    // at a bounded bundle. See `detectCiTestsTargetTreeRefusal` for why this
+    // refusal is absolute instead of following the preset-vs-explicit rule.
+    const ciTestsTargetTreeRefusal = detectCiTestsTargetTreeRefusal({
+        ciTestsEnabled,
+        buildCacheEnabled,
+        targetCacheRequested,
+        buildCacheMode,
+    });
+    const ciTestsTargetTreeRefused = ciTestsTargetTreeRefusal !== null;
+    if (ciTestsTargetTreeRefusal) {
+        core.warning(ciTestsTargetTreeRefusal);
+        buildCacheMode = "thin";
+    }
+    const buildCacheRuntimeMode = buildCacheMode === "once" ? "full" : buildCacheMode;
+    let targetCacheEnabled = buildCacheEnabled && targetCacheRequested;
+    if (buildCacheMode === "thin" && cargoLockHash === "no-lock") {
+        log("build-cache-mode 'thin' requires Cargo.lock; target artifact cache disabled.");
+        targetCacheEnabled = false;
+    }
+    const [targetCacheBudgetBytes, targetCacheBudgetFiles] = (0, cache_keys_js_1.targetCacheSoftBudget)(targetCacheEnabled, buildCacheMode);
+    const targetShapeHash = (0, cache_keys_js_1.shortJsonHash)({
+        target_dir: targetCachePath,
+        target_dir_input: targetDirInput,
+        target_env: (0, cache_keys_js_1.targetEnvHash)(env),
+    });
+    const targetInputsHash = (0, cache_keys_js_1.shortJsonHash)({
+        cargo_config: cargoConfigHashValue,
+        cargo_lock: cargoLockHash,
+        manifest: wsManifestHash,
+        target_shape: targetShapeHash,
+        toolchain: digest,
+    });
+    const lockfileOnlyHash = (0, cache_keys_js_1.shortJsonHash)({
+        cargo_lock: cargoLockHash,
+        toolchain: digest,
+    });
+    const targetCacheBundlePath = thinTargetCacheBundlePath;
+    const targetTreeCacheEnabled = targetCacheEnabled && buildCacheMode === "full";
+    let targetCachePaths;
+    let targetCacheEffectiveMode;
+    let targetCachePrefix;
+    let targetCacheLockPrefix;
+    let targetCacheLockfilePrefix;
+    let targetCacheKey;
+    let targetCacheParentKey;
+    if (!targetCacheEnabled) {
+        targetCachePaths = "";
+        targetCacheEffectiveMode = "off";
+        targetCachePrefix = `setup-soldr-targetcache-off-v1-${runnerOs}-${runnerArch}`;
+        targetCacheLockPrefix = "";
+        targetCacheLockfilePrefix = "";
+        targetCacheKey = `${targetCachePrefix}-${targetInputsHash}`;
+        targetCacheParentKey = "";
+    }
+    else if (targetTreeCacheEnabled) {
+        targetCachePaths = [targetCachePath, targetCacheBundlePath].join("\n");
+        targetCacheEffectiveMode = buildCacheMode;
+        targetCachePrefix = `setup-soldr-targetcache-${buildCacheMode}-v2-${runnerOs}-${runnerArch}-${targetCachePolicyKey}`;
+        const sf = sanitizedSuffix ? `${sanitizedSuffix}-` : "";
+        targetCacheLockPrefix = `${targetCachePrefix}-${digest}-${cargoLockHash}-${targetShapeHash}-${sf}`;
+        targetCacheLockfilePrefix = `${targetCachePrefix}-${lockfileOnlyHash}-${sf}`;
+        targetCacheKey = `${targetCacheLockPrefix}${githubSha}`;
+        targetCacheParentKey = parentSha ? `${targetCacheLockPrefix}${parentSha}` : "";
+    }
+    else {
+        targetCachePaths = targetCacheBundlePath;
+        targetCacheEffectiveMode = buildCacheMode;
+        targetCachePrefix = `setup-soldr-targetcache-${buildCacheMode}-v2-${runnerOs}-${runnerArch}-${targetCachePolicyKey}`;
+        const sf = sanitizedSuffix ? `${sanitizedSuffix}-` : "";
+        targetCacheLockPrefix = `${targetCachePrefix}-${targetInputsHash}-${sf}`;
+        targetCacheLockfilePrefix = `${targetCachePrefix}-${lockfileOnlyHash}-${sf}`;
+        targetCacheKey = `${targetCacheLockPrefix}${githubSha}`;
+        targetCacheParentKey = parentSha ? `${targetCacheLockPrefix}${parentSha}` : "";
+    }
+    // setup-soldr#237: the build-cache key intentionally does NOT include
+    // `cache-key-suffix`. Per-job suffixes fragmented the cache and made the
+    // restore-key fallback land on another job's archive (→ ~0% hits). The
+    // suffix still scopes the action-managed setup-cache (`cacheKey` above) and
+    // the target-cache, just not the content-addressed zccache build-cache.
+    // ---- cargo registry cache ----
+    // #267: when prebuild-deps includes `soldr-cook` AND the user (or a
+    // preset they're using) has NOT explicitly set cargo-registry-cache,
+    // default it to `true`. Cook restores `target/` build artifacts but
+    // does NOT restore `$CARGO_HOME/registry`, so cargo re-downloads every
+    // crate source on the next build — the "I set cook, why is it still
+    // downloading?" trap. Presets that explicitly set
+    // `cargoRegistryCache: "false"` (minimal, foundation) survive because
+    // `inputs.cargoRegistryCache` is non-empty after `fillFromPreset`
+    // runs; the `||` short-circuits before reaching the implicit default.
+    const cookPrebuildEnabled = inputs.prebuildDeps.trim().includes("soldr-cook");
+    const cargoRegistryDefault = cookPrebuildEnabled ? "true" : "false";
+    const cargoRegistryCacheRawInput = inputs.cargoRegistryCache.trim();
+    const cargoRegistryCachePaired = cookPrebuildEnabled && cargoRegistryCacheRawInput === "";
+    if (cargoRegistryCachePaired) {
+        log("setup-soldr: defaulting cargo-registry-cache=true because prebuild-deps=soldr-cook " +
+            "(see setup-soldr#267 — pairs to avoid re-downloading every crate source on next " +
+            "build). Set cargo-registry-cache=false explicitly to opt out.");
+    }
+    const cargoRegistryCacheRequested = isTruthy(cargoRegistryCacheRawInput || cargoRegistryDefault);
+    const cargoRegistryCachePath = path.join(cargoHome, "registry");
+    // setup-soldr#102: bundle additional `$CARGO_HOME` siblings into the same
+    // cargo-registry archive so we close the cache-retention gaps without
+    // introducing a new top-level cache layer or changing the cache key shape.
+    //   - `.global-cache` — cargo's RFC-3413 GC sqlite database. Without it the
+    //     per-job `cargo gc` sees fresh access times and conservatively keeps
+    //     everything. Shared read-only dep between setup-soldr (persists) and
+    //     soldr (reads via zackees/soldr#323). One-line leverage win.
+    //   - `git`           — `$CARGO_HOME/git/{db,checkouts}/`. `db/` holds the
+    //     bare mirrors of git-source crate deps and `checkouts/` holds the
+    //     per-commit working trees derived from `db/`; both are required for
+    //     cargo to build from a restored `db/`. Caching the parent `git/` dir
+    //     covers both subtrees and any future siblings cargo introduces.
+    // Siblings that don't exist on disk at save time (e.g. workspaces with no
+    // git-source deps) are silently skipped by compressCache — see #102.
+    const cargoRegistryCacheExtras = [".global-cache", "git"];
+    const cargoRegistryEncrypted = inputs.cacheEncryptKey.trim().length > 0;
+    const cargoRegistryViaSoldr = (0, soldr_load_shim_js_1.cargoRegistryViaSoldrEnvOn)();
+    const cargoRegistryRuntimeCompatible = semverAtLeast(soldrVersionResolved || soldrVersionRequested, soldr_load_shim_js_1.MIN_SOLDR_VERSION_FOR_SAVE_ROUNDTRIP);
+    const cargoRegistryFormat = (0, cargo_registry_archive_js_1.cargoRegistryArchiveFormat)({
+        encrypted: cargoRegistryEncrypted,
+        viaSoldr: cargoRegistryViaSoldr,
+        sourceRef: soldrRef.trim().length > 0,
+        runtimeCompatible: cargoRegistryRuntimeCompatible,
+    });
+    if (cargoRegistryEncrypted && cargoRegistryViaSoldr) {
+        core.notice("setup-soldr: cargo-registry Soldr v2 is disabled for encrypted cache entries; using encrypted legacy-v1 until encrypted Soldr restore is available.");
+    }
+    else if (cargoRegistryViaSoldr && !soldrRef && !cargoRegistryRuntimeCompatible) {
+        core.notice(`setup-soldr: cargo-registry Soldr v2 requires soldr >= ${soldr_load_shim_js_1.MIN_SOLDR_VERSION_FOR_SAVE_ROUNDTRIP}; using legacy-v1 for ${soldrVersionResolved || soldrVersionRequested || "unknown"}.`);
+    }
+    const cargoRegistryArchive = (0, cargo_registry_archive_js_1.planCargoRegistryArchive)({
+        format: cargoRegistryFormat,
+        cargoHome,
+        runnerTemp,
+    });
+    const cargoRegistryCachePrefix = `setup-soldr-cargoregistry-${cargoRegistryFormat === "soldr-v2" ? "v2" : "v1"}-${runnerOs}-${runnerArch}`;
+    // Production registry content is shared across jobs (#375). A pinned local
+    // source validation run may opt into an explicit generation namespace so its
+    // seed/warm proof cannot reuse an older registry archive.
+    const cargoRegistryValidationNamespace = soldrSourcePath && sanitizedSuffix ? `x${sanitizedSuffix}-` : "";
+    const cargoRegistryCacheRestorePrefix = `${cargoRegistryCachePrefix}-${cargoLockHash}-${cargoRegistryValidationNamespace}`;
+    // #371: drop git SHA from the exact key, same anti-pattern fix as
+    // #237 did for build-cache. With SHA, every commit produced a new
+    // exact-key entry that no future probe could ever hit (only same-
+    // commit retries). The restore-key prefix (sans SHA) already does
+    // the actual work via FALLBACK — observed in production. Dropping
+    // SHA lifts exact-key hit rate from ~0% toward ~100% per
+    // (lockHash, digest) generation, eliminates redundant ~56 MB
+    // saves per run, and reduces cache-budget churn.
+    //
+    // #375: also drop per-job suffix from cargo-registry. Unlike
+    // build-cache (#237 KEPT suffix because target/ content differs
+    // per job), cargo-registry content is just `$CARGO_HOME/registry/`
+    // — downloaded crate sources keyed on Cargo.lock, identical
+    // across (check, test, doc, msrv) matrix jobs. Per-job suffix
+    // means N redundant saves per CI cycle (~56 MB × N for zccache's
+    // 9-job matrix = ~500 MB wasted bandwidth). Sharing the key
+    // across jobs means: first job saves, rest exact-HIT.
+    const cargoRegistryCacheKey = `${cargoRegistryCacheRestorePrefix}${digest}`;
+    const cargoRegistryCacheEnabled = cacheUmbrellaEnabled && lockfileAvailable && cargoRegistryCacheRequested;
+    if (cargoRegistryCacheEnabled) {
+        makeDirs(cargoRegistryCachePath);
+        for (const archivePath of cargoRegistryArchive.restorePaths)
+            makeDirs(path.dirname(archivePath));
+    }
+    // ---- Dylint tool/driver cache (explicit opt-in, setup-soldr#221) ----
+    const dylintFoundationRequested = dylintModeEnabled
+        ? parseOptInBool("dylint-foundation-cache", inputs.dylintFoundationCache, true)
+        : parseOptInBool("dylint-cache", inputs.dylintCache, false);
+    const dylintOutputCacheEnabled = dylintModeEnabled &&
+        cacheUmbrellaEnabled &&
+        lockfileAvailable &&
+        parseOptInBool("dylint-output-cache", inputs.dylintOutputCache, true);
+    if (dylintOutputCacheEnabled && targetTreeCacheEnabled) {
+        throw new Error("dylint-output-cache cannot overlap build-cache-mode=full target caching; " +
+            "disable target-cache/full mode for Dylint jobs");
+    }
+    const dylintCacheEnabled = cacheUmbrellaEnabled && dylintFoundationRequested;
+    const dylintDriverPath = path.join(runnerTemp, "dylint-drivers");
+    const dylintHostTriple = rustHostTriple(ctx.runnerOs || env["ACTION_OS"] || process.platform, ctx.runnerArch || env["ACTION_ARCH"] || process.arch);
+    const nightlyIdentity = dylintModeEnabled
+        ? await (0, phase_timing_js_1.timeSubPhase)("resolve", "dylint-nightly-map", () => (deps?.resolveDylintNightly ?? dylint_nightly_js_1.resolveDylintNightly)(inputs.dylintToolchain.trim() || toolchain.channel, env))
+        : null;
+    const dylintToolchain = nightlyIdentity?.channel || inputs.dylintToolchain.trim() || toolchain.channel;
+    const dylintRustcRelease = nightlyIdentity?.rustcRelease || "unmapped";
+    const dylintRustcCommitHash = nightlyIdentity?.rustcCommitHash || "unmapped";
+    const dylintCacheIdentity = `${dylintToolchain}|${dylintRustcRelease}|${dylintRustcCommitHash}`;
+    const dylintRequiredComponents = ["rustc-dev", "rust-src", "llvm-tools-preview"];
+    // ci.yml#9: cross-platform Dylint targets, in addition to the host. Folded
+    // into the foundation/output cache identity below so each declared target
+    // set gets its own generation instead of colliding with host-only runs or
+    // with a different target combination.
+    const dylintCrossTargets = dylintModeEnabled ? (0, blessed_cross_prepare_js_1.parseDylintTargets)(inputs.dylintTargets) : [];
+    const dylintAllTargets = [...new Set([dylintHostTriple, ...dylintCrossTargets])].sort();
+    const dylintFoundationRevision = dylintCrossTargets.length > 0 ? "foundation-v3" : "foundation-v2";
+    const dylintRunScope = [
+        env["GITHUB_RUN_ID"],
+        env["GITHUB_RUN_ATTEMPT"],
+        env["GITHUB_JOB"],
+        env["GITHUB_ACTION"],
+    ]
+        .filter(Boolean)
+        .join("|") || `local-${process.pid}`;
+    const dylintSuccessMarker = path.join(runnerTemp, "dylint-foundation-success", (0, cache_keys_js_1.shortJsonHash)({
+        identity: dylintCacheIdentity,
+        components: dylintRequiredComponents,
+        revision: dylintFoundationRevision,
+        targets: dylintAllTargets,
+        runScope: dylintRunScope,
+    }), "success.txt");
+    const dylintDriverRev = inputs.dylintDriverRev.trim() || "none";
+    const cargoDylintVersion = inputs.cargoDylintVersion.trim() || "6.2.0";
+    const dylintLinkVersion = inputs.dylintLinkVersion.trim() || "6.2.0";
+    const customDylintPaths = splitPathInput(inputs.dylintCachePaths).map((p) => path.isAbsolute(expanduser(p, env)) ? resolveAbsolute(p, env) : path.resolve(workspace, p));
+    const dylintToolchainPath = path.join(rustupHome, "toolchains", `${dylintToolchain}-${dylintHostTriple}`);
+    const dylintUpdateHashPath = path.join(rustupHome, "update-hashes", `${dylintToolchain}-${dylintHostTriple}`);
+    const dylintCachePaths = customDylintPaths.length > 0
+        ? customDylintPaths
+        : [
+            ...defaultDylintCachePaths(cargoHome, dylintDriverPath),
+            ...(dylintModeEnabled ? [dylintToolchainPath, dylintUpdateHashPath] : []),
+        ];
+    const dylintCacheHash = dylintModeEnabled
+        ? (0, cache_keys_js_1.shortJsonHash)({
+            host_triple: dylintHostTriple,
+            cargo_dylint_version: cargoDylintVersion,
+            dylint_link_version: dylintLinkVersion,
+            dylint_toolchain: dylintToolchain,
+            dylint_rustc_release: dylintRustcRelease,
+            dylint_rustc_commit_hash: dylintRustcCommitHash,
+            dylint_driver_rev: dylintDriverRev,
+            required_components: dylintRequiredComponents,
+            foundation_revision: dylintFoundationRevision,
+            dylint_targets: dylintAllTargets,
+        })
+        : (0, cache_keys_js_1.shortJsonHash)({
+            host_triple: dylintHostTriple,
+            cargo_dylint_version: cargoDylintVersion,
+            dylint_link_version: dylintLinkVersion,
+            dylint_toolchain: dylintToolchain,
+            dylint_driver_rev: dylintDriverRev,
+            cargo_config: cargoConfigHashValue,
+            cargo_lock: cargoLockHash,
+            manifest: wsManifestHash,
+            setup_toolchain: digest,
+        });
+    const dylintCacheSchema = dylintModeEnabled ? "v2" : "v1";
+    let dylintCacheKey = `setup-soldr-dylint-${dylintCacheSchema}-${runnerOs}-${runnerArch}-${(0, cache_keys_js_1.sanitizeFragment)(dylintHostTriple)}-${dylintCacheHash}`;
+    if (suffix) {
+        dylintCacheKey = `${dylintCacheKey}-${sanitizedSuffix}`;
+    }
+    // setup-soldr#538: cargo-dylint checks (and writes its check-shaped target
+    // state) against the host-qualified rustup toolchain name -- the same
+    // qualification `crates/soldr-cli/src/dylint_toolchain.rs`'s
+    // `qualify_toolchain_name` applies before Soldr's Dylint plan reaches
+    // `apply_to_command`/`write_success_marker` (see `dylintSuccessMarker`
+    // above). `dylintToolchain` here is always the short requested channel, so
+    // building these paths from it pointed at a directory cargo-dylint never
+    // writes (confirmed on zackees/template-python-rust-cmd run 36497556959:
+    // the real tree is `target/dylint/{libraries,target}/<dylintToolchain>-<dylintHostTriple>/...`),
+    // and `dylint-output-cache` always skipped its save with "no Dylint output
+    // paths exist". Match the actual on-disk qualified directory, the same way
+    // `dylintToolchainPath`/`dylintUpdateHashPath` above already do.
+    const dylintQualifiedToolchain = `${dylintToolchain}-${dylintHostTriple}`;
+    const dylintOutputPaths = [
+        path.join(targetCachePath, "dylint", "libraries", dylintQualifiedToolchain, "release"),
+        path.join(targetCachePath, "dylint", "target", dylintQualifiedToolchain),
+    ];
+    // setup-soldr#540, ci.yml#1: this key used to include `source_revision:
+    // githubSha`, so it was an exact-key miss on every new commit even when
+    // every real input (toolchain identity, driver revision, cargo config,
+    // workspace/lint-library manifests, target/flags shape, Cargo.lock) was
+    // unchanged. Measured on zackees/template-python-rust-cmd: a same-commit
+    // rerun of run 36501247176 hit both `dylint-cache` and
+    // `dylint-output-cache`, but a new-commit PR run (36501659725, 125s) still
+    // MISSED `dylint-output-cache` — the foundation `dylint-cache` (668 MB,
+    // keyed only on toolchain/driver identity, fixed by #539) already survived
+    // across commits; the output cache (~75 MB of compiled lint libraries +
+    // checked target state) did not.
+    //
+    // Fix (same shape as #237's build-cache and #371's cargo-registry key):
+    // drop the commit from the exact key entirely, so the key is a pure
+    // function of the inputs that actually change what a Dylint check produces
+    // and never changes on a no-op commit. Split the hash so restore-keys can
+    // drop ONLY the Cargo.lock component (`dylintOutputRestoreKeys`, wired to
+    // `actions/cache`'s `restore-keys` prefix match) — a dependency bump still
+    // restores the newest prior generation instead of cooking fully cold, but
+    // never crosses a toolchain or lint-library/manifest boundary, and the
+    // exact key (with `cargo_lock` back in) still gets a fresh entry per
+    // lockfile generation so a save only happens on a genuine exact-key miss:
+    // one generation per lockfile, never one per commit (setup-soldr#533).
+    //
+    // This is correct, not just faster, because cargo's own fingerprinting
+    // does the real invalidation work once the tree is restored: cargo
+    // rechecks any workspace unit whose source changed since the restored
+    // tree was built (restored files are strictly older than a freshly
+    // checked-out commit's sources), reuses on-disk check artifacts for units
+    // it did not touch, and replays cached diagnostics for units it did
+    // recheck but found unchanged. A crate that hit a Dylint `deny` lint never
+    // produced a check-pass artifact to restore, so a prior failure can never
+    // be replayed as a pass by a warm cache.
+    const dylintOutputNonLockInputs = {
+        compiler_identity: dylintCacheIdentity,
+        driver_revision: dylintDriverRev,
+        cargo_config: cargoConfigHashValue,
+        manifests: wsManifestHash,
+        target_shape: targetShapeHash,
+        cache_suffix: sanitizedSuffix,
+        dylint_targets: dylintAllTargets,
+    };
+    const dylintOutputNonLockHash = (0, cache_keys_js_1.shortJsonHash)(dylintOutputNonLockInputs);
+    const dylintOutputKeyPrefix = `setup-soldr-dylint-output-v2-${runnerOs}-${runnerArch}-${dylintOutputNonLockHash}`;
+    // Prefix-only fallback: drops ONLY the Cargo.lock component. GitHub's
+    // restore-keys semantics are a prefix match against the most recently
+    // created matching entry, so this can only ever resolve to a previous
+    // generation that shares every other input.
+    const dylintOutputRestoreKeys = [`${dylintOutputKeyPrefix}-`];
+    const dylintOutputKey = `${dylintOutputKeyPrefix}-${cargoLockHash}`;
+    if (dylintCacheEnabled) {
+        makeDirs(dylintDriverPath);
+    }
+    // ---- effective cache-ownership policy (soldr#2931 / setup-soldr#496) ----
+    // A consumer asking "what does my lane actually persist?" had no answer
+    // short of reading the resolver. Assemble one honest, versioned signal from
+    // the layer decisions already made above, ordered by the stability gradient
+    // the policy defines: pinned downloads first, then tier-1 cook dependency
+    // compilation, then the tier-2 per-unit zccache store, then the bounded
+    // target bundle. `test_products` is a constant because tier 3 is a rule, not
+    // a setting — linked test products are never persisted at any layer, and
+    // zccache#1527 enforces the same exclusion at compiler admission.
+    const cachePolicyLayers = [];
+    if (cacheUmbrellaEnabled)
+        cachePolicyLayers.push("toolchain");
+    if (cargoRegistryCacheEnabled)
+        cachePolicyLayers.push("cargo-registry");
+    if (cacheUmbrellaEnabled && lockfileAvailable && cookPrebuildEnabled)
+        cachePolicyLayers.push("cook");
+    if (buildCacheEnabled)
+        cachePolicyLayers.push("zccache-unit");
+    if (targetCacheEnabled) {
+        cachePolicyLayers.push(targetTreeCacheEnabled ? "target-tree" : "target-bundle");
+    }
+    if (dylintCacheEnabled)
+        cachePolicyLayers.push("dylint-foundation");
+    if (dylintOutputCacheEnabled)
+        cachePolicyLayers.push("dylint-output");
+    const cachePolicyJson = JSON.stringify({
+        schema: 1,
+        layers: cachePolicyLayers,
+        // The bulk `target/` snapshot — the only layer that can carry linked test
+        // products into a cache entry, which is why it is called out separately.
+        target_tree_snapshot: targetTreeCacheEnabled,
+        test_products: "never",
+        ci_tests: ciTestsEnabled,
+        ci_tests_target_tree_refused: ciTestsTargetTreeRefused,
+    });
+    // ---- env exports ----
+    const cacheShutdownOnIdleSeconds = (0, input_parsers_js_1.parseCacheShutdownOnIdleSeconds)(inputs.cacheShutdownOnIdle);
+    const rustBacktraceValue = (0, input_parsers_js_1.parseRustBacktrace)(inputs.rustBacktrace);
+    const envExports = {};
+    const setEnv = (name, value) => {
+        if (GITHUB_ENV_DENY_LIST.has(name))
+            return;
+        envExports[name] = value;
+    };
+    if (ciTestsEnabled) {
+        // This profile prepares CI prerequisites; callers retain ownership of
+        // their explicit test command. Explicit scheduler limits always win.
+        //
+        // soldr#3138: `CARGO_BUILD_JOBS` and `SOLDR_JOBS` deliberately have NO
+        // default here. They used to default to "1", which pinned the shared
+        // compile-concurrency ceiling that soldr's Cargo producer queue *and*
+        // the embedded zccache admission gate both size themselves from -- so a
+        // whole job ran one compiler child at a time.
+        //
+        // That cap predates the mechanism that replaced it. Since zccache
+        // 1.13.11 the embedded service grants amalgamation crates and measured
+        // heavy links *exclusive* admission (soldr's classifier lives in
+        // `crates/soldr-daemon/src/amalgamation.rs`), so the one enormous unit
+        // compiles alone while ordinary units still run N-wide. Capping the
+        // shared ceiling at 1 does not add protection on top of that -- it only
+        // serializes every small unit too, and the amalgamation was already
+        // being handled.
+        //
+        // This is soldr's own documented `ci-test` contract, verbatim: "Unset
+        // CARGO_BUILD_JOBS and SOLDR_JOBS remain unset, explicit values are
+        // preserved byte-for-byte, and only NEXTEST_TEST_THREADS defaults to
+        // one." Left unset, soldr resolves a topology-aware default
+        // (`logical - 1`, additionally capped at `physical + 2` under SMT --
+        // `soldr-core/src/core/jobs.rs`) instead of 1.
+        //
+        // soldr's own gate lane already proved this: it carried five separate
+        // `unset CARGO_BUILD_JOBS SOLDR_JOBS` statements whose only job was to
+        // undo this export at each step boundary, because a GITHUB_ENV write
+        // applies to every subsequent step. Not exporting a default is what
+        // those five statements were reaching for.
+        //
+        // An explicit value from the caller is still re-exported unchanged, so
+        // a lane that genuinely needs a cap (a true-bootstrap step running with
+        // RUSTC_WRAPPER="", where the admission gate cannot engage) sets it
+        // itself and keeps it.
+        const explicitCargoBuildJobs = env["CARGO_BUILD_JOBS"]?.trim();
+        if (explicitCargoBuildJobs) {
+            setEnv("CARGO_BUILD_JOBS", explicitCargoBuildJobs);
+        }
+        const explicitSoldrJobs = env["SOLDR_JOBS"]?.trim();
+        if (explicitSoldrJobs) {
+            setEnv("SOLDR_JOBS", explicitSoldrJobs);
+        }
+        // NEXTEST_TEST_THREADS keeps its default of one: that half of the
+        // contract is intentional, and test-process concurrency is a different
+        // resource from compiler admission.
+        setEnv("NEXTEST_TEST_THREADS", env["NEXTEST_TEST_THREADS"]?.trim() || "1");
+        setEnv("SETUP_SOLDR_CI_TESTS", "true");
+    }
+    setEnv("SOLDR_CACHE_DIR", soldrRoot);
+    setEnv("CARGO_HOME", cargoHome);
+    setEnv("RUSTUP_HOME", rustupHome);
+    setEnv("ZCCACHE_CACHE_DIR", zccacheCacheDir);
+    // soldr#2931 / setup-soldr#496: `ZCCACHE_CACHE_TEST_BINS` is DELIBERATELY
+    // absent from this block and must stay absent. zccache#1527 refuses `--test`
+    // harness link products at cache admission by default; that variable is the
+    // opt-in that turns the exclusion back off. setup-soldr never sets it — not
+    // even to "0" — so zccache's own default stands and there is no setup-soldr
+    // value for a consumer to have to override. If it is truthy in the job
+    // environment we warn rather than silently inherit it.
+    const zccacheTestBinOptIn = detectZccacheTestBinOptIn(env);
+    if (zccacheTestBinOptIn)
+        core.warning(zccacheTestBinOptIn);
+    // Machine-readable statement of what this lane persists; mirrored 1:1 into
+    // the `cache-policy-json` output by applyResolveResult().
+    setEnv("SETUP_SOLDR_CACHE_POLICY_JSON", cachePolicyJson);
+    // soldr#807: warn when SOLDR_ZCCACHE_PRIVATE is truthy because the
+    // explicit ZCCACHE_CACHE_DIR above will silently win and the opt-in
+    // private-session path under <cwd>/.zccache won't be used.
+    const zccachePrivateOverlap = detectZccachePrivateOverlap(env);
+    if (zccachePrivateOverlap)
+        core.warning(zccachePrivateOverlap);
+    setEnv("SETUP_SOLDR_BUILD_CACHE_MODE", buildCacheEnabled ? buildCacheMode : "off");
+    setEnv("SOLDR_BUILD_CACHE_MODE", buildCacheEnabled ? buildCacheRuntimeMode : "off");
+    setEnv("SOLDR_TARGET_CACHE_MODE", targetCacheEnabled ? buildCacheRuntimeMode : "off");
+    setEnv("SOLDR_TARGET_CACHE_DIR", targetCachePath);
+    setEnv("SOLDR_TARGET_CACHE_BUNDLE_DIR", targetCacheBundlePath);
+    setEnv("SOLDR_TARGET_CACHE_PROFILE", targetCacheProfile);
+    const stripDebug = (0, cache_keys_js_1.normalizeTargetCacheBool)("target-cache-strip-debuginfo", inputs.targetCacheStripDebuginfo);
+    if (stripDebug !== null) {
+        setEnv("SOLDR_TARGET_CACHE_STRIP_DEBUGINFO", stripDebug);
+    }
+    const includeIncremental = (0, cache_keys_js_1.normalizeTargetCacheBool)("target-cache-include-incremental", inputs.targetCacheIncludeIncremental);
+    if (includeIncremental !== null) {
+        setEnv("SOLDR_TARGET_CACHE_INCLUDE_INCREMENTAL", includeIncremental);
+    }
+    const includeBuildScripts = (0, cache_keys_js_1.normalizeTargetCacheBool)("target-cache-include-build-script-binaries", inputs.targetCacheIncludeBuildScriptBinaries);
+    if (includeBuildScripts !== null) {
+        setEnv("SOLDR_TARGET_CACHE_INCLUDE_BUILD_SCRIPT_BINARIES", includeBuildScripts);
+    }
+    const targetCacheCompress = (0, cache_keys_js_1.normalizeTargetCacheCompress)(inputs.targetCacheCompress);
+    // Empty input -> runner profile default (GitHub 3, local/ACT 1).
+    const targetCacheCompressLevel = (0, cache_keys_js_1.normalizeTargetCacheCompressLevel)((0, local_profile_js_1.resolveCacheProfileInput)("target-cache-compress-level", inputs.targetCacheCompressLevel, (0, local_profile_js_1.isLocalRunner)(env)));
+    setEnv("SOLDR_TARGET_CACHE_COMPRESS", targetCacheCompress);
+    setEnv("SOLDR_TARGET_CACHE_COMPRESS_LEVEL", targetCacheCompressLevel);
+    if (cargoRegistryCacheEnabled) {
+        setEnv("SOLDR_SKIP_CARGO_REGISTRY_SAVE", "1");
+    }
+    if (dylintCacheEnabled) {
+        setEnv("DYLINT_DRIVER_PATH", dylintDriverPath);
+        setEnv("SETUP_SOLDR_DYLINT_CACHE_KEY", dylintCacheKey);
+        setEnv("SETUP_SOLDR_DYLINT_CACHE_PATHS", dylintCachePaths.join(path.delimiter));
+    }
+    if (dylintModeEnabled && nightlyIdentity) {
+        // These are configuration hints, not the active nested-Dylint scope.
+        // Soldr copies them to SOLDR_DYLINT_* only while launching cargo-dylint,
+        // so an ordinary stable `soldr cargo build` later in the job is unchanged.
+        setEnv("SOLDR_DYLINT_CONFIGURED_TOOLCHAIN", nightlyIdentity.channel);
+        setEnv("SOLDR_DYLINT_CONFIGURED_RUSTC_RELEASE", nightlyIdentity.rustcRelease);
+        setEnv("SOLDR_DYLINT_CONFIGURED_RUSTC_COMMIT_HASH", nightlyIdentity.rustcCommitHash);
+        setEnv("SOLDR_DYLINT_SUCCESS_MARKER", dylintSuccessMarker);
+    }
+    setEnv("SOLDR_TARGET_CACHE_BACKEND", "local");
+    setEnv("SETUP_SOLDR_TOOLCHAIN_CHANNEL", toolchain.channel);
+    setEnv("SETUP_SOLDR_TOOLCHAIN_CACHE_CHANNEL", toolchain.cacheChannel);
+    setEnv("SETUP_SOLDR_TOOLCHAIN_PROFILE", toolchain.profile);
+    setEnv("SETUP_SOLDR_TOOLCHAIN_COMPONENTS", JSON.stringify(toolchain.components));
+    setEnv("SETUP_SOLDR_TOOLCHAIN_TARGETS", JSON.stringify(toolchain.targets));
+    setEnv("SETUP_SOLDR_LOG_START_EPOCH", logStart);
+    setEnv("SETUP_SOLDR_TIMESTAMPS", timestamps);
+    setEnv("SETUP_SOLDR_TIMESTAMP_FORMAT", timestampFormat);
+    if (cacheEncryptKeyRaw) {
+        // #387 Feature 1: propagate to GITHUB_ENV so the post-step (which loads
+        // a fresh process) and any subsequent setup-soldr-using steps see the
+        // same key. The key has already been core.setSecret-marked above so
+        // GitHub Actions auto-redacts it from logs.
+        setEnv("SETUP_SOLDR_CACHE_ENCRYPT_KEY", cacheEncryptKeyRaw);
+        setEnv("SETUP_SOLDR_CACHE_ENCRYPT_ON_FAILURE", cacheEncryptOnFailure);
+    }
+    if (!FALSY_VALUES.has(timestamps.toLowerCase()) && env["NO_COLOR"] === undefined) {
+        if (!env["CARGO_TERM_COLOR"])
+            setEnv("CARGO_TERM_COLOR", "always");
+        if (!env["CLICOLOR_FORCE"])
+            setEnv("CLICOLOR_FORCE", "1");
+        if (!env["FORCE_COLOR"])
+            setEnv("FORCE_COLOR", "1");
+    }
+    if (inputs.trustMode.trim()) {
+        setEnv("SOLDR_TRUST_MODE", inputs.trustMode.trim());
+    }
+    const linkerRaw = inputs.linker.trim();
+    if (linkerRaw === "") {
+        const preset = (0, input_parsers_js_1.detectUserLinkerEnv)(env);
+        if (preset.length > 0) {
+            logger.info(`setup-soldr: deferring to user-set ${preset.join(", ")}; skipping default SOLDR_LINKER=fast injection. See https://github.com/zackees/setup-soldr/issues/108`);
+        }
+        else {
+            setEnv("SOLDR_LINKER", "fast");
+            logger.notice("setup-soldr: defaulting SOLDR_LINKER=fast (mold-if-on-PATH-else-rust-lld on Linux, rust-lld on macOS/Windows) for faster CI links. Soldr's native default is no injection, which produces a smaller build-cache and a slower link. Set `linker: platform-default` to opt out and keep cargo/rust-toolchain.toml in charge, or set `linker: <value>` to silence this notice.");
+        }
+    }
+    else if (!ALLOWED_LINKER_VALUES.includes(linkerRaw)) {
+        throw new Error(`invalid 'linker' input: '${linkerRaw}'. Allowed: default | platform-default | ld | mold | rust-lld | fast`);
+    }
+    else if (linkerRaw !== "default" && linkerRaw !== "platform-default") {
+        setEnv("SOLDR_LINKER", linkerRaw);
+    }
+    const compilePriorityRaw = inputs.compilePriority.trim();
+    if (compilePriorityRaw !== "") {
+        setEnv("ZCCACHE_COMPILE_PRIORITY", compilePriorityRaw);
+    }
+    if (cacheShutdownOnIdleSeconds !== null) {
+        // Set both env vars. zccache reads its own, sccache reads the
+        // SCCACHE_-prefixed one; exporting both means a zccache fork that
+        // still honors only the sccache name keeps working, and a vanilla
+        // sccache invoked via this action would too.
+        const seconds = String(cacheShutdownOnIdleSeconds);
+        setEnv("ZCCACHE_IDLE_TIMEOUT", seconds);
+        setEnv("SCCACHE_IDLE_TIMEOUT", seconds);
+    }
+    if (rustBacktraceValue !== null) {
+        setEnv("RUST_BACKTRACE", rustBacktraceValue);
+    }
+    // Auto-export cc-rs cross-compile env for *-unknown-linux-musl triples
+    // when the matching `<triple>-gcc/g++/ar` binaries are on PATH. cc-rs
+    // strips the "-unknown-" segment when looking up cross compilers, so
+    // archives that ship binaries with the full triple are missed without
+    // these per-target overrides. See setup-soldr#... and the cc-rs docs.
+    const muslCcHits = (0, detect_musl_cc_js_1.detectMuslCcEnv)(env);
+    for (const hit of muslCcHits) {
+        const suffix = (0, detect_musl_cc_js_1.tripleToCcRsSuffix)(hit.triple);
+        for (const [name, value] of Object.entries(hit.exports)) {
+            setEnv(name, value);
+        }
+        logger.warning(`setup-soldr: auto-exporting cc-rs cross-compile env for ${hit.triple} ` +
+            `(CC_${suffix}=${hit.exports[`CC_${suffix}`]}, ` +
+            `CXX_${suffix}=${hit.exports[`CXX_${suffix}`]}, ` +
+            `AR_${suffix}=${hit.exports[`AR_${suffix}`]}) ` +
+            "because cc-rs strips \"-unknown-\" from the triple when probing for a " +
+            "cross compiler and would otherwise fall back to the host gcc. " +
+            `Resolved: cc=${hit.resolvedPaths.cc}, cxx=${hit.resolvedPaths.cxx}, ar=${hit.resolvedPaths.ar}. ` +
+            `Pre-set CC_${suffix} yourself to opt out.`);
+    }
+    // ---- path additions ----
+    const pathAdditions = [binDir, path.join(cargoHome, "bin")];
+    // ---- logging summary ----
+    log("setup-soldr cache plan");
+    log(`cache key=${cacheKey}`);
+    log(`cache restore-key=${cachePrefix}-`);
+    log(`build-cache key=${buildCacheKey}`);
+    log(`build-cache mode=${buildCacheMode}`);
+    log(`build-cache soldr-mode=${buildCacheRuntimeMode}`);
+    if (buildCacheParentKey) {
+        log(`build-cache restore-key-parent=${buildCacheParentKey}`);
+    }
+    log(`build-cache restore-key-toolchain=${buildCacheToolchainPrefix}`);
+    log(`build-cache restore-key-os-arch=${buildCachePrefix}-`);
+    log(`target-cache key=${targetCacheKey}`);
+    log(`target-cache enabled=${targetCacheEnabled ? "true" : "false"}`);
+    log(`target-cache mode=${targetCacheEffectiveMode}`);
+    log("target-cache backend=local");
+    if (targetCacheEnabled) {
+        log(`target-cache soft-budget-bytes=${targetCacheBudgetBytes}`);
+        log(`target-cache soft-budget-files=${targetCacheBudgetFiles}`);
+    }
+    // soldr#2931: state the cache-ownership policy in the same plan block that
+    // states the keys, so a red lane's log shows both what was persisted and why.
+    log(`cache-policy layers=${cachePolicyLayers.join("+") || "none"}`);
+    log(`cache-policy target-tree-snapshot=${targetTreeCacheEnabled ? "true" : "false"}`);
+    log("cache-policy test-products=never (soldr#2931 tier 3)");
+    if (ciTestsTargetTreeRefused) {
+        log("cache-policy ci-tests-target-tree=refused (build-cache-mode full -> thin)");
+    }
+    log(`soldr repo=${soldrRepo}`);
+    log(`soldr ref=${soldrRef || "release"}`);
+    if (soldrSourcePath) {
+        log(`soldr source-path=${soldrSourcePath} identity=${soldrSourceIdentity}`);
+    }
+    if (soldrVersionResolved) {
+        log(`soldr version=${soldrVersionResolved}`);
+    }
+    log(`toolchain channel=${toolchain.channel}`);
+    log(`toolchain cache-channel=${toolchain.cacheChannel}`);
+    log(`rustup strategy=${rustupStrategy}`);
+    log(`setup-cache layout=${setupCacheLayoutValue}`);
+    if (targetCacheParentKey) {
+        log(`target-cache restore-key-parent=${targetCacheParentKey}`);
+    }
+    log(`target-cache restore-key-lock=${targetCacheLockPrefix}`);
+    log(`target-cache restore-key-lockfile=${targetCacheLockfilePrefix}`);
+    log(`target-cache paths=${targetCachePaths}`);
+    log(`target-cache bundle-dir=${targetCacheBundlePath}`);
+    log(`target-cache lockfile=${(0, cache_keys_js_1.pathForOutput)(workspace, lockfilePath)}`);
+    log(`target-cache lockfile-hash=${cargoLockHash}`);
+    if (dylintCacheEnabled) {
+        log(`dylint-cache key=${dylintCacheKey}`);
+        log(`dylint-cache host-triple=${dylintHostTriple}`);
+        log(`dylint-cache toolchain=${dylintToolchain}`);
+        log(`dylint-cache cargo-dylint-version=${cargoDylintVersion}`);
+        log(`dylint-cache dylint-link-version=${dylintLinkVersion}`);
+        log(`dylint-cache driver-rev=${dylintDriverRev}`);
+        log(`dylint-cache driver-path=${dylintDriverPath}`);
+    }
+    if (dylintOutputCacheEnabled) {
+        log(`dylint-output-cache key=${dylintOutputKey}`);
+        log(`dylint-output-cache restore-key=${dylintOutputRestoreKeys[0]}`);
+    }
+    // ---- assemble plans ----
+    const setupCache = {
+        key: cacheKey,
+        restorePrefix: `${cachePrefix}-`,
+        paths: setupCachePathsList ? setupCachePathsList.split("\n") : [],
+        setupCachePath,
+        layout: setupCacheLayoutValue,
+    };
+    const buildCache = {
+        enabled: buildCacheEnabled,
+        key: buildCacheKey,
+        restoreKeyParent: buildCacheParentKey,
+        // setup-soldr#237: job-scoped fallback only — newest entry for THIS job at
+        // any Cargo.lock, never another job's store. The old bare toolchain/os-arch
+        // restore-keys matched any job and caused cross-job restores → 0 hits.
+        restoreKeyToolchain: buildCacheJobPrefix,
+        restoreKeyOsArch: "",
+        path: zccacheCacheDir,
+        mode: buildCacheMode,
+    };
+    const targetCache = {
+        enabled: targetCacheEnabled,
+        key: targetCacheKey,
+        restoreKeyParent: targetCacheParentKey,
+        restoreKeyLock: targetCacheLockPrefix,
+        restoreKeyLockfile: targetCacheLockfilePrefix,
+        paths: targetCachePaths,
+        bundlePath: targetCacheBundlePath,
+        targetPath: targetCachePath,
+        effectiveMode: targetCacheEffectiveMode,
+        profile: targetCacheProfile,
+        budgetBytes: targetCacheBudgetBytes,
+        budgetFiles: targetCacheBudgetFiles,
+        lockfilePath: (0, cache_keys_js_1.pathForOutput)(workspace, lockfilePath),
+        lockfileHash: cargoLockHash,
+    };
+    const cargoRegistryCachePlan = {
+        enabled: cargoRegistryCacheEnabled,
+        key: cargoRegistryCacheKey,
+        restorePrefix: cargoRegistryCacheRestorePrefix,
+        path: cargoRegistryCachePath,
+        extraBasenames: cargoRegistryCacheExtras,
+        archive: cargoRegistryArchive,
+    };
+    const dylintCachePlan = {
+        enabled: dylintCacheEnabled,
+        outputCacheEnabled: dylintOutputCacheEnabled,
+        outputKey: dylintOutputCacheEnabled ? dylintOutputKey : "",
+        outputRestoreKeys: dylintOutputCacheEnabled ? dylintOutputRestoreKeys : [],
+        outputPaths: dylintOutputCacheEnabled ? dylintOutputPaths : [],
+        key: dylintCacheEnabled ? dylintCacheKey : "",
+        paths: dylintCacheEnabled ? dylintCachePaths : [],
+        driverPath: dylintCacheEnabled ? dylintDriverPath : "",
+        hostTriple: dylintCacheEnabled ? dylintHostTriple : "",
+        toolchain: dylintModeEnabled || dylintCacheEnabled ? dylintToolchain : "",
+        rustcRelease: dylintModeEnabled ? dylintRustcRelease : "",
+        rustcCommitHash: dylintModeEnabled ? dylintRustcCommitHash : "",
+        cacheIdentity: dylintModeEnabled ? dylintCacheIdentity : "",
+        successMarker: dylintModeEnabled ? dylintSuccessMarker : "",
+        driverRev: dylintCacheEnabled ? dylintDriverRev : "",
+        cargoDylintVersion: dylintModeEnabled || dylintCacheEnabled ? cargoDylintVersion : "",
+        dylintLinkVersion: dylintModeEnabled || dylintCacheEnabled ? dylintLinkVersion : "",
+        crossTargets: dylintModeEnabled ? dylintCrossTargets : [],
+        allTargets: dylintModeEnabled ? dylintAllTargets : [],
+    };
+    const blessedPrepareCache = (0, blessed_cross_prepare_js_1.planBlessedPrepareCache)({
+        enabled,
+        cacheEnabled: cacheUmbrellaEnabled,
+        ref: soldrRef,
+        runnerTemp,
+        runnerOs,
+        runnerArch,
+        target: crossTarget,
+        soldrRepo,
+        soldrVersion: soldrSourceIdentity || soldrVersionResolved || soldrVersionRequested,
+        keySuffix: inputs.cacheKeySuffix,
+    });
+    for (const archivePath of blessedPrepareCache.archivePaths)
+        makeDirs(path.dirname(archivePath));
+    // Avoid unused warnings on alias helper.
+    void toolchain_js_1.rollingToolchainAlias;
+    void cache_keys_js_1.canonicalJsonStringify;
+    const compileCacheStats = (0, input_parsers_js_1.normalizeCompileCacheStats)(inputs.compileCacheStats);
+    const stats = (0, input_parsers_js_1.normalizeStatsMode)(inputs.stats);
+    const debugMode = isTruthy(inputs.debugMode.trim() || "false");
+    // ---- shims ----
+    const shimsRaw = inputs.shims.trim() || "false";
+    const shimsEnabled = !isFalsy(shimsRaw);
+    const shimsDir = path.join(cacheRoot, "shims");
+    return {
+        enabled,
+        workspace,
+        cacheRoot,
+        soldrRoot,
+        binDir,
+        cargoHome,
+        rustupHome,
+        soldrPath,
+        soldrBinCachePath,
+        toolchain,
+        rustupStrategy,
+        soldrRepo,
+        soldrRef,
+        soldrSourcePath,
+        soldrSourceIdentity,
+        soldrVersionRequested,
+        soldrVersionResolved,
+        setupCache,
+        buildCache,
+        targetCache,
+        cargoRegistryCache: cargoRegistryCachePlan,
+        dylintCache: dylintCachePlan,
+        blessedPrepareCache,
+        targetCacheCompress,
+        targetCacheCompressLevel,
+        envExports,
+        pathAdditions,
+        logStartEpoch: logStart,
+        timestamps,
+        timestampFormat,
+        shimsEnabled,
+        shimsDir,
+        compileCacheStats,
+        stats,
+        debugMode,
+        cacheShutdownOnIdleSeconds,
+        cachePresetEffective,
+    };
+}
+/**
+ * Apply ResolveResult to the runner: write $GITHUB_ENV, $GITHUB_PATH, and
+ * $GITHUB_OUTPUT keys.
+ */
+async function applyResolveResult(result) {
+    for (const [name, value] of Object.entries(result.envExports)) {
+        if (GITHUB_ENV_DENY_LIST.has(name))
+            continue;
+        core.exportVariable(name, value);
+    }
+    for (const p of result.pathAdditions) {
+        core.addPath(p);
+    }
+    const outputs = (0, build_outputs_js_1.buildOutputs)(result);
+    for (const [key, value] of Object.entries(outputs)) {
+        core.setOutput(key, value);
+    }
+    // soldr#2931 / setup-soldr#496: additive `cache-policy-json` output. It is
+    // emitted here rather than from buildOutputs() because the value is already
+    // carried verbatim in envExports (later steps and Soldr itself read
+    // SETUP_SOLDR_CACHE_POLICY_JSON from $GITHUB_ENV), so mirroring it costs one
+    // line and needs no second source of truth. Never renames or removes an
+    // existing output. The empty-string fallback cannot be hit through
+    // resolveSetup(), which always sets the variable; it only keeps a
+    // hand-assembled ResolveResult in a test from emitting `undefined`.
+    core.setOutput("cache-policy-json", result.envExports["SETUP_SOLDR_CACHE_POLICY_JSON"] ?? "");
+}
+// `buildOutputs` and `pythonDefaultJson` are re-exported at the top of
+// this file from their dedicated submodules.
+
+
+/***/ }),
+
+/***/ 238:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT License.
+ *
+ * Code generated by Microsoft (R) AutoRest Code Generator.
+ * Changes may cause incorrect behavior and will be lost if the code is regenerated.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ContainerImpl = void 0;
+const tslib_1 = __nccwpck_require__(234);
+const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
+const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
+const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
+/** Class containing Container operations. */
+class ContainerImpl {
+    client;
+    /**
+     * Initialize a new instance of the class Container class.
+     * @param client Reference to the service client
+     */
+    constructor(client) {
+        this.client = client;
+    }
+    /**
+     * creates a new container under the specified account. If the container with the same name already
+     * exists, the operation fails
+     * @param options The options parameters.
+     */
+    create(options) {
+        return this.client.sendOperationRequest({ options }, createOperationSpec);
+    }
+    /**
+     * returns all user-defined metadata and system properties for the specified container. The data
+     * returned does not include the container's list of blobs
+     * @param options The options parameters.
+     */
+    getProperties(options) {
+        return this.client.sendOperationRequest({ options }, getPropertiesOperationSpec);
+    }
+    /**
+     * operation marks the specified container for deletion. The container and any blobs contained within
+     * it are later deleted during garbage collection
+     * @param options The options parameters.
+     */
+    delete(options) {
+        return this.client.sendOperationRequest({ options }, deleteOperationSpec);
+    }
+    /**
+     * operation sets one or more user-defined name-value pairs for the specified container.
+     * @param options The options parameters.
+     */
+    setMetadata(options) {
+        return this.client.sendOperationRequest({ options }, setMetadataOperationSpec);
+    }
+    /**
+     * gets the permissions for the specified container. The permissions indicate whether container data
+     * may be accessed publicly.
+     * @param options The options parameters.
+     */
+    getAccessPolicy(options) {
+        return this.client.sendOperationRequest({ options }, getAccessPolicyOperationSpec);
+    }
+    /**
+     * sets the permissions for the specified container. The permissions indicate whether blobs in a
+     * container may be accessed publicly.
+     * @param options The options parameters.
+     */
+    setAccessPolicy(options) {
+        return this.client.sendOperationRequest({ options }, setAccessPolicyOperationSpec);
+    }
+    /**
+     * Restores a previously-deleted container.
+     * @param options The options parameters.
+     */
+    restore(options) {
+        return this.client.sendOperationRequest({ options }, restoreOperationSpec);
+    }
+    /**
+     * Renames an existing container.
+     * @param sourceContainerName Required.  Specifies the name of the container to rename.
+     * @param options The options parameters.
+     */
+    rename(sourceContainerName, options) {
+        return this.client.sendOperationRequest({ sourceContainerName, options }, renameOperationSpec);
+    }
+    /**
+     * The Batch operation allows multiple API calls to be embedded into a single HTTP request.
+     * @param contentLength The length of the request.
+     * @param multipartContentType Required. The value of this header must be multipart/mixed with a batch
+     *                             boundary. Example header value: multipart/mixed; boundary=batch_<GUID>
+     * @param body Initial data
+     * @param options The options parameters.
+     */
+    submitBatch(contentLength, multipartContentType, body, options) {
+        return this.client.sendOperationRequest({ contentLength, multipartContentType, body, options }, submitBatchOperationSpec);
+    }
+    /**
+     * The Filter Blobs operation enables callers to list blobs in a container whose tags match a given
+     * search expression.  Filter blobs searches within the given container.
+     * @param options The options parameters.
+     */
+    filterBlobs(options) {
+        return this.client.sendOperationRequest({ options }, filterBlobsOperationSpec);
+    }
+    /**
+     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
+     * be 15 to 60 seconds, or can be infinite
+     * @param options The options parameters.
+     */
+    acquireLease(options) {
+        return this.client.sendOperationRequest({ options }, acquireLeaseOperationSpec);
+    }
+    /**
+     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
+     * be 15 to 60 seconds, or can be infinite
+     * @param leaseId Specifies the current lease ID on the resource.
+     * @param options The options parameters.
+     */
+    releaseLease(leaseId, options) {
+        return this.client.sendOperationRequest({ leaseId, options }, releaseLeaseOperationSpec);
+    }
+    /**
+     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
+     * be 15 to 60 seconds, or can be infinite
+     * @param leaseId Specifies the current lease ID on the resource.
+     * @param options The options parameters.
+     */
+    renewLease(leaseId, options) {
+        return this.client.sendOperationRequest({ leaseId, options }, renewLeaseOperationSpec);
+    }
+    /**
+     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
+     * be 15 to 60 seconds, or can be infinite
+     * @param options The options parameters.
+     */
+    breakLease(options) {
+        return this.client.sendOperationRequest({ options }, breakLeaseOperationSpec);
+    }
+    /**
+     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
+     * be 15 to 60 seconds, or can be infinite
+     * @param leaseId Specifies the current lease ID on the resource.
+     * @param proposedLeaseId Proposed lease ID, in a GUID string format. The Blob service returns 400
+     *                        (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor
+     *                        (String) for a list of valid GUID string formats.
+     * @param options The options parameters.
+     */
+    changeLease(leaseId, proposedLeaseId, options) {
+        return this.client.sendOperationRequest({ leaseId, proposedLeaseId, options }, changeLeaseOperationSpec);
+    }
+    /**
+     * [Update] The List Blobs operation returns a list of the blobs under the specified container
+     * @param options The options parameters.
+     */
+    listBlobFlatSegment(options) {
+        return this.client.sendOperationRequest({ options }, listBlobFlatSegmentOperationSpec);
+    }
+    /**
+     * [Update] The List Blobs operation returns a list of the blobs under the specified container
+     * @param delimiter When the request includes this parameter, the operation returns a BlobPrefix
+     *                  element in the response body that acts as a placeholder for all blobs whose names begin with the
+     *                  same substring up to the appearance of the delimiter character. The delimiter may be a single
+     *                  character or a string.
+     * @param options The options parameters.
+     */
+    listBlobHierarchySegment(delimiter, options) {
+        return this.client.sendOperationRequest({ delimiter, options }, listBlobHierarchySegmentOperationSpec);
+    }
+    /**
+     * Returns the sku name and account kind
+     * @param options The options parameters.
+     */
+    getAccountInfo(options) {
+        return this.client.sendOperationRequest({ options }, getAccountInfoOperationSpec);
+    }
+}
+exports.ContainerImpl = ContainerImpl;
+// Operation Specifications
+const xmlSerializer = coreClient.createSerializer(Mappers, /* isXml */ true);
+const createOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        201: {
+            headersMapper: Mappers.ContainerCreateHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerCreateExceptionHeaders,
+        },
+    },
+    queryParameters: [Parameters.timeoutInSeconds, Parameters.restype2],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.metadata,
+        Parameters.access,
+        Parameters.defaultEncryptionScope,
+        Parameters.preventEncryptionScopeOverride,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const getPropertiesOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerGetPropertiesHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerGetPropertiesExceptionHeaders,
+        },
+    },
+    queryParameters: [Parameters.timeoutInSeconds, Parameters.restype2],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.leaseId,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const deleteOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "DELETE",
+    responses: {
+        202: {
+            headersMapper: Mappers.ContainerDeleteHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerDeleteExceptionHeaders,
+        },
+    },
+    queryParameters: [Parameters.timeoutInSeconds, Parameters.restype2],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.leaseId,
+        Parameters.ifModifiedSince,
+        Parameters.ifUnmodifiedSince,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const setMetadataOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerSetMetadataHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerSetMetadataExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp6,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.metadata,
+        Parameters.leaseId,
+        Parameters.ifModifiedSince,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const getAccessPolicyOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: {
+                type: {
+                    name: "Sequence",
+                    element: {
+                        type: { name: "Composite", className: "SignedIdentifier" },
+                    },
+                },
+                serializedName: "SignedIdentifiers",
+                xmlName: "SignedIdentifiers",
+                xmlIsWrapped: true,
+                xmlElementName: "SignedIdentifier",
+            },
+            headersMapper: Mappers.ContainerGetAccessPolicyHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerGetAccessPolicyExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp7,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.leaseId,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const setAccessPolicyOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerSetAccessPolicyHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerSetAccessPolicyExceptionHeaders,
+        },
+    },
+    requestBody: Parameters.containerAcl,
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp7,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.contentType,
+        Parameters.accept,
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.access,
+        Parameters.leaseId,
+        Parameters.ifModifiedSince,
+        Parameters.ifUnmodifiedSince,
+    ],
+    isXML: true,
+    contentType: "application/xml; charset=utf-8",
+    mediaType: "xml",
+    serializer: xmlSerializer,
+};
+const restoreOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        201: {
+            headersMapper: Mappers.ContainerRestoreHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerRestoreExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp8,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.deletedContainerName,
+        Parameters.deletedContainerVersion,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const renameOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerRenameHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerRenameExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp9,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.sourceContainerName,
+        Parameters.sourceLeaseId,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const submitBatchOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "POST",
+    responses: {
+        202: {
+            bodyMapper: {
+                type: { name: "Stream" },
+                serializedName: "parsedResponse",
+            },
+            headersMapper: Mappers.ContainerSubmitBatchHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerSubmitBatchExceptionHeaders,
+        },
+    },
+    requestBody: Parameters.body,
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.comp4,
+        Parameters.restype2,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.accept,
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.contentLength,
+        Parameters.multipartContentType,
+    ],
+    isXML: true,
+    contentType: "application/xml; charset=utf-8",
+    mediaType: "xml",
+    serializer: xmlSerializer,
+};
+const filterBlobsOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: Mappers.FilterBlobSegment,
+            headersMapper: Mappers.ContainerFilterBlobsHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerFilterBlobsExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.marker,
+        Parameters.maxPageSize,
+        Parameters.comp5,
+        Parameters.where,
+        Parameters.restype2,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const acquireLeaseOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        201: {
+            headersMapper: Mappers.ContainerAcquireLeaseHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerAcquireLeaseExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp10,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.ifModifiedSince,
+        Parameters.ifUnmodifiedSince,
+        Parameters.action,
+        Parameters.duration,
+        Parameters.proposedLeaseId,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const releaseLeaseOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerReleaseLeaseHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerReleaseLeaseExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp10,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.ifModifiedSince,
+        Parameters.ifUnmodifiedSince,
+        Parameters.action1,
+        Parameters.leaseId1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const renewLeaseOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerRenewLeaseHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerRenewLeaseExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp10,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.ifModifiedSince,
+        Parameters.ifUnmodifiedSince,
+        Parameters.leaseId1,
+        Parameters.action2,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const breakLeaseOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        202: {
+            headersMapper: Mappers.ContainerBreakLeaseHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerBreakLeaseExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp10,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.ifModifiedSince,
+        Parameters.ifUnmodifiedSince,
+        Parameters.action3,
+        Parameters.breakPeriod,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const changeLeaseOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "PUT",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerChangeLeaseHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerChangeLeaseExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.restype2,
+        Parameters.comp10,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+        Parameters.ifModifiedSince,
+        Parameters.ifUnmodifiedSince,
+        Parameters.leaseId1,
+        Parameters.action4,
+        Parameters.proposedLeaseId1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const listBlobFlatSegmentOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: Mappers.ListBlobsFlatSegmentResponse,
+            headersMapper: Mappers.ContainerListBlobFlatSegmentHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerListBlobFlatSegmentExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.comp2,
+        Parameters.prefix,
+        Parameters.marker,
+        Parameters.maxPageSize,
+        Parameters.restype2,
+        Parameters.include1,
+        Parameters.startFrom,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const listBlobHierarchySegmentOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: Mappers.ListBlobsHierarchySegmentResponse,
+            headersMapper: Mappers.ContainerListBlobHierarchySegmentHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerListBlobHierarchySegmentExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.comp2,
+        Parameters.prefix,
+        Parameters.marker,
+        Parameters.maxPageSize,
+        Parameters.restype2,
+        Parameters.include1,
+        Parameters.startFrom,
+        Parameters.delimiter,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const getAccountInfoOperationSpec = {
+    path: "/{containerName}",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            headersMapper: Mappers.ContainerGetAccountInfoHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ContainerGetAccountInfoExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.comp,
+        Parameters.timeoutInSeconds,
+        Parameters.restype1,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+//# sourceMappingURL=container.js.map
+
+/***/ }),
+
+/***/ 239:
+/***/ ((module) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var tlsPolicy_exports = {};
+__export(tlsPolicy_exports, {
+  tlsPolicy: () => tlsPolicy,
+  tlsPolicyName: () => tlsPolicyName
+});
+module.exports = __toCommonJS(tlsPolicy_exports);
+const tlsPolicyName = "tlsPolicy";
+function tlsPolicy(tlsSettings) {
+  return {
+    name: tlsPolicyName,
+    sendRequest: async (req, next) => {
+      if (!req.tlsSettings) {
+        req.tlsSettings = tlsSettings;
+      }
+      return next(req);
+    }
+  };
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+//# sourceMappingURL=tlsPolicy.js.map
+
+
+/***/ }),
+
+/***/ 240:
+/***/ ((module) => {
+
+module.exports = removeHook;
+
+function removeHook(state, name, method) {
+  if (!state.registry[name]) {
+    return;
+  }
+
+  var index = state.registry[name]
+    .map(function (registered) {
+      return registered.orig;
+    })
+    .indexOf(method);
+
+  if (index === -1) {
+    return;
+  }
+
+  state.registry[name].splice(index, 1);
+}
+
+
+/***/ }),
+
+/***/ 241:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.safeTrimTrailingSeparator = exports.normalizeSeparators = exports.hasRoot = exports.hasAbsoluteRoot = exports.ensureAbsoluteRoot = exports.dirname = void 0;
+const path = __importStar(__nccwpck_require__(271));
+const assert_1 = __importDefault(__nccwpck_require__(581));
+const IS_WINDOWS = process.platform === 'win32';
+/**
+ * Similar to path.dirname except normalizes the path separators and slightly better handling for Windows UNC paths.
+ *
+ * For example, on Linux/macOS:
+ * - `/               => /`
+ * - `/hello          => /`
+ *
+ * For example, on Windows:
+ * - `C:\             => C:\`
+ * - `C:\hello        => C:\`
+ * - `C:              => C:`
+ * - `C:hello         => C:`
+ * - `\               => \`
+ * - `\hello          => \`
+ * - `\\hello         => \\hello`
+ * - `\\hello\world   => \\hello\world`
+ */
+function dirname(p) {
+    // Normalize slashes and trim unnecessary trailing slash
+    p = safeTrimTrailingSeparator(p);
+    // Windows UNC root, e.g. \\hello or \\hello\world
+    if (IS_WINDOWS && /^\\\\[^\\]+(\\[^\\]+)?$/.test(p)) {
+        return p;
+    }
+    // Get dirname
+    let result = path.dirname(p);
+    // Trim trailing slash for Windows UNC root, e.g. \\hello\world\
+    if (IS_WINDOWS && /^\\\\[^\\]+\\[^\\]+\\$/.test(result)) {
+        result = safeTrimTrailingSeparator(result);
+    }
+    return result;
+}
+exports.dirname = dirname;
+/**
+ * Roots the path if not already rooted. On Windows, relative roots like `\`
+ * or `C:` are expanded based on the current working directory.
+ */
+function ensureAbsoluteRoot(root, itemPath) {
+    assert_1.default(root, `ensureAbsoluteRoot parameter 'root' must not be empty`);
+    assert_1.default(itemPath, `ensureAbsoluteRoot parameter 'itemPath' must not be empty`);
+    // Already rooted
+    if (hasAbsoluteRoot(itemPath)) {
+        return itemPath;
+    }
+    // Windows
+    if (IS_WINDOWS) {
+        // Check for itemPath like C: or C:foo
+        if (itemPath.match(/^[A-Z]:[^\\/]|^[A-Z]:$/i)) {
+            let cwd = process.cwd();
+            assert_1.default(cwd.match(/^[A-Z]:\\/i), `Expected current directory to start with an absolute drive root. Actual '${cwd}'`);
+            // Drive letter matches cwd? Expand to cwd
+            if (itemPath[0].toUpperCase() === cwd[0].toUpperCase()) {
+                // Drive only, e.g. C:
+                if (itemPath.length === 2) {
+                    // Preserve specified drive letter case (upper or lower)
+                    return `${itemPath[0]}:\\${cwd.substr(3)}`;
+                }
+                // Drive + path, e.g. C:foo
+                else {
+                    if (!cwd.endsWith('\\')) {
+                        cwd += '\\';
+                    }
+                    // Preserve specified drive letter case (upper or lower)
+                    return `${itemPath[0]}:\\${cwd.substr(3)}${itemPath.substr(2)}`;
+                }
+            }
+            // Different drive
+            else {
+                return `${itemPath[0]}:\\${itemPath.substr(2)}`;
+            }
+        }
+        // Check for itemPath like \ or \foo
+        else if (normalizeSeparators(itemPath).match(/^\\$|^\\[^\\]/)) {
+            const cwd = process.cwd();
+            assert_1.default(cwd.match(/^[A-Z]:\\/i), `Expected current directory to start with an absolute drive root. Actual '${cwd}'`);
+            return `${cwd[0]}:\\${itemPath.substr(1)}`;
+        }
+    }
+    assert_1.default(hasAbsoluteRoot(root), `ensureAbsoluteRoot parameter 'root' must have an absolute root`);
+    // Otherwise ensure root ends with a separator
+    if (root.endsWith('/') || (IS_WINDOWS && root.endsWith('\\'))) {
+        // Intentionally empty
+    }
+    else {
+        // Append separator
+        root += path.sep;
+    }
+    return root + itemPath;
+}
+exports.ensureAbsoluteRoot = ensureAbsoluteRoot;
+/**
+ * On Linux/macOS, true if path starts with `/`. On Windows, true for paths like:
+ * `\\hello\share` and `C:\hello` (and using alternate separator).
+ */
+function hasAbsoluteRoot(itemPath) {
+    assert_1.default(itemPath, `hasAbsoluteRoot parameter 'itemPath' must not be empty`);
+    // Normalize separators
+    itemPath = normalizeSeparators(itemPath);
+    // Windows
+    if (IS_WINDOWS) {
+        // E.g. \\hello\share or C:\hello
+        return itemPath.startsWith('\\\\') || /^[A-Z]:\\/i.test(itemPath);
+    }
+    // E.g. /hello
+    return itemPath.startsWith('/');
+}
+exports.hasAbsoluteRoot = hasAbsoluteRoot;
+/**
+ * On Linux/macOS, true if path starts with `/`. On Windows, true for paths like:
+ * `\`, `\hello`, `\\hello\share`, `C:`, and `C:\hello` (and using alternate separator).
+ */
+function hasRoot(itemPath) {
+    assert_1.default(itemPath, `isRooted parameter 'itemPath' must not be empty`);
+    // Normalize separators
+    itemPath = normalizeSeparators(itemPath);
+    // Windows
+    if (IS_WINDOWS) {
+        // E.g. \ or \hello or \\hello
+        // E.g. C: or C:\hello
+        return itemPath.startsWith('\\') || /^[A-Z]:/i.test(itemPath);
+    }
+    // E.g. /hello
+    return itemPath.startsWith('/');
+}
+exports.hasRoot = hasRoot;
+/**
+ * Removes redundant slashes and converts `/` to `\` on Windows
+ */
+function normalizeSeparators(p) {
+    p = p || '';
+    // Windows
+    if (IS_WINDOWS) {
+        // Convert slashes on Windows
+        p = p.replace(/\//g, '\\');
+        // Remove redundant slashes
+        const isUnc = /^\\\\+[^\\]/.test(p); // e.g. \\hello
+        return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\'); // preserve leading \\ for UNC
+    }
+    // Remove redundant slashes
+    return p.replace(/\/\/+/g, '/');
+}
+exports.normalizeSeparators = normalizeSeparators;
+/**
+ * Normalizes the path separators and trims the trailing separator (when safe).
+ * For example, `/foo/ => /foo` but `/ => /`
+ */
+function safeTrimTrailingSeparator(p) {
+    // Short-circuit if empty
+    if (!p) {
+        return '';
+    }
+    // Normalize separators
+    p = normalizeSeparators(p);
+    // No trailing slash
+    if (!p.endsWith(path.sep)) {
+        return p;
+    }
+    // Check '/' on Linux/macOS and '\' on Windows
+    if (p === path.sep) {
+        return p;
+    }
+    // On Windows check if drive root. E.g. C:\
+    if (IS_WINDOWS && /^[A-Z]:\\$/i.test(p)) {
+        return p;
+    }
+    // Otherwise trim trailing slash
+    return p.substr(0, p.length - 1);
+}
+exports.safeTrimTrailingSeparator = safeTrimTrailingSeparator;
+//# sourceMappingURL=internal-path-helper.js.map
+
+/***/ }),
+
+/***/ 242:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+module.exports = __nccwpck_require__(317)
+module.exports.async = __nccwpck_require__(450)
+module.exports.stream = __nccwpck_require__(460)
+module.exports.prettyError = __nccwpck_require__(307)
+
+
+/***/ }),
+
+/***/ 243:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HttpProxyAgent = void 0;
+const net = __importStar(__nccwpck_require__(561));
+const tls = __importStar(__nccwpck_require__(556));
+const debug_1 = __importDefault(__nccwpck_require__(567));
+const events_1 = __nccwpck_require__(517);
+const agent_base_1 = __nccwpck_require__(262);
+const url_1 = __nccwpck_require__(97);
+const debug = (0, debug_1.default)('http-proxy-agent');
+/**
+ * The `HttpProxyAgent` implements an HTTP Agent subclass that connects
+ * to the specified "HTTP proxy server" in order to proxy HTTP requests.
+ */
+class HttpProxyAgent extends agent_base_1.Agent {
+    constructor(proxy, opts) {
+        super(opts);
+        this.proxy = typeof proxy === 'string' ? new url_1.URL(proxy) : proxy;
+        this.proxyHeaders = opts?.headers ?? {};
+        debug('Creating new HttpProxyAgent instance: %o', this.proxy.href);
+        // Trim off the brackets from IPv6 addresses
+        const host = (this.proxy.hostname || this.proxy.host).replace(/^\[|\]$/g, '');
+        const port = this.proxy.port
+            ? parseInt(this.proxy.port, 10)
+            : this.proxy.protocol === 'https:'
+                ? 443
+                : 80;
+        this.connectOpts = {
+            ...(opts ? omit(opts, 'headers') : null),
+            host,
+            port,
+        };
+    }
+    addRequest(req, opts) {
+        req._header = null;
+        this.setRequestProps(req, opts);
+        // @ts-expect-error `addRequest()` isn't defined in `@types/node`
+        super.addRequest(req, opts);
+    }
+    setRequestProps(req, opts) {
+        const { proxy } = this;
+        const protocol = opts.secureEndpoint ? 'https:' : 'http:';
+        const hostname = req.getHeader('host') || 'localhost';
+        const base = `${protocol}//${hostname}`;
+        const url = new url_1.URL(req.path, base);
+        if (opts.port !== 80) {
+            url.port = String(opts.port);
+        }
+        // Change the `http.ClientRequest` instance's "path" field
+        // to the absolute path of the URL that will be requested.
+        req.path = String(url);
+        // Inject the `Proxy-Authorization` header if necessary.
+        const headers = typeof this.proxyHeaders === 'function'
+            ? this.proxyHeaders()
+            : { ...this.proxyHeaders };
+        if (proxy.username || proxy.password) {
+            const auth = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`;
+            headers['Proxy-Authorization'] = `Basic ${Buffer.from(auth).toString('base64')}`;
+        }
+        if (!headers['Proxy-Connection']) {
+            headers['Proxy-Connection'] = this.keepAlive
+                ? 'Keep-Alive'
+                : 'close';
+        }
+        for (const name of Object.keys(headers)) {
+            const value = headers[name];
+            if (value) {
+                req.setHeader(name, value);
+            }
+        }
+    }
+    async connect(req, opts) {
+        req._header = null;
+        if (!req.path.includes('://')) {
+            this.setRequestProps(req, opts);
+        }
+        // At this point, the http ClientRequest's internal `_header` field
+        // might have already been set. If this is the case then we'll need
+        // to re-generate the string since we just changed the `req.path`.
+        let first;
+        let endOfHeaders;
+        debug('Regenerating stored HTTP header string for request');
+        req._implicitHeader();
+        if (req.outputData && req.outputData.length > 0) {
+            debug('Patching connection write() output buffer with updated header');
+            first = req.outputData[0].data;
+            endOfHeaders = first.indexOf('\r\n\r\n') + 4;
+            req.outputData[0].data =
+                req._header + first.substring(endOfHeaders);
+            debug('Output buffer: %o', req.outputData[0].data);
+        }
+        // Create a socket connection to the proxy server.
+        let socket;
+        if (this.proxy.protocol === 'https:') {
+            debug('Creating `tls.Socket`: %o', this.connectOpts);
+            socket = tls.connect(this.connectOpts);
+        }
+        else {
+            debug('Creating `net.Socket`: %o', this.connectOpts);
+            socket = net.connect(this.connectOpts);
+        }
+        // Wait for the socket's `connect` event, so that this `callback()`
+        // function throws instead of the `http` request machinery. This is
+        // important for i.e. `PacProxyAgent` which determines a failed proxy
+        // connection via the `callback()` function throwing.
+        await (0, events_1.once)(socket, 'connect');
+        return socket;
+    }
+}
+HttpProxyAgent.protocols = ['http', 'https'];
+exports.HttpProxyAgent = HttpProxyAgent;
+function omit(obj, ...keys) {
+    const ret = {};
+    let key;
+    for (key in obj) {
+        if (!keys.includes(key)) {
+            ret[key] = obj[key];
+        }
+    }
+    return ret;
+}
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 244:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readlink = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
+const fs = __importStar(__nccwpck_require__(587));
+const path = __importStar(__nccwpck_require__(271));
+_a = fs.promises
+// export const {open} = 'fs'
+, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
+// export const {open} = 'fs'
+exports.IS_WINDOWS = process.platform === 'win32';
+// See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
+exports.UV_FS_O_EXLOCK = 0x10000000;
+exports.READONLY = fs.constants.O_RDONLY;
+function exists(fsPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield exports.stat(fsPath);
+        }
+        catch (err) {
+            if (err.code === 'ENOENT') {
+                return false;
+            }
+            throw err;
+        }
+        return true;
+    });
+}
+exports.exists = exists;
+function isDirectory(fsPath, useStat = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const stats = useStat ? yield exports.stat(fsPath) : yield exports.lstat(fsPath);
+        return stats.isDirectory();
+    });
+}
+exports.isDirectory = isDirectory;
+/**
+ * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
+ * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
+ */
+function isRooted(p) {
+    p = normalizeSeparators(p);
+    if (!p) {
+        throw new Error('isRooted() parameter "p" cannot be empty');
+    }
+    if (exports.IS_WINDOWS) {
+        return (p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
+        ); // e.g. C: or C:\hello
+    }
+    return p.startsWith('/');
+}
+exports.isRooted = isRooted;
+/**
+ * Best effort attempt to determine whether a file exists and is executable.
+ * @param filePath    file path to check
+ * @param extensions  additional file extensions to try
+ * @return if file exists and is executable, returns the file path. otherwise empty string.
+ */
+function tryGetExecutablePath(filePath, extensions) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let stats = undefined;
+        try {
+            // test file exists
+            stats = yield exports.stat(filePath);
+        }
+        catch (err) {
+            if (err.code !== 'ENOENT') {
+                // eslint-disable-next-line no-console
+                console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+            }
+        }
+        if (stats && stats.isFile()) {
+            if (exports.IS_WINDOWS) {
+                // on Windows, test for valid extension
+                const upperExt = path.extname(filePath).toUpperCase();
+                if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
+                    return filePath;
+                }
+            }
+            else {
+                if (isUnixExecutable(stats)) {
+                    return filePath;
+                }
+            }
+        }
+        // try each extension
+        const originalFilePath = filePath;
+        for (const extension of extensions) {
+            filePath = originalFilePath + extension;
+            stats = undefined;
+            try {
+                stats = yield exports.stat(filePath);
+            }
+            catch (err) {
+                if (err.code !== 'ENOENT') {
+                    // eslint-disable-next-line no-console
+                    console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+                }
+            }
+            if (stats && stats.isFile()) {
+                if (exports.IS_WINDOWS) {
+                    // preserve the case of the actual file (since an extension was appended)
+                    try {
+                        const directory = path.dirname(filePath);
+                        const upperName = path.basename(filePath).toUpperCase();
+                        for (const actualName of yield exports.readdir(directory)) {
+                            if (upperName === actualName.toUpperCase()) {
+                                filePath = path.join(directory, actualName);
+                                break;
+                            }
+                        }
+                    }
+                    catch (err) {
+                        // eslint-disable-next-line no-console
+                        console.log(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
+                    }
+                    return filePath;
+                }
+                else {
+                    if (isUnixExecutable(stats)) {
+                        return filePath;
+                    }
+                }
+            }
+        }
+        return '';
+    });
+}
+exports.tryGetExecutablePath = tryGetExecutablePath;
+function normalizeSeparators(p) {
+    p = p || '';
+    if (exports.IS_WINDOWS) {
+        // convert slashes on Windows
+        p = p.replace(/\//g, '\\');
+        // remove redundant slashes
+        return p.replace(/\\\\+/g, '\\');
+    }
+    // remove redundant slashes
+    return p.replace(/\/\/+/g, '/');
+}
+// on Mac/Linux, test the execute bit
+//     R   W  X  R  W X R W X
+//   256 128 64 32 16 8 4 2 1
+function isUnixExecutable(stats) {
+    return ((stats.mode & 1) > 0 ||
+        ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
+        ((stats.mode & 64) > 0 && stats.uid === process.getuid()));
+}
+// Get the path of cmd.exe in windows
+function getCmdPath() {
+    var _a;
+    return (_a = process.env['COMSPEC']) !== null && _a !== void 0 ? _a : `cmd.exe`;
+}
+exports.getCmdPath = getCmdPath;
+//# sourceMappingURL=io-util.js.map
+
+/***/ }),
+
+/***/ 245:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createHttpPoller = void 0;
+const tslib_1 = __nccwpck_require__(234);
+var poller_js_1 = __nccwpck_require__(351);
+Object.defineProperty(exports, "createHttpPoller", ({ enumerable: true, get: function () { return poller_js_1.createHttpPoller; } }));
+/**
+ * This can be uncommented to expose the protocol-agnostic poller
+ */
+// export {
+//   BuildCreatePollerOptions,
+//   Operation,
+//   CreatePollerOptions,
+//   OperationConfig,
+//   RestorableOperationState,
+// } from "./poller/models";
+// export { buildCreatePoller } from "./poller/poller";
+/** legacy */
+tslib_1.__exportStar(__nccwpck_require__(266), exports);
+tslib_1.__exportStar(__nccwpck_require__(82), exports);
+tslib_1.__exportStar(__nccwpck_require__(42), exports);
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 246:
+/***/ ((module) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var apiVersionPolicy_exports = {};
+__export(apiVersionPolicy_exports, {
+  apiVersionPolicy: () => apiVersionPolicy,
+  apiVersionPolicyName: () => apiVersionPolicyName
+});
+module.exports = __toCommonJS(apiVersionPolicy_exports);
+const apiVersionPolicyName = "ApiVersionPolicy";
+function apiVersionPolicy(options) {
+  return {
+    name: apiVersionPolicyName,
+    sendRequest: (req, next) => {
+      const url = new URL(req.url);
+      if (!url.searchParams.get("api-version") && options.apiVersion) {
+        req.url = `${req.url}${Array.from(url.searchParams.keys()).length > 0 ? "&" : "?"}api-version=${options.apiVersion}`;
+      }
+      return next(req);
+    }
+  };
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+//# sourceMappingURL=apiVersionPolicy.js.map
+
+
+/***/ }),
+
+/***/ 247:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.prepareActionsCacheArchive = prepareActionsCacheArchive;
+exports.saveReservedCache = saveReservedCache;
+exports.isReservationConflict = isReservationConflict;
+const fsp = __importStar(__nccwpck_require__(121));
+const path = __importStar(__nccwpck_require__(560));
+const config_js_1 = __nccwpck_require__(39);
+const cacheHttpClient = __importStar(__nccwpck_require__(36));
+const cacheUtils = __importStar(__nccwpck_require__(83));
+const twirp = __importStar(__nccwpck_require__(67));
+const cacheTar = __importStar(__nccwpck_require__(481));
+const save_policy_js_1 = __nccwpck_require__(101);
+const defaultArchiveTools = {
+    resolvePaths: cacheUtils.resolvePaths,
+    createTempDirectory: cacheUtils.createTempDirectory,
+    createTar: cacheTar.createTar,
+    stat: fsp.stat,
+    removeDirectory: async (directory) => {
+        await fsp.rm(directory, { recursive: true, force: true });
+    },
+};
+async function prepareActionsCacheArchive(reservation, archive, tools = defaultArchiveTools) {
+    const cachePaths = await tools.resolvePaths([archive.archivePath]);
+    if (cachePaths.length === 0) {
+        throw new Error(`produced archive does not exist: ${archive.archivePath}`);
+    }
+    const archiveFolder = await tools.createTempDirectory();
+    try {
+        const uploadArchivePath = path.join(archiveFolder, cacheUtils.getCacheFileName(reservation.compressionMethod));
+        await tools.createTar(archiveFolder, cachePaths, reservation.compressionMethod);
+        const archiveBytes = (await tools.stat(uploadArchivePath)).size;
+        return { archivePath: uploadArchivePath, archiveBytes, cleanupDir: archiveFolder };
+    }
+    catch (error) {
+        await tools.removeDirectory(archiveFolder).catch(() => undefined);
+        throw error;
+    }
+}
+function log(options, message) {
+    options.log?.(`two-phase-cache: ${message}`);
+}
+async function reserve(options) {
+    const compressionMethod = await cacheUtils.getCompressionMethod();
+    const enableCrossOsArchive = options.enableCrossOsArchive ?? false;
+    if ((0, config_js_1.getCacheServiceVersion)() === "v2") {
+        const version = cacheUtils.getCacheVersion(options.paths, compressionMethod, enableCrossOsArchive);
+        const response = await twirp.internalCacheTwirpClient().CreateCacheEntry({
+            key: options.key,
+            version,
+        });
+        if (!response.ok || !response.signedUploadUrl)
+            return null;
+        return {
+            service: "v2",
+            compressionMethod,
+            version,
+            signedUploadUrl: response.signedUploadUrl,
+        };
+    }
+    const response = await cacheHttpClient.reserveCache(options.key, options.paths, {
+        compressionMethod,
+        enableCrossOsArchive,
+    });
+    const cacheId = response.result?.cacheId;
+    if (typeof cacheId !== "number")
+        return null;
+    return { service: "v1", compressionMethod, cacheId };
+}
+/**
+ * Reserve an exact Actions cache key before producing the archive. The
+ * producer is never called after a reservation conflict, which is the key
+ * property missing from the public saveCache convenience API.
+ */
+async function saveReservedCache(options) {
+    // #527: shared save policy. No reservation, no archive, no upload.
+    if (!(0, save_policy_js_1.allowCacheSave)(options.layer ?? "actions-cache", (m) => options.log?.(m))) {
+        return { status: "policy-skip" };
+    }
+    let reservation;
+    try {
+        reservation = options.reserve ? await options.reserve() : await reserve(options);
+    }
+    catch (error) {
+        log(options, `reservation failed: ${error instanceof Error ? error.message : String(error)}`);
+        return { status: "skipped-reservation" };
+    }
+    if (!reservation) {
+        log(options, `reservation conflict for key=${options.key}`);
+        return { status: "skipped-reservation" };
+    }
+    let archive;
+    try {
+        archive = await options.produce();
+    }
+    catch (error) {
+        log(options, `archive production failed: ${error instanceof Error ? error.message : String(error)}`);
+        return { status: "failed", error: error instanceof Error ? error.message : String(error) };
+    }
+    let uploadArchive;
+    try {
+        uploadArchive = options.prepareUpload
+            ? await options.prepareUpload(reservation, archive)
+            : await prepareActionsCacheArchive(reservation, archive);
+        log(options, `prepared Actions-cache wrapper inner=${archive.archiveBytes}B outer=${uploadArchive.archiveBytes}B`);
+        if (options.upload) {
+            const cacheId = await options.upload(reservation, uploadArchive);
+            return { status: "saved", cacheId, archive };
+        }
+        if (reservation.service === "v1") {
+            await cacheHttpClient.saveCache(reservation.cacheId, uploadArchive.archivePath, "", {
+                archiveSizeBytes: uploadArchive.archiveBytes,
+            });
+            return { status: "saved", cacheId: reservation.cacheId, archive };
+        }
+        await cacheHttpClient.saveCache(-1, uploadArchive.archivePath, reservation.signedUploadUrl, {
+            archiveSizeBytes: uploadArchive.archiveBytes,
+            uploadChunkSize: 64 * 1024 * 1024,
+            uploadConcurrency: 8,
+            useAzureSdk: true,
+        });
+        const finalized = await twirp.internalCacheTwirpClient().FinalizeCacheEntryUpload({
+            key: options.key,
+            version: reservation.version,
+            sizeBytes: `${uploadArchive.archiveBytes}`,
+        });
+        if (!finalized.ok)
+            throw new Error(finalized.message || "cache finalization failed");
+        return { status: "saved", cacheId: Number.parseInt(finalized.entryId, 10), archive };
+    }
+    catch (error) {
+        return { status: "failed", error: error instanceof Error ? error.message : String(error), archive };
+    }
+    finally {
+        await fsp.rm(archive.archivePath, { force: true }).catch(() => undefined);
+        if (uploadArchive?.cleanupDir) {
+            await fsp.rm(uploadArchive.cleanupDir, { recursive: true, force: true }).catch(() => undefined);
+        }
+    }
+}
+function isReservationConflict(result) {
+    return result.status === "skipped-reservation";
+}
+
+
+/***/ }),
+
+/***/ 248:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+/// <reference path="../shims-public.d.ts" />
+const listenersMap = new WeakMap();
+const abortedMap = new WeakMap();
+/**
+ * An aborter instance implements AbortSignal interface, can abort HTTP requests.
+ *
+ * - Call AbortSignal.none to create a new AbortSignal instance that cannot be cancelled.
+ * Use `AbortSignal.none` when you are required to pass a cancellation token but the operation
+ * cannot or will not ever be cancelled.
+ *
+ * @example
+ * Abort without timeout
+ * ```ts
+ * await doAsyncWork(AbortSignal.none);
+ * ```
+ */
+class AbortSignal {
+    constructor() {
+        /**
+         * onabort event listener.
+         */
+        this.onabort = null;
+        listenersMap.set(this, []);
+        abortedMap.set(this, false);
+    }
+    /**
+     * Status of whether aborted or not.
+     *
+     * @readonly
+     */
+    get aborted() {
+        if (!abortedMap.has(this)) {
+            throw new TypeError("Expected `this` to be an instance of AbortSignal.");
+        }
+        return abortedMap.get(this);
+    }
+    /**
+     * Creates a new AbortSignal instance that will never be aborted.
+     *
+     * @readonly
+     */
+    static get none() {
+        return new AbortSignal();
+    }
+    /**
+     * Added new "abort" event listener, only support "abort" event.
+     *
+     * @param _type - Only support "abort" event
+     * @param listener - The listener to be added
+     */
+    addEventListener(
+    // tslint:disable-next-line:variable-name
+    _type, listener) {
+        if (!listenersMap.has(this)) {
+            throw new TypeError("Expected `this` to be an instance of AbortSignal.");
+        }
+        const listeners = listenersMap.get(this);
+        listeners.push(listener);
+    }
+    /**
+     * Remove "abort" event listener, only support "abort" event.
+     *
+     * @param _type - Only support "abort" event
+     * @param listener - The listener to be removed
+     */
+    removeEventListener(
+    // tslint:disable-next-line:variable-name
+    _type, listener) {
+        if (!listenersMap.has(this)) {
+            throw new TypeError("Expected `this` to be an instance of AbortSignal.");
+        }
+        const listeners = listenersMap.get(this);
+        const index = listeners.indexOf(listener);
+        if (index > -1) {
+            listeners.splice(index, 1);
+        }
+    }
+    /**
+     * Dispatches a synthetic event to the AbortSignal.
+     */
+    dispatchEvent(_event) {
+        throw new Error("This is a stub dispatchEvent implementation that should not be used.  It only exists for type-checking purposes.");
+    }
+}
+/**
+ * Helper to trigger an abort event immediately, the onabort and all abort event listeners will be triggered.
+ * Will try to trigger abort event for all linked AbortSignal nodes.
+ *
+ * - If there is a timeout, the timer will be cancelled.
+ * - If aborted is true, nothing will happen.
+ *
+ * @internal
+ */
+// eslint-disable-next-line @azure/azure-sdk/ts-use-interface-parameters
+function abortSignal(signal) {
+    if (signal.aborted) {
+        return;
+    }
+    if (signal.onabort) {
+        signal.onabort.call(signal);
+    }
+    const listeners = listenersMap.get(signal);
+    if (listeners) {
+        // Create a copy of listeners so mutations to the array
+        // (e.g. via removeListener calls) don't affect the listeners
+        // we invoke.
+        listeners.slice().forEach((listener) => {
+            listener.call(signal, { type: "abort" });
+        });
+    }
+    abortedMap.set(signal, true);
+}
+
+// Copyright (c) Microsoft Corporation.
+/**
+ * This error is thrown when an asynchronous operation has been aborted.
+ * Check for this error by testing the `name` that the name property of the
+ * error matches `"AbortError"`.
+ *
+ * @example
+ * ```ts
+ * const controller = new AbortController();
+ * controller.abort();
+ * try {
+ *   doAsyncWork(controller.signal)
+ * } catch (e) {
+ *   if (e.name === 'AbortError') {
+ *     // handle abort error here.
+ *   }
+ * }
+ * ```
+ */
+class AbortError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "AbortError";
+    }
+}
+/**
+ * An AbortController provides an AbortSignal and the associated controls to signal
+ * that an asynchronous operation should be aborted.
+ *
+ * @example
+ * Abort an operation when another event fires
+ * ```ts
+ * const controller = new AbortController();
+ * const signal = controller.signal;
+ * doAsyncWork(signal);
+ * button.addEventListener('click', () => controller.abort());
+ * ```
+ *
+ * @example
+ * Share aborter cross multiple operations in 30s
+ * ```ts
+ * // Upload the same data to 2 different data centers at the same time,
+ * // abort another when any of them is finished
+ * const controller = AbortController.withTimeout(30 * 1000);
+ * doAsyncWork(controller.signal).then(controller.abort);
+ * doAsyncWork(controller.signal).then(controller.abort);
+ *```
+ *
+ * @example
+ * Cascaded aborting
+ * ```ts
+ * // All operations can't take more than 30 seconds
+ * const aborter = Aborter.timeout(30 * 1000);
+ *
+ * // Following 2 operations can't take more than 25 seconds
+ * await doAsyncWork(aborter.withTimeout(25 * 1000));
+ * await doAsyncWork(aborter.withTimeout(25 * 1000));
+ * ```
+ */
+class AbortController {
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    constructor(parentSignals) {
+        this._signal = new AbortSignal();
+        if (!parentSignals) {
+            return;
+        }
+        // coerce parentSignals into an array
+        if (!Array.isArray(parentSignals)) {
+            // eslint-disable-next-line prefer-rest-params
+            parentSignals = arguments;
+        }
+        for (const parentSignal of parentSignals) {
+            // if the parent signal has already had abort() called,
+            // then call abort on this signal as well.
+            if (parentSignal.aborted) {
+                this.abort();
+            }
+            else {
+                // when the parent signal aborts, this signal should as well.
+                parentSignal.addEventListener("abort", () => {
+                    this.abort();
+                });
+            }
+        }
+    }
+    /**
+     * The AbortSignal associated with this controller that will signal aborted
+     * when the abort method is called on this controller.
+     *
+     * @readonly
+     */
+    get signal() {
+        return this._signal;
+    }
+    /**
+     * Signal that any operations passed this controller's associated abort signal
+     * to cancel any remaining work and throw an `AbortError`.
+     */
+    abort() {
+        abortSignal(this._signal);
+    }
+    /**
+     * Creates a new AbortSignal instance that will abort after the provided ms.
+     * @param ms - Elapsed time in milliseconds to trigger an abort.
+     */
+    static timeout(ms) {
+        const signal = new AbortSignal();
+        const timer = setTimeout(abortSignal, ms, signal);
+        // Prevent the active Timer from keeping the Node.js event loop active.
+        if (typeof timer.unref === "function") {
+            timer.unref();
+        }
+        return signal;
+    }
+}
+
+exports.AbortController = AbortController;
+exports.AbortError = AbortError;
+exports.AbortSignal = AbortSignal;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 249:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AVRO_SCHEMA_KEY = exports.AVRO_CODEC_KEY = exports.AVRO_INIT_BYTES = exports.AVRO_SYNC_MARKER_SIZE = void 0;
+exports.AVRO_SYNC_MARKER_SIZE = 16;
+exports.AVRO_INIT_BYTES = new Uint8Array([79, 98, 106, 1]);
+exports.AVRO_CODEC_KEY = "avro.codec";
+exports.AVRO_SCHEMA_KEY = "avro.schema";
+//# sourceMappingURL=AvroConstants.js.map
+
+/***/ }),
+
+/***/ 250:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+/*
+ * Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT License.
+ *
+ * Code generated by Microsoft (R) AutoRest Code Generator.
+ * Changes may cause incorrect behavior and will be lost if the code is regenerated.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ServiceImpl = void 0;
+const tslib_1 = __nccwpck_require__(234);
+const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
+const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
+const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
+/** Class containing Service operations. */
+class ServiceImpl {
+    client;
+    /**
+     * Initialize a new instance of the class Service class.
+     * @param client Reference to the service client
+     */
+    constructor(client) {
+        this.client = client;
+    }
+    /**
+     * Sets properties for a storage account's Blob service endpoint, including properties for Storage
+     * Analytics and CORS (Cross-Origin Resource Sharing) rules
+     * @param blobServiceProperties The StorageService properties.
+     * @param options The options parameters.
+     */
+    setProperties(blobServiceProperties, options) {
+        return this.client.sendOperationRequest({ blobServiceProperties, options }, setPropertiesOperationSpec);
+    }
+    /**
+     * gets the properties of a storage account's Blob service, including properties for Storage Analytics
+     * and CORS (Cross-Origin Resource Sharing) rules.
+     * @param options The options parameters.
+     */
+    getProperties(options) {
+        return this.client.sendOperationRequest({ options }, getPropertiesOperationSpec);
+    }
+    /**
+     * Retrieves statistics related to replication for the Blob service. It is only available on the
+     * secondary location endpoint when read-access geo-redundant replication is enabled for the storage
+     * account.
+     * @param options The options parameters.
+     */
+    getStatistics(options) {
+        return this.client.sendOperationRequest({ options }, getStatisticsOperationSpec);
+    }
+    /**
+     * The List Containers Segment operation returns a list of the containers under the specified account
+     * @param options The options parameters.
+     */
+    listContainersSegment(options) {
+        return this.client.sendOperationRequest({ options }, listContainersSegmentOperationSpec);
+    }
+    /**
+     * Retrieves a user delegation key for the Blob service. This is only a valid operation when using
+     * bearer token authentication.
+     * @param keyInfo Key information
+     * @param options The options parameters.
+     */
+    getUserDelegationKey(keyInfo, options) {
+        return this.client.sendOperationRequest({ keyInfo, options }, getUserDelegationKeyOperationSpec);
+    }
+    /**
+     * Returns the sku name and account kind
+     * @param options The options parameters.
+     */
+    getAccountInfo(options) {
+        return this.client.sendOperationRequest({ options }, getAccountInfoOperationSpec);
+    }
+    /**
+     * The Batch operation allows multiple API calls to be embedded into a single HTTP request.
+     * @param contentLength The length of the request.
+     * @param multipartContentType Required. The value of this header must be multipart/mixed with a batch
+     *                             boundary. Example header value: multipart/mixed; boundary=batch_<GUID>
+     * @param body Initial data
+     * @param options The options parameters.
+     */
+    submitBatch(contentLength, multipartContentType, body, options) {
+        return this.client.sendOperationRequest({ contentLength, multipartContentType, body, options }, submitBatchOperationSpec);
+    }
+    /**
+     * The Filter Blobs operation enables callers to list blobs across all containers whose tags match a
+     * given search expression.  Filter blobs searches across all containers within a storage account but
+     * can be scoped within the expression to a single container.
+     * @param options The options parameters.
+     */
+    filterBlobs(options) {
+        return this.client.sendOperationRequest({ options }, filterBlobsOperationSpec);
+    }
+}
+exports.ServiceImpl = ServiceImpl;
+// Operation Specifications
+const xmlSerializer = coreClient.createSerializer(Mappers, /* isXml */ true);
+const setPropertiesOperationSpec = {
+    path: "/",
+    httpMethod: "PUT",
+    responses: {
+        202: {
+            headersMapper: Mappers.ServiceSetPropertiesHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceSetPropertiesExceptionHeaders,
+        },
+    },
+    requestBody: Parameters.blobServiceProperties,
+    queryParameters: [
+        Parameters.restype,
+        Parameters.comp,
+        Parameters.timeoutInSeconds,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.contentType,
+        Parameters.accept,
+        Parameters.version,
+        Parameters.requestId,
+    ],
+    isXML: true,
+    contentType: "application/xml; charset=utf-8",
+    mediaType: "xml",
+    serializer: xmlSerializer,
+};
+const getPropertiesOperationSpec = {
+    path: "/",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: Mappers.BlobServiceProperties,
+            headersMapper: Mappers.ServiceGetPropertiesHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceGetPropertiesExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.restype,
+        Parameters.comp,
+        Parameters.timeoutInSeconds,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const getStatisticsOperationSpec = {
+    path: "/",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: Mappers.BlobServiceStatistics,
+            headersMapper: Mappers.ServiceGetStatisticsHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceGetStatisticsExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.restype,
+        Parameters.timeoutInSeconds,
+        Parameters.comp1,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const listContainersSegmentOperationSpec = {
+    path: "/",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: Mappers.ListContainersSegmentResponse,
+            headersMapper: Mappers.ServiceListContainersSegmentHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceListContainersSegmentExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.comp2,
+        Parameters.prefix,
+        Parameters.marker,
+        Parameters.maxPageSize,
+        Parameters.include,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const getUserDelegationKeyOperationSpec = {
+    path: "/",
+    httpMethod: "POST",
+    responses: {
+        200: {
+            bodyMapper: Mappers.UserDelegationKey,
+            headersMapper: Mappers.ServiceGetUserDelegationKeyHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceGetUserDelegationKeyExceptionHeaders,
+        },
+    },
+    requestBody: Parameters.keyInfo,
+    queryParameters: [
+        Parameters.restype,
+        Parameters.timeoutInSeconds,
+        Parameters.comp3,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.contentType,
+        Parameters.accept,
+        Parameters.version,
+        Parameters.requestId,
+    ],
+    isXML: true,
+    contentType: "application/xml; charset=utf-8",
+    mediaType: "xml",
+    serializer: xmlSerializer,
+};
+const getAccountInfoOperationSpec = {
+    path: "/",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            headersMapper: Mappers.ServiceGetAccountInfoHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceGetAccountInfoExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.comp,
+        Parameters.timeoutInSeconds,
+        Parameters.restype1,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+const submitBatchOperationSpec = {
+    path: "/",
+    httpMethod: "POST",
+    responses: {
+        202: {
+            bodyMapper: {
+                type: { name: "Stream" },
+                serializedName: "parsedResponse",
+            },
+            headersMapper: Mappers.ServiceSubmitBatchHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceSubmitBatchExceptionHeaders,
+        },
+    },
+    requestBody: Parameters.body,
+    queryParameters: [Parameters.timeoutInSeconds, Parameters.comp4],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.accept,
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.contentLength,
+        Parameters.multipartContentType,
+    ],
+    isXML: true,
+    contentType: "application/xml; charset=utf-8",
+    mediaType: "xml",
+    serializer: xmlSerializer,
+};
+const filterBlobsOperationSpec = {
+    path: "/",
+    httpMethod: "GET",
+    responses: {
+        200: {
+            bodyMapper: Mappers.FilterBlobSegment,
+            headersMapper: Mappers.ServiceFilterBlobsHeaders,
+        },
+        default: {
+            bodyMapper: Mappers.StorageError,
+            headersMapper: Mappers.ServiceFilterBlobsExceptionHeaders,
+        },
+    },
+    queryParameters: [
+        Parameters.timeoutInSeconds,
+        Parameters.marker,
+        Parameters.maxPageSize,
+        Parameters.comp5,
+        Parameters.where,
+    ],
+    urlParameters: [Parameters.url],
+    headerParameters: [
+        Parameters.version,
+        Parameters.requestId,
+        Parameters.accept1,
+    ],
+    isXML: true,
+    serializer: xmlSerializer,
+};
+//# sourceMappingURL=service.js.map
+
+/***/ }),
+
+/***/ 251:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var agentPolicy_exports = {};
+__export(agentPolicy_exports, {
+  agentPolicy: () => agentPolicy,
+  agentPolicyName: () => agentPolicyName
+});
+module.exports = __toCommonJS(agentPolicy_exports);
+var import_policies = __nccwpck_require__(315);
+const agentPolicyName = import_policies.agentPolicyName;
+function agentPolicy(agent) {
+  return (0, import_policies.agentPolicy)(agent);
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 252:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { UndiciError } = __nccwpck_require__(537)
+
+class MockNotMatchedError extends UndiciError {
+  constructor (message) {
+    super(message)
+    Error.captureStackTrace(this, MockNotMatchedError)
+    this.name = 'MockNotMatchedError'
+    this.message = message || 'The request does not match any registered mock dispatches'
+    this.code = 'UND_MOCK_ERR_MOCK_NOT_MATCHED'
+  }
+}
+
+module.exports = {
+  MockNotMatchedError
+}
+
+
+/***/ }),
+
+/***/ 253:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { Transform } = __nccwpck_require__(147)
+const { Console } = __nccwpck_require__(34)
+
+/**
+ * Gets the output of `console.table(…)` as a string.
+ */
+module.exports = class PendingInterceptorsFormatter {
+  constructor ({ disableColors } = {}) {
+    this.transform = new Transform({
+      transform (chunk, _enc, cb) {
+        cb(null, chunk)
+      }
+    })
+
+    this.logger = new Console({
+      stdout: this.transform,
+      inspectOptions: {
+        colors: !disableColors && !process.env.CI
+      }
+    })
+  }
+
+  format (pendingInterceptors) {
+    const withPrettyHeaders = pendingInterceptors.map(
+      ({ method, path, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+        Method: method,
+        Origin: origin,
+        Path: path,
+        'Status code': statusCode,
+        Persistent: persist ? '✅' : '❌',
+        Invocations: timesInvoked,
+        Remaining: persist ? Infinity : times - timesInvoked
+      }))
+
+    this.logger.table(withPrettyHeaders)
+    return this.transform.read().toString()
+  }
+}
+
+
+/***/ }),
+
+/***/ 254:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CacheMetadata = void 0;
+const runtime_1 = __nccwpck_require__(19);
+const runtime_2 = __nccwpck_require__(19);
+const runtime_3 = __nccwpck_require__(19);
+const runtime_4 = __nccwpck_require__(19);
+const runtime_5 = __nccwpck_require__(19);
+const cachescope_1 = __nccwpck_require__(433);
+// @generated message type with reflection information, may provide speed optimized methods
+class CacheMetadata$Type extends runtime_5.MessageType {
+    constructor() {
+        super("github.actions.results.entities.v1.CacheMetadata", [
+            { no: 1, name: "repository_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
+            { no: 2, name: "scope", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => cachescope_1.CacheScope }
+        ]);
+    }
+    create(value) {
+        const message = { repositoryId: "0", scope: [] };
+        globalThis.Object.defineProperty(message, runtime_4.MESSAGE_TYPE, { enumerable: false, value: this });
+        if (value !== undefined)
+            (0, runtime_3.reflectionMergePartial)(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader, length, options, target) {
+        let message = target !== null && target !== void 0 ? target : this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int64 repository_id */ 1:
+                    message.repositoryId = reader.int64().toString();
+                    break;
+                case /* repeated github.actions.results.entities.v1.CacheScope scope */ 2:
+                    message.scope.push(cachescope_1.CacheScope.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? runtime_2.UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message, writer, options) {
+        /* int64 repository_id = 1; */
+        if (message.repositoryId !== "0")
+            writer.tag(1, runtime_1.WireType.Varint).int64(message.repositoryId);
+        /* repeated github.actions.results.entities.v1.CacheScope scope = 2; */
+        for (let i = 0; i < message.scope.length; i++)
+            cachescope_1.CacheScope.internalBinaryWrite(message.scope[i], writer.tag(2, runtime_1.WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? runtime_2.UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message github.actions.results.entities.v1.CacheMetadata
+ */
+exports.CacheMetadata = new CacheMetadata$Type();
+//# sourceMappingURL=cachemetadata.js.map
+
+/***/ }),
+
+/***/ 255:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var defaultHttpClient_exports = {};
+__export(defaultHttpClient_exports, {
+  createDefaultHttpClient: () => createDefaultHttpClient
+});
+module.exports = __toCommonJS(defaultHttpClient_exports);
+var import_ts_http_runtime = __nccwpck_require__(102);
+var import_wrapAbortSignal = __nccwpck_require__(487);
+function createDefaultHttpClient() {
+  const client = (0, import_ts_http_runtime.createDefaultHttpClient)();
+  return {
+    async sendRequest(request) {
+      const { abortSignal, cleanup } = request.abortSignal ? (0, import_wrapAbortSignal.wrapAbortSignalLike)(request.abortSignal) : {};
+      try {
+        request.abortSignal = abortSignal;
+        return await client.sendRequest(request);
+      } finally {
+        cleanup?.();
+      }
+    }
+  };
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 256:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+class Deprecation extends Error {
+  constructor(message) {
+    super(message); // Maintains proper stack trace (only available on V8)
+
+    /* istanbul ignore next */
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+
+    this.name = 'Deprecation';
+  }
+
+}
+
+exports.Deprecation = Deprecation;
+
+
+/***/ }),
+
+/***/ 257:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// AES-256-GCM cache-encryption wrapper. Issue #387 Feature 1.
+//
+// When the consumer sets `cache-encrypt-key`, every managed cache layer's
+// .tar.zst archive is wrapped with authenticated encryption before being
+// uploaded to the GitHub Actions Cache, and verified+decrypted before being
+// handed to the existing decompress path. The wrapping is opt-in: when the
+// key env var is absent, compressCache / decompressCache run today's
+// plaintext path with no extra cache-API roundtrip and no extra disk pass.
+//
+// On-disk frame (little-endian where noted):
+//   magic   : 8 bytes ASCII "SOLDRENC"
+//   version : 1 byte  (currently 0x01)
+//   iv      : 12 bytes random per archive
+//   body    : ciphertext stream produced by aes-256-gcm
+//   tag     : 16 bytes GCM authentication tag (appended last)
+//
+// AAD bound into the GCM tag includes the cache key and the runner platform,
+// so a poisoned blob from one (key, layer) tuple cannot be replayed at
+// another tuple even with the same encryption key.
+//
+// Failure modes:
+//   - wrong key, tampered ciphertext, or AAD mismatch -> tag verification
+//     fails -> caller surfaces a red error and refuses to unpack.
+//   - missing key with encrypted entry on disk -> treated as a cold miss,
+//     no error (lets users rotate keys without wiping caches).
+//   - legacy plaintext entry with key set -> accepted with a warning;
+//     the next save will write encrypted.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.tmpdir = exports.KEY_BYTES = exports.HEADER_BYTES = exports.TAG_BYTES = exports.IV_BYTES = exports.ENCRYPT_VERSION = exports.ENCRYPT_MAGIC = void 0;
+exports.parseEncryptionKey = parseEncryptionKey;
+exports.buildAad = buildAad;
+exports.encryptFile = encryptFile;
+exports.decryptFile = decryptFile;
+exports.isEncryptedArchive = isEncryptedArchive;
+exports.getEncryptionConfig = getEncryptionConfig;
+exports.decryptedTempPathFor = decryptedTempPathFor;
+exports._testInMemoryRoundTrip = _testInMemoryRoundTrip;
+const crypto = __importStar(__nccwpck_require__(301));
+const fs = __importStar(__nccwpck_require__(272));
+const fsp = __importStar(__nccwpck_require__(121));
+const path = __importStar(__nccwpck_require__(560));
+const os = __importStar(__nccwpck_require__(414));
+const promises_1 = __nccwpck_require__(425);
+exports.ENCRYPT_MAGIC = Buffer.from("SOLDRENC", "ascii");
+exports.ENCRYPT_VERSION = 0x01;
+exports.IV_BYTES = 12;
+exports.TAG_BYTES = 16;
+exports.HEADER_BYTES = exports.ENCRYPT_MAGIC.length + 1 + exports.IV_BYTES; // 21
+exports.KEY_BYTES = 32;
+/**
+ * Parse a user-supplied key string into a 32-byte buffer.
+ * Accepts:
+ *   - 64-char hex (case-insensitive)
+ *   - 44-char base64 (standard, with `=` padding)
+ *   - 43-char base64url (no padding)
+ * Rejects anything else with a precise diagnostic. The supplied raw value
+ * is NEVER echoed back in the error message, so we do not accidentally leak
+ * it into a log line.
+ */
+function parseEncryptionKey(raw) {
+    const trimmed = (raw ?? "").trim();
+    if (!trimmed) {
+        throw new Error("cache-encrypt-key: empty value");
+    }
+    if (/^[0-9a-fA-F]{64}$/.test(trimmed)) {
+        return Buffer.from(trimmed, "hex");
+    }
+    if (/^[A-Za-z0-9+/]{43}=$/.test(trimmed) || /^[A-Za-z0-9+/]{44}$/.test(trimmed)) {
+        const buf = Buffer.from(trimmed, "base64");
+        if (buf.length === exports.KEY_BYTES)
+            return buf;
+    }
+    if (/^[A-Za-z0-9_-]{43}$/.test(trimmed)) {
+        const buf = Buffer.from(trimmed, "base64url");
+        if (buf.length === exports.KEY_BYTES)
+            return buf;
+    }
+    throw new Error("cache-encrypt-key: expected a 256-bit key as 64-char hex, 44-char base64, or 43-char base64url");
+}
+/**
+ * Build the GCM additional-authenticated-data buffer for a cache layer.
+ * Format: `v1|<platform>|<cacheKey>` (UTF-8 bytes). The leading version
+ * lets us extend the AAD format later without invalidating old archives —
+ * the version is part of the file frame too, so a reader knows which AAD
+ * shape to construct.
+ */
+function buildAad(cacheKey, platform = process.platform) {
+    return Buffer.from(`v1|${platform}|${cacheKey}`, "utf8");
+}
+/**
+ * Stream-encrypt `srcPath` (plaintext) into `dstPath` (framed ciphertext).
+ *
+ * Uses a temp sibling file + atomic rename so an interrupted encrypt cannot
+ * leave a half-written archive at `dstPath` that the cache layer would
+ * then upload. The temp lives next to `dstPath` (not in os.tmpdir()) so
+ * the rename stays on the same filesystem.
+ */
+async function encryptFile(srcPath, dstPath, cfg) {
+    const iv = crypto.randomBytes(exports.IV_BYTES);
+    const cipher = crypto.createCipheriv("aes-256-gcm", cfg.key, iv);
+    cipher.setAAD(cfg.aad);
+    const tmpPath = `${dstPath}.tmp-${process.pid}-${Date.now()}`;
+    const reader = fs.createReadStream(srcPath);
+    const writer = fs.createWriteStream(tmpPath);
+    // Write the frame header up-front so a partial file is unambiguously broken.
+    writer.write(exports.ENCRYPT_MAGIC);
+    writer.write(Buffer.from([exports.ENCRYPT_VERSION]));
+    writer.write(iv);
+    let ciphertextBytes = 0;
+    try {
+        await (0, promises_1.pipeline)(reader, cipher, async function* (source) {
+            for await (const chunk of source) {
+                ciphertextBytes += chunk.length;
+                yield chunk;
+            }
+        }, writer);
+        // pipeline closes the writer; reopen for the tag append.
+        const tag = cipher.getAuthTag();
+        if (tag.length !== exports.TAG_BYTES) {
+            throw new Error(`cache-encrypt: unexpected GCM tag length ${tag.length}`);
+        }
+        await fsp.appendFile(tmpPath, tag);
+        await fsp.rename(tmpPath, dstPath);
+    }
+    catch (err) {
+        await fsp.rm(tmpPath, { force: true }).catch(() => undefined);
+        throw err;
+    }
+    return { ciphertextBytes };
+}
+/**
+ * Stream-decrypt `srcPath` (framed ciphertext) into `dstPath` (plaintext).
+ *
+ * Throws an Error tagged with `cause.code === "EAUTHFAIL"` when the GCM tag
+ * fails to verify (wrong key, tampered ciphertext, or AAD mismatch). The
+ * partial output file is removed before the error propagates so the caller
+ * never observes half-decrypted bytes that look like a valid archive.
+ */
+async function decryptFile(srcPath, dstPath, cfg) {
+    const stat = await fsp.stat(srcPath);
+    if (stat.size < exports.HEADER_BYTES + exports.TAG_BYTES) {
+        throw makeDecryptError("encrypted archive is shorter than header+tag");
+    }
+    const handle = await fsp.open(srcPath, "r");
+    let plaintextBytes = 0;
+    const tmpPath = `${dstPath}.tmp-${process.pid}-${Date.now()}`;
+    try {
+        const headerBuf = Buffer.alloc(exports.HEADER_BYTES);
+        await handle.read(headerBuf, 0, exports.HEADER_BYTES, 0);
+        if (!headerBuf.subarray(0, exports.ENCRYPT_MAGIC.length).equals(exports.ENCRYPT_MAGIC)) {
+            throw makeDecryptError("magic byte mismatch");
+        }
+        const version = headerBuf[exports.ENCRYPT_MAGIC.length];
+        if (version !== exports.ENCRYPT_VERSION) {
+            throw makeDecryptError(`unsupported frame version ${version}`);
+        }
+        const iv = headerBuf.subarray(exports.ENCRYPT_MAGIC.length + 1, exports.HEADER_BYTES);
+        const tagBuf = Buffer.alloc(exports.TAG_BYTES);
+        await handle.read(tagBuf, 0, exports.TAG_BYTES, stat.size - exports.TAG_BYTES);
+        const decipher = crypto.createDecipheriv("aes-256-gcm", cfg.key, iv);
+        decipher.setAAD(cfg.aad);
+        decipher.setAuthTag(tagBuf);
+        const bodyStart = exports.HEADER_BYTES;
+        const bodyEnd = stat.size - exports.TAG_BYTES; // exclusive
+        const reader = fs.createReadStream(srcPath, {
+            start: bodyStart,
+            end: bodyEnd - 1, // inclusive end for createReadStream
+        });
+        const writer = fs.createWriteStream(tmpPath);
+        try {
+            await (0, promises_1.pipeline)(reader, decipher, async function* (source) {
+                for await (const chunk of source) {
+                    plaintextBytes += chunk.length;
+                    yield chunk;
+                }
+            }, writer);
+        }
+        catch (err) {
+            // node:crypto raises "Unsupported state or unable to authenticate data"
+            // on tag mismatch — normalize so callers can `catch (e) { if (e.code === "EAUTHFAIL") ... }`.
+            throw makeDecryptError(err instanceof Error ? err.message : String(err));
+        }
+        await fsp.rename(tmpPath, dstPath);
+    }
+    finally {
+        await handle.close().catch(() => undefined);
+        await fsp.rm(tmpPath, { force: true }).catch(() => undefined);
+    }
+    return { plaintextBytes };
+}
+function makeDecryptError(detail) {
+    const err = new Error(`cache-encrypt: ${detail}`);
+    err.code = "EAUTHFAIL";
+    return err;
+}
+/**
+ * Inspect the first 8 bytes of `filePath`: is it a framed encrypted archive?
+ * Used by decompressCache to dispatch between the plaintext and encrypted
+ * decompression paths.
+ */
+async function isEncryptedArchive(filePath) {
+    let handle = null;
+    try {
+        handle = await fsp.open(filePath, "r");
+        const buf = Buffer.alloc(exports.ENCRYPT_MAGIC.length);
+        const { bytesRead } = await handle.read(buf, 0, exports.ENCRYPT_MAGIC.length, 0);
+        if (bytesRead < exports.ENCRYPT_MAGIC.length)
+            return false;
+        return buf.equals(exports.ENCRYPT_MAGIC);
+    }
+    catch {
+        return false;
+    }
+    finally {
+        if (handle)
+            await handle.close().catch(() => undefined);
+    }
+}
+/**
+ * Read the env-supplied cache-encryption configuration and build a
+ * per-call EncryptionConfig keyed on the supplied cache key. Returns
+ * `null` when no key is configured — the caller should then use the
+ * plaintext path with no extra work.
+ *
+ * The key MUST be `core.setSecret()`-marked by the caller before this
+ * runs so any incidental log line that captures it is auto-redacted.
+ */
+function getEncryptionConfig(opts) {
+    const raw = (opts.env["SETUP_SOLDR_CACHE_ENCRYPT_KEY"] ?? "").trim();
+    if (!raw)
+        return null;
+    const key = parseEncryptionKey(raw);
+    const onFailureRaw = (opts.env["SETUP_SOLDR_CACHE_ENCRYPT_ON_FAILURE"] ?? "error")
+        .trim()
+        .toLowerCase();
+    const onFailure = onFailureRaw === "skip" ? "skip" : "error";
+    return {
+        key,
+        aad: buildAad(opts.cacheKey),
+        onFailure,
+    };
+}
+/**
+ * Convenience: produce a temp file path adjacent to `archivePath` for the
+ * intermediate decrypted artifact. Used by decompressCache.
+ */
+function decryptedTempPathFor(archivePath) {
+    return path.join(path.dirname(archivePath), `.${path.basename(archivePath)}.plain-${process.pid}`);
+}
+/** Test helper: in-memory round trip without disk. Exported only for tests. */
+function _testInMemoryRoundTrip(plaintext, cfg) {
+    const iv = crypto.randomBytes(exports.IV_BYTES);
+    const cipher = crypto.createCipheriv("aes-256-gcm", cfg.key, iv);
+    cipher.setAAD(cfg.aad);
+    const body = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return Buffer.concat([exports.ENCRYPT_MAGIC, Buffer.from([exports.ENCRYPT_VERSION]), iv, body, tag]);
+}
+// Re-export for callers that just want a "where can I write a scratch
+// tmp file that doesn't pollute the runner-temp"; keeps the helper close
+// to where it's consumed.
+exports.tmpdir = os.tmpdir;
+
+
+/***/ }),
+
+/***/ 258:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:process");
+
+/***/ }),
+
+/***/ 259:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getRequestUrl = getRequestUrl;
+exports.appendQueryParams = appendQueryParams;
+const operationHelpers_js_1 = __nccwpck_require__(472);
+const interfaceHelpers_js_1 = __nccwpck_require__(437);
+const CollectionFormatToDelimiterMap = {
+    CSV: ",",
+    SSV: " ",
+    Multi: "Multi",
+    TSV: "\t",
+    Pipes: "|",
+};
+function getRequestUrl(baseUri, operationSpec, operationArguments, fallbackObject) {
+    const urlReplacements = calculateUrlReplacements(operationSpec, operationArguments, fallbackObject);
+    let isAbsolutePath = false;
+    let requestUrl = replaceAll(baseUri, urlReplacements);
+    if (operationSpec.path) {
+        let path = replaceAll(operationSpec.path, urlReplacements);
+        // QUIRK: sometimes we get a path component like /{nextLink}
+        // which may be a fully formed URL with a leading /. In that case, we should
+        // remove the leading /
+        if (operationSpec.path === "/{nextLink}" && path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        // QUIRK: sometimes we get a path component like {nextLink}
+        // which may be a fully formed URL. In that case, we should
+        // ignore the baseUri.
+        if (isAbsoluteUrl(path)) {
+            requestUrl = path;
+            isAbsolutePath = true;
+        }
+        else {
+            requestUrl = appendPath(requestUrl, path);
+        }
+    }
+    const { queryParams, sequenceParams } = calculateQueryParameters(operationSpec, operationArguments, fallbackObject);
+    /**
+     * Notice that this call sets the `noOverwrite` parameter to true if the `requestUrl`
+     * is an absolute path. This ensures that existing query parameter values in `requestUrl`
+     * do not get overwritten. On the other hand when `requestUrl` is not absolute path, it
+     * is still being built so there is nothing to overwrite.
+     */
+    requestUrl = appendQueryParams(requestUrl, queryParams, sequenceParams, isAbsolutePath);
+    return requestUrl;
+}
+function replaceAll(input, replacements) {
+    let result = input;
+    for (const [searchValue, replaceValue] of replacements) {
+        result = result.split(searchValue).join(replaceValue);
+    }
+    return result;
+}
+function calculateUrlReplacements(operationSpec, operationArguments, fallbackObject) {
+    const result = new Map();
+    if (operationSpec.urlParameters?.length) {
+        for (const urlParameter of operationSpec.urlParameters) {
+            let urlParameterValue = (0, operationHelpers_js_1.getOperationArgumentValueFromParameter)(operationArguments, urlParameter, fallbackObject);
+            const parameterPathString = (0, interfaceHelpers_js_1.getPathStringFromParameter)(urlParameter);
+            urlParameterValue = operationSpec.serializer.serialize(urlParameter.mapper, urlParameterValue, parameterPathString);
+            if (!urlParameter.skipEncoding) {
+                urlParameterValue = encodeURIComponent(urlParameterValue);
+            }
+            result.set(`{${urlParameter.mapper.serializedName || parameterPathString}}`, urlParameterValue);
+        }
+    }
+    return result;
+}
+function isAbsoluteUrl(url) {
+    return url.includes("://");
+}
+function appendPath(url, pathToAppend) {
+    if (!pathToAppend) {
+        return url;
+    }
+    const parsedUrl = new URL(url);
+    let newPath = parsedUrl.pathname;
+    if (!newPath.endsWith("/")) {
+        newPath = `${newPath}/`;
+    }
+    if (pathToAppend.startsWith("/")) {
+        pathToAppend = pathToAppend.substring(1);
+    }
+    const searchStart = pathToAppend.indexOf("?");
+    if (searchStart !== -1) {
+        const path = pathToAppend.substring(0, searchStart);
+        const search = pathToAppend.substring(searchStart + 1);
+        newPath = newPath + path;
+        if (search) {
+            parsedUrl.search = parsedUrl.search ? `${parsedUrl.search}&${search}` : search;
+        }
+    }
+    else {
+        newPath = newPath + pathToAppend;
+    }
+    parsedUrl.pathname = newPath;
+    return parsedUrl.toString();
+}
+function calculateQueryParameters(operationSpec, operationArguments, fallbackObject) {
+    const result = new Map();
+    const sequenceParams = new Set();
+    if (operationSpec.queryParameters?.length) {
+        for (const queryParameter of operationSpec.queryParameters) {
+            if (queryParameter.mapper.type.name === "Sequence" && queryParameter.mapper.serializedName) {
+                sequenceParams.add(queryParameter.mapper.serializedName);
+            }
+            let queryParameterValue = (0, operationHelpers_js_1.getOperationArgumentValueFromParameter)(operationArguments, queryParameter, fallbackObject);
+            if ((queryParameterValue !== undefined && queryParameterValue !== null) ||
+                queryParameter.mapper.required) {
+                queryParameterValue = operationSpec.serializer.serialize(queryParameter.mapper, queryParameterValue, (0, interfaceHelpers_js_1.getPathStringFromParameter)(queryParameter));
+                const delimiter = queryParameter.collectionFormat
+                    ? CollectionFormatToDelimiterMap[queryParameter.collectionFormat]
+                    : "";
+                if (Array.isArray(queryParameterValue)) {
+                    // replace null and undefined
+                    queryParameterValue = queryParameterValue.map((item) => {
+                        if (item === null || item === undefined) {
+                            return "";
+                        }
+                        return item;
+                    });
+                }
+                if (queryParameter.collectionFormat === "Multi" && queryParameterValue.length === 0) {
+                    continue;
+                }
+                else if (Array.isArray(queryParameterValue) &&
+                    (queryParameter.collectionFormat === "SSV" || queryParameter.collectionFormat === "TSV")) {
+                    queryParameterValue = queryParameterValue.join(delimiter);
+                }
+                if (!queryParameter.skipEncoding) {
+                    if (Array.isArray(queryParameterValue)) {
+                        queryParameterValue = queryParameterValue.map((item) => {
+                            return encodeURIComponent(item);
+                        });
+                    }
+                    else {
+                        queryParameterValue = encodeURIComponent(queryParameterValue);
+                    }
+                }
+                // Join pipes and CSV *after* encoding, or the server will be upset.
+                if (Array.isArray(queryParameterValue) &&
+                    (queryParameter.collectionFormat === "CSV" || queryParameter.collectionFormat === "Pipes")) {
+                    queryParameterValue = queryParameterValue.join(delimiter);
+                }
+                result.set(queryParameter.mapper.serializedName || (0, interfaceHelpers_js_1.getPathStringFromParameter)(queryParameter), queryParameterValue);
+            }
+        }
+    }
+    return {
+        queryParams: result,
+        sequenceParams,
+    };
+}
+function simpleParseQueryParams(queryString) {
+    const result = new Map();
+    if (!queryString || queryString[0] !== "?") {
+        return result;
+    }
+    // remove the leading ?
+    queryString = queryString.slice(1);
+    const pairs = queryString.split("&");
+    for (const pair of pairs) {
+        const [name, value] = pair.split("=", 2);
+        const existingValue = result.get(name);
+        if (existingValue) {
+            if (Array.isArray(existingValue)) {
+                existingValue.push(value);
+            }
+            else {
+                result.set(name, [existingValue, value]);
+            }
+        }
+        else {
+            result.set(name, value);
+        }
+    }
+    return result;
+}
+/** @internal */
+function appendQueryParams(url, queryParams, sequenceParams, noOverwrite = false) {
+    if (queryParams.size === 0) {
+        return url;
+    }
+    const parsedUrl = new URL(url);
+    // QUIRK: parsedUrl.searchParams will have their name/value pairs decoded, which
+    // can change their meaning to the server, such as in the case of a SAS signature.
+    // To avoid accidentally un-encoding a query param, we parse the key/values ourselves
+    const combinedParams = simpleParseQueryParams(parsedUrl.search);
+    for (const [name, value] of queryParams) {
+        const existingValue = combinedParams.get(name);
+        if (Array.isArray(existingValue)) {
+            if (Array.isArray(value)) {
+                existingValue.push(...value);
+                const valueSet = new Set(existingValue);
+                combinedParams.set(name, Array.from(valueSet));
+            }
+            else {
+                existingValue.push(value);
+            }
+        }
+        else if (existingValue) {
+            if (Array.isArray(value)) {
+                value.unshift(existingValue);
+            }
+            else if (sequenceParams.has(name)) {
+                combinedParams.set(name, [existingValue, value]);
+            }
+            if (!noOverwrite) {
+                combinedParams.set(name, value);
+            }
+        }
+        else {
+            combinedParams.set(name, value);
+        }
+    }
+    const searchPieces = [];
+    for (const [name, value] of combinedParams) {
+        if (typeof value === "string") {
+            searchPieces.push(`${name}=${value}`);
+        }
+        else if (Array.isArray(value)) {
+            // QUIRK: If we get an array of values, include multiple key/value pairs
+            for (const subValue of value) {
+                searchPieces.push(`${name}=${subValue}`);
+            }
+        }
+        else {
+            searchPieces.push(`${name}=${value}`);
+        }
+    }
+    // QUIRK: we have to set search manually as searchParams will encode comma when it shouldn't.
+    parsedUrl.search = searchPieces.length ? `?${searchPieces.join("&")}` : "";
+    return parsedUrl.toString();
+}
+//# sourceMappingURL=urlHelpers.js.map
+
+/***/ }),
+
+/***/ 260:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var decompressResponsePolicy_exports = {};
+__export(decompressResponsePolicy_exports, {
+  decompressResponsePolicy: () => decompressResponsePolicy,
+  decompressResponsePolicyName: () => decompressResponsePolicyName
+});
+module.exports = __toCommonJS(decompressResponsePolicy_exports);
+var import_policies = __nccwpck_require__(315);
+const decompressResponsePolicyName = import_policies.decompressResponsePolicyName;
+function decompressResponsePolicy() {
+  return (0, import_policies.decompressResponsePolicy)();
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 261:
+/***/ ((module) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var ndJsonPolicy_exports = {};
+__export(ndJsonPolicy_exports, {
+  ndJsonPolicy: () => ndJsonPolicy,
+  ndJsonPolicyName: () => ndJsonPolicyName
+});
+module.exports = __toCommonJS(ndJsonPolicy_exports);
+const ndJsonPolicyName = "ndJsonPolicy";
+function ndJsonPolicy() {
+  return {
+    name: ndJsonPolicyName,
+    async sendRequest(request, next) {
+      if (typeof request.body === "string" && request.body.startsWith("[")) {
+        const body = JSON.parse(request.body);
+        if (Array.isArray(body)) {
+          request.body = body.map((item) => JSON.stringify(item) + "\n").join("");
+        }
+      }
+      return next(request);
+    }
+  };
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 262:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Agent = void 0;
+const net = __importStar(__nccwpck_require__(561));
+const http = __importStar(__nccwpck_require__(362));
+const https_1 = __nccwpck_require__(78);
+__exportStar(__nccwpck_require__(176), exports);
+const INTERNAL = Symbol('AgentBaseInternalState');
+class Agent extends http.Agent {
+    constructor(opts) {
+        super(opts);
+        this[INTERNAL] = {};
+    }
+    /**
+     * Determine whether this is an `http` or `https` request.
+     */
+    isSecureEndpoint(options) {
+        if (options) {
+            // First check the `secureEndpoint` property explicitly, since this
+            // means that a parent `Agent` is "passing through" to this instance.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (typeof options.secureEndpoint === 'boolean') {
+                return options.secureEndpoint;
+            }
+            // If no explicit `secure` endpoint, check if `protocol` property is
+            // set. This will usually be the case since using a full string URL
+            // or `URL` instance should be the most common usage.
+            if (typeof options.protocol === 'string') {
+                return options.protocol === 'https:';
+            }
+        }
+        // Finally, if no `protocol` property was set, then fall back to
+        // checking the stack trace of the current call stack, and try to
+        // detect the "https" module.
+        const { stack } = new Error();
+        if (typeof stack !== 'string')
+            return false;
+        return stack
+            .split('\n')
+            .some((l) => l.indexOf('(https.js:') !== -1 ||
+            l.indexOf('node:https:') !== -1);
+    }
+    // In order to support async signatures in `connect()` and Node's native
+    // connection pooling in `http.Agent`, the array of sockets for each origin
+    // has to be updated synchronously. This is so the length of the array is
+    // accurate when `addRequest()` is next called. We achieve this by creating a
+    // fake socket and adding it to `sockets[origin]` and incrementing
+    // `totalSocketCount`.
+    incrementSockets(name) {
+        // If `maxSockets` and `maxTotalSockets` are both Infinity then there is no
+        // need to create a fake socket because Node.js native connection pooling
+        // will never be invoked.
+        if (this.maxSockets === Infinity && this.maxTotalSockets === Infinity) {
+            return null;
+        }
+        // All instances of `sockets` are expected TypeScript errors. The
+        // alternative is to add it as a private property of this class but that
+        // will break TypeScript subclassing.
+        if (!this.sockets[name]) {
+            // @ts-expect-error `sockets` is readonly in `@types/node`
+            this.sockets[name] = [];
+        }
+        const fakeSocket = new net.Socket({ writable: false });
+        this.sockets[name].push(fakeSocket);
+        // @ts-expect-error `totalSocketCount` isn't defined in `@types/node`
+        this.totalSocketCount++;
+        return fakeSocket;
+    }
+    decrementSockets(name, socket) {
+        if (!this.sockets[name] || socket === null) {
+            return;
+        }
+        const sockets = this.sockets[name];
+        const index = sockets.indexOf(socket);
+        if (index !== -1) {
+            sockets.splice(index, 1);
+            // @ts-expect-error  `totalSocketCount` isn't defined in `@types/node`
+            this.totalSocketCount--;
+            if (sockets.length === 0) {
+                // @ts-expect-error `sockets` is readonly in `@types/node`
+                delete this.sockets[name];
+            }
+        }
+    }
+    // In order to properly update the socket pool, we need to call `getName()` on
+    // the core `https.Agent` if it is a secureEndpoint.
+    getName(options) {
+        const secureEndpoint = this.isSecureEndpoint(options);
+        if (secureEndpoint) {
+            // @ts-expect-error `getName()` isn't defined in `@types/node`
+            return https_1.Agent.prototype.getName.call(this, options);
+        }
+        // @ts-expect-error `getName()` isn't defined in `@types/node`
+        return super.getName(options);
+    }
+    createSocket(req, options, cb) {
+        const connectOpts = {
+            ...options,
+            secureEndpoint: this.isSecureEndpoint(options),
+        };
+        const name = this.getName(connectOpts);
+        const fakeSocket = this.incrementSockets(name);
+        Promise.resolve()
+            .then(() => this.connect(req, connectOpts))
+            .then((socket) => {
+            this.decrementSockets(name, fakeSocket);
+            if (socket instanceof http.Agent) {
+                try {
+                    // @ts-expect-error `addRequest()` isn't defined in `@types/node`
+                    return socket.addRequest(req, connectOpts);
+                }
+                catch (err) {
+                    return cb(err);
+                }
+            }
+            this[INTERNAL].currentSocket = socket;
+            // @ts-expect-error `createSocket()` isn't defined in `@types/node`
+            super.createSocket(req, options, cb);
+        }, (err) => {
+            this.decrementSockets(name, fakeSocket);
+            cb(err);
+        });
+    }
+    createConnection() {
+        const socket = this[INTERNAL].currentSocket;
+        this[INTERNAL].currentSocket = undefined;
+        if (!socket) {
+            throw new Error('No socket was returned in the `connect()` function');
+        }
+        return socket;
+    }
+    get defaultPort() {
+        return (this[INTERNAL].defaultPort ??
+            (this.protocol === 'https:' ? 443 : 80));
+    }
+    set defaultPort(v) {
+        if (this[INTERNAL]) {
+            this[INTERNAL].defaultPort = v;
+        }
+    }
+    get protocol() {
+        return (this[INTERNAL].protocol ??
+            (this.isSecureEndpoint() ? 'https:' : 'http:'));
+    }
+    set protocol(v) {
+        if (this[INTERNAL]) {
+            this[INTERNAL].protocol = v;
+        }
+    }
+}
+exports.Agent = Agent;
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 263:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.mergeJsonOptions = exports.jsonWriteOptions = exports.jsonReadOptions = void 0;
+const defaultsWrite = {
+    emitDefaultValues: false,
+    enumAsInteger: false,
+    useProtoFieldName: false,
+    prettySpaces: 0,
+}, defaultsRead = {
+    ignoreUnknownFields: false,
+};
+/**
+ * Make options for reading JSON data from partial options.
+ */
+function jsonReadOptions(options) {
+    return options ? Object.assign(Object.assign({}, defaultsRead), options) : defaultsRead;
+}
+exports.jsonReadOptions = jsonReadOptions;
+/**
+ * Make options for writing JSON data from partial options.
+ */
+function jsonWriteOptions(options) {
+    return options ? Object.assign(Object.assign({}, defaultsWrite), options) : defaultsWrite;
+}
+exports.jsonWriteOptions = jsonWriteOptions;
+/**
+ * Merges JSON write or read options. Later values override earlier values. Type registries are merged.
+ */
+function mergeJsonOptions(a, b) {
+    var _a, _b;
+    let c = Object.assign(Object.assign({}, a), b);
+    c.typeRegistry = [...((_a = a === null || a === void 0 ? void 0 : a.typeRegistry) !== null && _a !== void 0 ? _a : []), ...((_b = b === null || b === void 0 ? void 0 : b.typeRegistry) !== null && _b !== void 0 ? _b : [])];
+    return c;
+}
+exports.mergeJsonOptions = mergeJsonOptions;
+
+
+/***/ }),
+
+/***/ 264:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var httpHeaders_exports = {};
+__export(httpHeaders_exports, {
+  createHttpHeaders: () => createHttpHeaders
+});
+module.exports = __toCommonJS(httpHeaders_exports);
+var import_ts_http_runtime = __nccwpck_require__(102);
+function createHttpHeaders(rawHeaders) {
+  return (0, import_ts_http_runtime.createHttpHeaders)(rawHeaders);
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 265:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.assertTargetOperationSupported = assertTargetOperationSupported;
+exports.normalizeTargetPlan = normalizeTargetPlan;
+exports.buildUniversal2TargetContract = buildUniversal2TargetContract;
+exports.mergeTargetEnvironment = mergeTargetEnvironment;
+exports.buildTargetHooks = buildTargetHooks;
+exports.buildTargetOperationOutputs = buildTargetOperationOutputs;
+exports.targetArtifactDirectory = targetArtifactDirectory;
+const path = __importStar(__nccwpck_require__(560));
+/** Fail before invoking an operation that Soldr did not advertise. */
+function assertTargetOperationSupported(contract, operation) {
+    const requested = operation.trim();
+    if (!requested || contract.supportedOperations.includes(requested))
+        return;
+    const reported = contract.supportedOperations.length > 0
+        ? contract.supportedOperations.join(", ")
+        : "none";
+    throw new Error(`Soldr target plan for ${contract.canonicalTarget} does not support requested operation '${requested}'; reported: ${reported}`);
+}
+function stringRecord(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+        return {};
+    return Object.fromEntries(Object.entries(value).filter((entry) => typeof entry[1] === "string"));
+}
+function objectRecord(value) {
+    return value && typeof value === "object" && !Array.isArray(value)
+        ? value
+        : {};
+}
+/** Convert Soldr's snake-case JSON into setup-soldr's stable output contract. */
+function normalizeTargetPlan(fallbackTarget, raw) {
+    const root = objectRecord(raw);
+    const targetPlan = objectRecord(root["target_plan"]);
+    const target = String(targetPlan["canonical_target"] ?? root["rust_triple"] ?? fallbackTarget).trim();
+    const supported = Array.isArray(targetPlan["supported_operations"])
+        ? targetPlan["supported_operations"].filter((v) => typeof v === "string")
+        : [];
+    return {
+        schemaVersion: Number(targetPlan["schema_version"] ?? root["schema_version"] ?? 1),
+        canonicalTarget: target,
+        cacheIdentity: String(targetPlan["cache_identity"] ?? target),
+        supportedOperations: supported,
+        environment: stringRecord(root["env"]),
+        toolchain: objectRecord(targetPlan["toolchain"]),
+        platform: objectRecord(targetPlan["platform"]),
+    };
+}
+/** Aggregate two real Apple target plans into a packaging-only universal2 contract. */
+function buildUniversal2TargetContract(contracts) {
+    const expected = ["aarch64-apple-darwin", "x86_64-apple-darwin"];
+    const ordered = [...contracts].sort((a, b) => a.canonicalTarget.localeCompare(b.canonicalTarget));
+    if (ordered.length !== expected.length || ordered.some((contract, index) => contract.canonicalTarget !== expected[index])) {
+        throw new Error(`universal2-apple-darwin requires target plans for ${expected.join(" and ")}`);
+    }
+    const sharedOperations = ordered[0].supportedOperations.filter((operation) => ordered.every((contract) => contract.supportedOperations.includes(operation)));
+    const packagingOperations = sharedOperations.filter((operation) => operation === "prepare" || operation === "pep517-wheel" || operation === "pep517-sdist");
+    return {
+        schemaVersion: Math.max(...ordered.map((contract) => contract.schemaVersion)),
+        canonicalTarget: "universal2-apple-darwin",
+        cacheIdentity: `universal2/${ordered.map((contract) => contract.cacheIdentity).join("+")}`,
+        supportedOperations: packagingOperations,
+        environment: Object.assign({}, ...ordered.map((contract) => contract.environment)),
+        toolchain: {
+            family: "apple-universal2-packaging",
+            realTargets: ordered.map((contract) => ({
+                canonicalTarget: contract.canonicalTarget,
+                cacheIdentity: contract.cacheIdentity,
+                supportedOperations: contract.supportedOperations,
+                toolchain: contract.toolchain,
+            })),
+        },
+        platform: {
+            kind: "apple-universal2-packaging",
+            realTargets: ordered.map((contract) => ({
+                canonicalTarget: contract.canonicalTarget,
+                platform: contract.platform,
+            })),
+        },
+    };
+}
+function isMergeableFlag(key) {
+    return key === "RUSTFLAGS"
+        || key.endsWith("_RUSTFLAGS")
+        || key.startsWith("CFLAGS_")
+        || key.startsWith("CXXFLAGS_")
+        || key.startsWith("LDFLAGS_")
+        || key.endsWith("_CFLAGS")
+        || key.endsWith("_CXXFLAGS")
+        || key.endsWith("_LDFLAGS");
+}
+/** Merge target-scoped flags without discarding project-provided flags. */
+function mergeTargetEnvironment(existing, planned) {
+    const merged = Object.fromEntries(Object.entries(existing).filter((entry) => typeof entry[1] === "string"));
+    for (const [key, value] of Object.entries(planned)) {
+        const prior = existing[key]?.trim() ?? "";
+        const next = value.trim();
+        if (isMergeableFlag(key) && prior && next) {
+            merged[key] = `${prior} ${next}`;
+        }
+        else {
+            merged[key] = next || prior;
+        }
+    }
+    return merged;
+}
+function buildTargetHooks(target) {
+    const canonical = target.trim();
+    return {
+        build: `soldr build --target ${canonical}`,
+        clippy: `soldr cargo clippy --target ${canonical}`,
+        testNoRun: `soldr cargo test --no-run --target ${canonical}`,
+        pep517Wheel: "python -m build --wheel",
+        pep517Sdist: "python -m build --sdist",
+    };
+}
+/** Expose only operation hooks that the target contract says are callable. */
+function buildTargetOperationOutputs(workspace, contract) {
+    const hooks = buildTargetHooks(contract.canonicalTarget);
+    const supports = (operation) => contract.supportedOperations.includes(operation);
+    return {
+        artifactDirectory: supports("build")
+            ? targetArtifactDirectory(workspace, contract.canonicalTarget)
+            : "",
+        build: supports("build") ? hooks.build : "",
+        clippy: supports("clippy") ? hooks.clippy : "",
+        testNoRun: supports("test-no-run") ? hooks.testNoRun : "",
+        pep517Wheel: supports("pep517-wheel") ? hooks.pep517Wheel : "",
+        pep517Sdist: supports("pep517-sdist") ? hooks.pep517Sdist : "",
+    };
+}
+function targetArtifactDirectory(workspace, target) {
+    return path.join(workspace, "target", target);
+}
+
+
+/***/ }),
+
+/***/ 266:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LroEngine = void 0;
+var lroEngine_js_1 = __nccwpck_require__(193);
+Object.defineProperty(exports, "LroEngine", ({ enumerable: true, get: function () { return lroEngine_js_1.LroEngine; } }));
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 267:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var pipeline_exports = {};
+__export(pipeline_exports, {
+  createEmptyPipeline: () => createEmptyPipeline
+});
+module.exports = __toCommonJS(pipeline_exports);
+var import_ts_http_runtime = __nccwpck_require__(102);
+function createEmptyPipeline() {
+  return (0, import_ts_http_runtime.createEmptyPipeline)();
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 268:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -48649,20 +57368,20 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.shouldSkipCargoRegistryExtractionError = shouldSkipCargoRegistryExtractionError;
 exports.resolveRuntimeCacheFlags = resolveRuntimeCacheFlags;
 exports.run = run;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const os = __importStar(__nccwpck_require__(414));
 const path = __importStar(__nccwpck_require__(560));
-const node_child_process_1 = __nccwpck_require__(215);
+const node_child_process_1 = __nccwpck_require__(214);
 const core = __importStar(__nccwpck_require__(504));
 const s3_cache_js_1 = __nccwpck_require__(304);
-const cache = __importStar(__nccwpck_require__(232));
+const cache = __importStar(__nccwpck_require__(231));
 const exec = __importStar(__nccwpck_require__(18));
-const log_utils_js_1 = __nccwpck_require__(277);
+const log_utils_js_1 = __nccwpck_require__(278);
 const ancestor_cache_js_1 = __nccwpck_require__(354);
 const ancestor_cache_telemetry_js_1 = __nccwpck_require__(128);
 const ancestor_cache_github_js_1 = __nccwpck_require__(547);
 const cache_keys_js_1 = __nccwpck_require__(340);
-const resolve_setup_js_1 = __nccwpck_require__(285);
+const resolve_setup_js_1 = __nccwpck_require__(237);
 const bootstrap_soldr_js_1 = __nccwpck_require__(418);
 const local_profile_js_1 = __nccwpck_require__(70);
 const phase_timing_js_1 = __nccwpck_require__(569);
@@ -48690,10 +57409,10 @@ const cook_cache_js_1 = __nccwpck_require__(538);
 const soldr_mini_cache_js_1 = __nccwpck_require__(426);
 const diagnostics_js_1 = __nccwpck_require__(512);
 const shim_bypass_check_js_1 = __nccwpck_require__(342);
-const blessed_cross_prepare_js_1 = __nccwpck_require__(274);
+const blessed_cross_prepare_js_1 = __nccwpck_require__(275);
 const target_lifecycle_js_1 = __nccwpck_require__(265);
 const source_mtime_snapshot_js_1 = __nccwpck_require__(54);
-const yank_audit_js_1 = __nccwpck_require__(229);
+const yank_audit_js_1 = __nccwpck_require__(228);
 /**
  * Map (hit, matchedKey) → workflow-visible restore-status string.
  * Mirrors post.ts's `RestoreStatus` so both phases emit the same vocabulary
@@ -50592,7140 +59311,7 @@ if (typeof process !== "undefined" &&
 
 /***/ }),
 
-/***/ 215:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:child_process");
-
-/***/ }),
-
-/***/ 216:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("util/types");
-
-/***/ }),
-
-/***/ 217:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const { promisify } = __nccwpck_require__(138)
-const Client = __nccwpck_require__(100)
-const { buildMockDispatch } = __nccwpck_require__(7)
-const {
-  kDispatches,
-  kMockAgent,
-  kClose,
-  kOriginalClose,
-  kOrigin,
-  kOriginalDispatch,
-  kConnected
-} = __nccwpck_require__(518)
-const { MockInterceptor } = __nccwpck_require__(152)
-const Symbols = __nccwpck_require__(211)
-const { InvalidArgumentError } = __nccwpck_require__(537)
-
-/**
- * MockClient provides an API that extends the Client to influence the mockDispatches.
- */
-class MockClient extends Client {
-  constructor (origin, opts) {
-    super(origin, opts)
-
-    if (!opts || !opts.agent || typeof opts.agent.dispatch !== 'function') {
-      throw new InvalidArgumentError('Argument opts.agent must implement Agent')
-    }
-
-    this[kMockAgent] = opts.agent
-    this[kOrigin] = origin
-    this[kDispatches] = []
-    this[kConnected] = 1
-    this[kOriginalDispatch] = this.dispatch
-    this[kOriginalClose] = this.close.bind(this)
-
-    this.dispatch = buildMockDispatch.call(this)
-    this.close = this[kClose]
-  }
-
-  get [Symbols.kConnected] () {
-    return this[kConnected]
-  }
-
-  /**
-   * Sets up the base interceptor for mocking replies from undici.
-   */
-  intercept (opts) {
-    return new MockInterceptor(opts, this[kDispatches])
-  }
-
-  async [kClose] () {
-    await promisify(this[kOriginalClose])()
-    this[kConnected] = 0
-    this[kMockAgent][Symbols.kClients].delete(this[kOrigin])
-  }
-}
-
-module.exports = MockClient
-
-
-/***/ }),
-
-/***/ 218:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var sha256_exports = {};
-__export(sha256_exports, {
-  computeSha256Hash: () => computeSha256Hash,
-  computeSha256Hmac: () => computeSha256Hmac
-});
-module.exports = __toCommonJS(sha256_exports);
-var import_node_crypto = __nccwpck_require__(301);
-async function computeSha256Hmac(key, stringToSign, encoding) {
-  const decodedKey = Buffer.from(key, "base64");
-  return (0, import_node_crypto.createHmac)("sha256", decodedKey).update(stringToSign).digest(encoding);
-}
-async function computeSha256Hash(content, encoding) {
-  return (0, import_node_crypto.createHash)("sha256").update(content).digest(encoding);
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-//# sourceMappingURL=sha256.js.map
-
-
-/***/ }),
-
-/***/ 219:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BlobQueryResponse = void 0;
-const core_util_1 = __nccwpck_require__(14);
-const BlobQuickQueryStream_js_1 = __nccwpck_require__(552);
-/**
- * ONLY AVAILABLE IN NODE.JS RUNTIME.
- *
- * BlobQueryResponse implements BlobDownloadResponseModel interface, and in Node.js runtime it will
- * parse avro data returned by blob query.
- */
-class BlobQueryResponse {
-    /**
-     * Indicates that the service supports
-     * requests for partial file content.
-     *
-     * @readonly
-     */
-    get acceptRanges() {
-        return this.originalResponse.acceptRanges;
-    }
-    /**
-     * Returns if it was previously specified
-     * for the file.
-     *
-     * @readonly
-     */
-    get cacheControl() {
-        return this.originalResponse.cacheControl;
-    }
-    /**
-     * Returns the value that was specified
-     * for the 'x-ms-content-disposition' header and specifies how to process the
-     * response.
-     *
-     * @readonly
-     */
-    get contentDisposition() {
-        return this.originalResponse.contentDisposition;
-    }
-    /**
-     * Returns the value that was specified
-     * for the Content-Encoding request header.
-     *
-     * @readonly
-     */
-    get contentEncoding() {
-        return this.originalResponse.contentEncoding;
-    }
-    /**
-     * Returns the value that was specified
-     * for the Content-Language request header.
-     *
-     * @readonly
-     */
-    get contentLanguage() {
-        return this.originalResponse.contentLanguage;
-    }
-    /**
-     * The current sequence number for a
-     * page blob. This header is not returned for block blobs or append blobs.
-     *
-     * @readonly
-     */
-    get blobSequenceNumber() {
-        return this.originalResponse.blobSequenceNumber;
-    }
-    /**
-     * The blob's type. Possible values include:
-     * 'BlockBlob', 'PageBlob', 'AppendBlob'.
-     *
-     * @readonly
-     */
-    get blobType() {
-        return this.originalResponse.blobType;
-    }
-    /**
-     * The number of bytes present in the
-     * response body.
-     *
-     * @readonly
-     */
-    get contentLength() {
-        return this.originalResponse.contentLength;
-    }
-    /**
-     * If the file has an MD5 hash and the
-     * request is to read the full file, this response header is returned so that
-     * the client can check for message content integrity. If the request is to
-     * read a specified range and the 'x-ms-range-get-content-md5' is set to
-     * true, then the request returns an MD5 hash for the range, as long as the
-     * range size is less than or equal to 4 MB. If neither of these sets of
-     * conditions is true, then no value is returned for the 'Content-MD5'
-     * header.
-     *
-     * @readonly
-     */
-    get contentMD5() {
-        return this.originalResponse.contentMD5;
-    }
-    /**
-     * Indicates the range of bytes returned if
-     * the client requested a subset of the file by setting the Range request
-     * header.
-     *
-     * @readonly
-     */
-    get contentRange() {
-        return this.originalResponse.contentRange;
-    }
-    /**
-     * The content type specified for the file.
-     * The default content type is 'application/octet-stream'
-     *
-     * @readonly
-     */
-    get contentType() {
-        return this.originalResponse.contentType;
-    }
-    /**
-     * Conclusion time of the last attempted
-     * Copy File operation where this file was the destination file. This value
-     * can specify the time of a completed, aborted, or failed copy attempt.
-     *
-     * @readonly
-     */
-    get copyCompletedOn() {
-        return undefined;
-    }
-    /**
-     * String identifier for the last attempted Copy
-     * File operation where this file was the destination file.
-     *
-     * @readonly
-     */
-    get copyId() {
-        return this.originalResponse.copyId;
-    }
-    /**
-     * Contains the number of bytes copied and
-     * the total bytes in the source in the last attempted Copy File operation
-     * where this file was the destination file. Can show between 0 and
-     * Content-Length bytes copied.
-     *
-     * @readonly
-     */
-    get copyProgress() {
-        return this.originalResponse.copyProgress;
-    }
-    /**
-     * URL up to 2KB in length that specifies the
-     * source file used in the last attempted Copy File operation where this file
-     * was the destination file.
-     *
-     * @readonly
-     */
-    get copySource() {
-        return this.originalResponse.copySource;
-    }
-    /**
-     * State of the copy operation
-     * identified by 'x-ms-copy-id'. Possible values include: 'pending',
-     * 'success', 'aborted', 'failed'
-     *
-     * @readonly
-     */
-    get copyStatus() {
-        return this.originalResponse.copyStatus;
-    }
-    /**
-     * Only appears when
-     * x-ms-copy-status is failed or pending. Describes cause of fatal or
-     * non-fatal copy operation failure.
-     *
-     * @readonly
-     */
-    get copyStatusDescription() {
-        return this.originalResponse.copyStatusDescription;
-    }
-    /**
-     * When a blob is leased,
-     * specifies whether the lease is of infinite or fixed duration. Possible
-     * values include: 'infinite', 'fixed'.
-     *
-     * @readonly
-     */
-    get leaseDuration() {
-        return this.originalResponse.leaseDuration;
-    }
-    /**
-     * Lease state of the blob. Possible
-     * values include: 'available', 'leased', 'expired', 'breaking', 'broken'.
-     *
-     * @readonly
-     */
-    get leaseState() {
-        return this.originalResponse.leaseState;
-    }
-    /**
-     * The current lease status of the
-     * blob. Possible values include: 'locked', 'unlocked'.
-     *
-     * @readonly
-     */
-    get leaseStatus() {
-        return this.originalResponse.leaseStatus;
-    }
-    /**
-     * A UTC date/time value generated by the service that
-     * indicates the time at which the response was initiated.
-     *
-     * @readonly
-     */
-    get date() {
-        return this.originalResponse.date;
-    }
-    /**
-     * The number of committed blocks
-     * present in the blob. This header is returned only for append blobs.
-     *
-     * @readonly
-     */
-    get blobCommittedBlockCount() {
-        return this.originalResponse.blobCommittedBlockCount;
-    }
-    /**
-     * The ETag contains a value that you can use to
-     * perform operations conditionally, in quotes.
-     *
-     * @readonly
-     */
-    get etag() {
-        return this.originalResponse.etag;
-    }
-    /**
-     * The error code.
-     *
-     * @readonly
-     */
-    get errorCode() {
-        return this.originalResponse.errorCode;
-    }
-    /**
-     * The value of this header is set to
-     * true if the file data and application metadata are completely encrypted
-     * using the specified algorithm. Otherwise, the value is set to false (when
-     * the file is unencrypted, or if only parts of the file/application metadata
-     * are encrypted).
-     *
-     * @readonly
-     */
-    get isServerEncrypted() {
-        return this.originalResponse.isServerEncrypted;
-    }
-    /**
-     * If the blob has a MD5 hash, and if
-     * request contains range header (Range or x-ms-range), this response header
-     * is returned with the value of the whole blob's MD5 value. This value may
-     * or may not be equal to the value returned in Content-MD5 header, with the
-     * latter calculated from the requested range.
-     *
-     * @readonly
-     */
-    get blobContentMD5() {
-        return this.originalResponse.blobContentMD5;
-    }
-    /**
-     * Returns the date and time the file was last
-     * modified. Any operation that modifies the file or its properties updates
-     * the last modified time.
-     *
-     * @readonly
-     */
-    get lastModified() {
-        return this.originalResponse.lastModified;
-    }
-    /**
-     * A name-value pair
-     * to associate with a file storage object.
-     *
-     * @readonly
-     */
-    get metadata() {
-        return this.originalResponse.metadata;
-    }
-    /**
-     * This header uniquely identifies the request
-     * that was made and can be used for troubleshooting the request.
-     *
-     * @readonly
-     */
-    get requestId() {
-        return this.originalResponse.requestId;
-    }
-    /**
-     * If a client request id header is sent in the request, this header will be present in the
-     * response with the same value.
-     *
-     * @readonly
-     */
-    get clientRequestId() {
-        return this.originalResponse.clientRequestId;
-    }
-    /**
-     * Indicates the version of the File service used
-     * to execute the request.
-     *
-     * @readonly
-     */
-    get version() {
-        return this.originalResponse.version;
-    }
-    /**
-     * The SHA-256 hash of the encryption key used to encrypt the blob. This value is only returned
-     * when the blob was encrypted with a customer-provided key.
-     *
-     * @readonly
-     */
-    get encryptionKeySha256() {
-        return this.originalResponse.encryptionKeySha256;
-    }
-    /**
-     * If the request is to read a specified range and the x-ms-range-get-content-crc64 is set to
-     * true, then the request returns a crc64 for the range, as long as the range size is less than
-     * or equal to 4 MB. If both x-ms-range-get-content-crc64 & x-ms-range-get-content-md5 is
-     * specified in the same request, it will fail with 400(Bad Request)
-     */
-    get contentCrc64() {
-        return this.originalResponse.contentCrc64;
-    }
-    /**
-     * The response body as a browser Blob.
-     * Always undefined in node.js.
-     *
-     * @readonly
-     */
-    get blobBody() {
-        return undefined;
-    }
-    /**
-     * The response body as a node.js Readable stream.
-     * Always undefined in the browser.
-     *
-     * It will parse avor data returned by blob query.
-     *
-     * @readonly
-     */
-    get readableStreamBody() {
-        return core_util_1.isNodeLike ? this.blobDownloadStream : undefined;
-    }
-    /**
-     * The HTTP response.
-     */
-    get _response() {
-        return this.originalResponse._response;
-    }
-    originalResponse;
-    blobDownloadStream;
-    /**
-     * Creates an instance of BlobQueryResponse.
-     *
-     * @param originalResponse -
-     * @param options -
-     */
-    constructor(originalResponse, options = {}) {
-        this.originalResponse = originalResponse;
-        this.blobDownloadStream = new BlobQuickQueryStream_js_1.BlobQuickQueryStream(this.originalResponse.readableStreamBody, options);
-    }
-}
-exports.BlobQueryResponse = BlobQueryResponse;
-//# sourceMappingURL=BlobQueryResponse.js.map
-
-/***/ }),
-
-/***/ 220:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fsCreateReadStream = exports.fsStat = void 0;
-exports.streamToBuffer = streamToBuffer;
-exports.streamToBuffer2 = streamToBuffer2;
-exports.streamToBuffer3 = streamToBuffer3;
-exports.readStreamToLocalFile = readStreamToLocalFile;
-const tslib_1 = __nccwpck_require__(235);
-const node_fs_1 = tslib_1.__importDefault(__nccwpck_require__(271));
-const node_util_1 = tslib_1.__importDefault(__nccwpck_require__(407));
-const constants_js_1 = __nccwpck_require__(164);
-/**
- * Reads a readable stream into buffer. Fill the buffer from offset to end.
- *
- * @param stream - A Node.js Readable stream
- * @param buffer - Buffer to be filled, length must greater than or equal to offset
- * @param offset - From which position in the buffer to be filled, inclusive
- * @param end - To which position in the buffer to be filled, exclusive
- * @param encoding - Encoding of the Readable stream
- */
-async function streamToBuffer(stream, buffer, offset, end, encoding) {
-    let pos = 0; // Position in stream
-    const count = end - offset; // Total amount of data needed in stream
-    return new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error(`The operation cannot be completed in timeout.`)), constants_js_1.REQUEST_TIMEOUT);
-        stream.on("readable", () => {
-            if (pos >= count) {
-                clearTimeout(timeout);
-                resolve();
-                return;
-            }
-            let chunk = stream.read();
-            if (!chunk) {
-                return;
-            }
-            if (typeof chunk === "string") {
-                chunk = Buffer.from(chunk, encoding);
-            }
-            // How much data needed in this chunk
-            const chunkLength = pos + chunk.length > count ? count - pos : chunk.length;
-            buffer.fill(chunk.slice(0, chunkLength), offset + pos, offset + pos + chunkLength);
-            pos += chunkLength;
-        });
-        stream.on("end", () => {
-            clearTimeout(timeout);
-            if (pos < count) {
-                reject(new Error(`Stream drains before getting enough data needed. Data read: ${pos}, data need: ${count}`));
-            }
-            resolve();
-        });
-        stream.on("error", (msg) => {
-            clearTimeout(timeout);
-            reject(msg);
-        });
-    });
-}
-/**
- * Reads a readable stream into buffer entirely.
- *
- * @param stream - A Node.js Readable stream
- * @param buffer - Buffer to be filled, length must greater than or equal to offset
- * @param encoding - Encoding of the Readable stream
- * @returns with the count of bytes read.
- * @throws `RangeError` If buffer size is not big enough.
- */
-async function streamToBuffer2(stream, buffer, encoding) {
-    let pos = 0; // Position in stream
-    const bufferSize = buffer.length;
-    return new Promise((resolve, reject) => {
-        stream.on("readable", () => {
-            let chunk = stream.read();
-            if (!chunk) {
-                return;
-            }
-            if (typeof chunk === "string") {
-                chunk = Buffer.from(chunk, encoding);
-            }
-            if (pos + chunk.length > bufferSize) {
-                reject(new Error(`Stream exceeds buffer size. Buffer size: ${bufferSize}`));
-                return;
-            }
-            buffer.fill(chunk, pos, pos + chunk.length);
-            pos += chunk.length;
-        });
-        stream.on("end", () => {
-            resolve(pos);
-        });
-        stream.on("error", reject);
-    });
-}
-/**
- * Reads a readable stream into a buffer.
- *
- * @param stream - A Node.js Readable stream
- * @param encoding - Encoding of the Readable stream
- * @returns with the count of bytes read.
- */
-async function streamToBuffer3(readableStream, encoding) {
-    return new Promise((resolve, reject) => {
-        const chunks = [];
-        readableStream.on("data", (data) => {
-            chunks.push(typeof data === "string" ? Buffer.from(data, encoding) : data);
-        });
-        readableStream.on("end", () => {
-            resolve(Buffer.concat(chunks));
-        });
-        readableStream.on("error", reject);
-    });
-}
-/**
- * ONLY AVAILABLE IN NODE.JS RUNTIME.
- *
- * Writes the content of a readstream to a local file. Returns a Promise which is completed after the file handle is closed.
- *
- * @param rs - The read stream.
- * @param file - Destination file path.
- */
-async function readStreamToLocalFile(rs, file) {
-    return new Promise((resolve, reject) => {
-        const ws = node_fs_1.default.createWriteStream(file);
-        rs.on("error", (err) => {
-            reject(err);
-        });
-        ws.on("error", (err) => {
-            reject(err);
-        });
-        ws.on("close", resolve);
-        rs.pipe(ws);
-    });
-}
-/**
- * ONLY AVAILABLE IN NODE.JS RUNTIME.
- *
- * Promisified version of fs.stat().
- */
-exports.fsStat = node_util_1.default.promisify(node_fs_1.default.stat);
-exports.fsCreateReadStream = node_fs_1.default.createReadStream;
-//# sourceMappingURL=utils.js.map
-
-/***/ }),
-
-/***/ 221:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-// Copyright 2008 Google Inc.  All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-// * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Code generated by the Protocol Buffer compiler is owned by the owner
-// of the input file used when generating it.  This code is not
-// standalone and requires a support library to be linked with it.  This
-// support library is itself covered by the above license.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.varint32read = exports.varint32write = exports.int64toString = exports.int64fromString = exports.varint64write = exports.varint64read = void 0;
-/**
- * Read a 64 bit varint as two JS numbers.
- *
- * Returns tuple:
- * [0]: low bits
- * [0]: high bits
- *
- * Copyright 2008 Google Inc.  All rights reserved.
- *
- * See https://github.com/protocolbuffers/protobuf/blob/8a71927d74a4ce34efe2d8769fda198f52d20d12/js/experimental/runtime/kernel/buffer_decoder.js#L175
- */
-function varint64read() {
-    let lowBits = 0;
-    let highBits = 0;
-    for (let shift = 0; shift < 28; shift += 7) {
-        let b = this.buf[this.pos++];
-        lowBits |= (b & 0x7F) << shift;
-        if ((b & 0x80) == 0) {
-            this.assertBounds();
-            return [lowBits, highBits];
-        }
-    }
-    let middleByte = this.buf[this.pos++];
-    // last four bits of the first 32 bit number
-    lowBits |= (middleByte & 0x0F) << 28;
-    // 3 upper bits are part of the next 32 bit number
-    highBits = (middleByte & 0x70) >> 4;
-    if ((middleByte & 0x80) == 0) {
-        this.assertBounds();
-        return [lowBits, highBits];
-    }
-    for (let shift = 3; shift <= 31; shift += 7) {
-        let b = this.buf[this.pos++];
-        highBits |= (b & 0x7F) << shift;
-        if ((b & 0x80) == 0) {
-            this.assertBounds();
-            return [lowBits, highBits];
-        }
-    }
-    throw new Error('invalid varint');
-}
-exports.varint64read = varint64read;
-/**
- * Write a 64 bit varint, given as two JS numbers, to the given bytes array.
- *
- * Copyright 2008 Google Inc.  All rights reserved.
- *
- * See https://github.com/protocolbuffers/protobuf/blob/8a71927d74a4ce34efe2d8769fda198f52d20d12/js/experimental/runtime/kernel/writer.js#L344
- */
-function varint64write(lo, hi, bytes) {
-    for (let i = 0; i < 28; i = i + 7) {
-        const shift = lo >>> i;
-        const hasNext = !((shift >>> 7) == 0 && hi == 0);
-        const byte = (hasNext ? shift | 0x80 : shift) & 0xFF;
-        bytes.push(byte);
-        if (!hasNext) {
-            return;
-        }
-    }
-    const splitBits = ((lo >>> 28) & 0x0F) | ((hi & 0x07) << 4);
-    const hasMoreBits = !((hi >> 3) == 0);
-    bytes.push((hasMoreBits ? splitBits | 0x80 : splitBits) & 0xFF);
-    if (!hasMoreBits) {
-        return;
-    }
-    for (let i = 3; i < 31; i = i + 7) {
-        const shift = hi >>> i;
-        const hasNext = !((shift >>> 7) == 0);
-        const byte = (hasNext ? shift | 0x80 : shift) & 0xFF;
-        bytes.push(byte);
-        if (!hasNext) {
-            return;
-        }
-    }
-    bytes.push((hi >>> 31) & 0x01);
-}
-exports.varint64write = varint64write;
-// constants for binary math
-const TWO_PWR_32_DBL = (1 << 16) * (1 << 16);
-/**
- * Parse decimal string of 64 bit integer value as two JS numbers.
- *
- * Returns tuple:
- * [0]: minus sign?
- * [1]: low bits
- * [2]: high bits
- *
- * Copyright 2008 Google Inc.
- */
-function int64fromString(dec) {
-    // Check for minus sign.
-    let minus = dec[0] == '-';
-    if (minus)
-        dec = dec.slice(1);
-    // Work 6 decimal digits at a time, acting like we're converting base 1e6
-    // digits to binary. This is safe to do with floating point math because
-    // Number.isSafeInteger(ALL_32_BITS * 1e6) == true.
-    const base = 1e6;
-    let lowBits = 0;
-    let highBits = 0;
-    function add1e6digit(begin, end) {
-        // Note: Number('') is 0.
-        const digit1e6 = Number(dec.slice(begin, end));
-        highBits *= base;
-        lowBits = lowBits * base + digit1e6;
-        // Carry bits from lowBits to highBits
-        if (lowBits >= TWO_PWR_32_DBL) {
-            highBits = highBits + ((lowBits / TWO_PWR_32_DBL) | 0);
-            lowBits = lowBits % TWO_PWR_32_DBL;
-        }
-    }
-    add1e6digit(-24, -18);
-    add1e6digit(-18, -12);
-    add1e6digit(-12, -6);
-    add1e6digit(-6);
-    return [minus, lowBits, highBits];
-}
-exports.int64fromString = int64fromString;
-/**
- * Format 64 bit integer value (as two JS numbers) to decimal string.
- *
- * Copyright 2008 Google Inc.
- */
-function int64toString(bitsLow, bitsHigh) {
-    // Skip the expensive conversion if the number is small enough to use the
-    // built-in conversions.
-    if ((bitsHigh >>> 0) <= 0x1FFFFF) {
-        return '' + (TWO_PWR_32_DBL * bitsHigh + (bitsLow >>> 0));
-    }
-    // What this code is doing is essentially converting the input number from
-    // base-2 to base-1e7, which allows us to represent the 64-bit range with
-    // only 3 (very large) digits. Those digits are then trivial to convert to
-    // a base-10 string.
-    // The magic numbers used here are -
-    // 2^24 = 16777216 = (1,6777216) in base-1e7.
-    // 2^48 = 281474976710656 = (2,8147497,6710656) in base-1e7.
-    // Split 32:32 representation into 16:24:24 representation so our
-    // intermediate digits don't overflow.
-    let low = bitsLow & 0xFFFFFF;
-    let mid = (((bitsLow >>> 24) | (bitsHigh << 8)) >>> 0) & 0xFFFFFF;
-    let high = (bitsHigh >> 16) & 0xFFFF;
-    // Assemble our three base-1e7 digits, ignoring carries. The maximum
-    // value in a digit at this step is representable as a 48-bit integer, which
-    // can be stored in a 64-bit floating point number.
-    let digitA = low + (mid * 6777216) + (high * 6710656);
-    let digitB = mid + (high * 8147497);
-    let digitC = (high * 2);
-    // Apply carries from A to B and from B to C.
-    let base = 10000000;
-    if (digitA >= base) {
-        digitB += Math.floor(digitA / base);
-        digitA %= base;
-    }
-    if (digitB >= base) {
-        digitC += Math.floor(digitB / base);
-        digitB %= base;
-    }
-    // Convert base-1e7 digits to base-10, with optional leading zeroes.
-    function decimalFrom1e7(digit1e7, needLeadingZeros) {
-        let partial = digit1e7 ? String(digit1e7) : '';
-        if (needLeadingZeros) {
-            return '0000000'.slice(partial.length) + partial;
-        }
-        return partial;
-    }
-    return decimalFrom1e7(digitC, /*needLeadingZeros=*/ 0) +
-        decimalFrom1e7(digitB, /*needLeadingZeros=*/ digitC) +
-        // If the final 1e7 digit didn't need leading zeros, we would have
-        // returned via the trivial code path at the top.
-        decimalFrom1e7(digitA, /*needLeadingZeros=*/ 1);
-}
-exports.int64toString = int64toString;
-/**
- * Write a 32 bit varint, signed or unsigned. Same as `varint64write(0, value, bytes)`
- *
- * Copyright 2008 Google Inc.  All rights reserved.
- *
- * See https://github.com/protocolbuffers/protobuf/blob/1b18833f4f2a2f681f4e4a25cdf3b0a43115ec26/js/binary/encoder.js#L144
- */
-function varint32write(value, bytes) {
-    if (value >= 0) {
-        // write value as varint 32
-        while (value > 0x7f) {
-            bytes.push((value & 0x7f) | 0x80);
-            value = value >>> 7;
-        }
-        bytes.push(value);
-    }
-    else {
-        for (let i = 0; i < 9; i++) {
-            bytes.push(value & 127 | 128);
-            value = value >> 7;
-        }
-        bytes.push(1);
-    }
-}
-exports.varint32write = varint32write;
-/**
- * Read an unsigned 32 bit varint.
- *
- * See https://github.com/protocolbuffers/protobuf/blob/8a71927d74a4ce34efe2d8769fda198f52d20d12/js/experimental/runtime/kernel/buffer_decoder.js#L220
- */
-function varint32read() {
-    let b = this.buf[this.pos++];
-    let result = b & 0x7F;
-    if ((b & 0x80) == 0) {
-        this.assertBounds();
-        return result;
-    }
-    b = this.buf[this.pos++];
-    result |= (b & 0x7F) << 7;
-    if ((b & 0x80) == 0) {
-        this.assertBounds();
-        return result;
-    }
-    b = this.buf[this.pos++];
-    result |= (b & 0x7F) << 14;
-    if ((b & 0x80) == 0) {
-        this.assertBounds();
-        return result;
-    }
-    b = this.buf[this.pos++];
-    result |= (b & 0x7F) << 21;
-    if ((b & 0x80) == 0) {
-        this.assertBounds();
-        return result;
-    }
-    // Extract only last 4 bits
-    b = this.buf[this.pos++];
-    result |= (b & 0x0F) << 28;
-    for (let readBytes = 5; ((b & 0x80) !== 0) && readBytes < 10; readBytes++)
-        b = this.buf[this.pos++];
-    if ((b & 0x80) != 0)
-        throw new Error('invalid varint');
-    this.assertBounds();
-    // Result can have 32 bits, convert it to unsigned
-    return result >>> 0;
-}
-exports.varint32read = varint32read;
-
-
-/***/ }),
-
-/***/ 222:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.BlobLeaseClient = void 0;
-const core_util_1 = __nccwpck_require__(14);
-const constants_js_1 = __nccwpck_require__(164);
-const tracing_js_1 = __nccwpck_require__(33);
-const utils_common_js_1 = __nccwpck_require__(170);
-/**
- * A client that manages leases for a {@link ContainerClient} or a {@link BlobClient}.
- */
-class BlobLeaseClient {
-    _leaseId;
-    _url;
-    _containerOrBlobOperation;
-    _isContainer;
-    /**
-     * Gets the lease Id.
-     *
-     * @readonly
-     */
-    get leaseId() {
-        return this._leaseId;
-    }
-    /**
-     * Gets the url.
-     *
-     * @readonly
-     */
-    get url() {
-        return this._url;
-    }
-    /**
-     * Creates an instance of BlobLeaseClient.
-     * @param client - The client to make the lease operation requests.
-     * @param leaseId - Initial proposed lease id.
-     */
-    constructor(client, leaseId) {
-        const clientContext = client.storageClientContext;
-        this._url = client.url;
-        if (client.name === undefined) {
-            this._isContainer = true;
-            this._containerOrBlobOperation = clientContext.container;
-        }
-        else {
-            this._isContainer = false;
-            this._containerOrBlobOperation = clientContext.blob;
-        }
-        if (!leaseId) {
-            leaseId = (0, core_util_1.randomUUID)();
-        }
-        this._leaseId = leaseId;
-    }
-    /**
-     * Establishes and manages a lock on a container for delete operations, or on a blob
-     * for write and delete operations.
-     * The lock duration can be 15 to 60 seconds, or can be infinite.
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
-     * and
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
-     *
-     * @param duration - Must be between 15 to 60 seconds, or infinite (-1)
-     * @param options - option to configure lease management operations.
-     * @returns Response data for acquire lease operation.
-     */
-    async acquireLease(duration, options = {}) {
-        if (this._isContainer &&
-            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
-                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
-                options.conditions?.tagConditions)) {
-            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
-        }
-        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-acquireLease", options, async (updatedOptions) => {
-            return (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.acquireLease({
-                abortSignal: options.abortSignal,
-                duration,
-                modifiedAccessConditions: {
-                    ...options.conditions,
-                    ifTags: options.conditions?.tagConditions,
-                },
-                proposedLeaseId: this._leaseId,
-                tracingOptions: updatedOptions.tracingOptions,
-            }));
-        });
-    }
-    /**
-     * To change the ID of the lease.
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
-     * and
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
-     *
-     * @param proposedLeaseId - the proposed new lease Id.
-     * @param options - option to configure lease management operations.
-     * @returns Response data for change lease operation.
-     */
-    async changeLease(proposedLeaseId, options = {}) {
-        if (this._isContainer &&
-            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
-                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
-                options.conditions?.tagConditions)) {
-            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
-        }
-        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-changeLease", options, async (updatedOptions) => {
-            const response = (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.changeLease(this._leaseId, proposedLeaseId, {
-                abortSignal: options.abortSignal,
-                modifiedAccessConditions: {
-                    ...options.conditions,
-                    ifTags: options.conditions?.tagConditions,
-                },
-                tracingOptions: updatedOptions.tracingOptions,
-            }));
-            this._leaseId = proposedLeaseId;
-            return response;
-        });
-    }
-    /**
-     * To free the lease if it is no longer needed so that another client may
-     * immediately acquire a lease against the container or the blob.
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
-     * and
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
-     *
-     * @param options - option to configure lease management operations.
-     * @returns Response data for release lease operation.
-     */
-    async releaseLease(options = {}) {
-        if (this._isContainer &&
-            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
-                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
-                options.conditions?.tagConditions)) {
-            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
-        }
-        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-releaseLease", options, async (updatedOptions) => {
-            return (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.releaseLease(this._leaseId, {
-                abortSignal: options.abortSignal,
-                modifiedAccessConditions: {
-                    ...options.conditions,
-                    ifTags: options.conditions?.tagConditions,
-                },
-                tracingOptions: updatedOptions.tracingOptions,
-            }));
-        });
-    }
-    /**
-     * To renew the lease.
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
-     * and
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
-     *
-     * @param options - Optional option to configure lease management operations.
-     * @returns Response data for renew lease operation.
-     */
-    async renewLease(options = {}) {
-        if (this._isContainer &&
-            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
-                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
-                options.conditions?.tagConditions)) {
-            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
-        }
-        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-renewLease", options, async (updatedOptions) => {
-            return this._containerOrBlobOperation.renewLease(this._leaseId, {
-                abortSignal: options.abortSignal,
-                modifiedAccessConditions: {
-                    ...options.conditions,
-                    ifTags: options.conditions?.tagConditions,
-                },
-                tracingOptions: updatedOptions.tracingOptions,
-            });
-        });
-    }
-    /**
-     * To end the lease but ensure that another client cannot acquire a new lease
-     * until the current lease period has expired.
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-container
-     * and
-     * @see https://learn.microsoft.com/rest/api/storageservices/lease-blob
-     *
-     * @param breakPeriod - Break period
-     * @param options - Optional options to configure lease management operations.
-     * @returns Response data for break lease operation.
-     */
-    async breakLease(breakPeriod, options = {}) {
-        if (this._isContainer &&
-            ((options.conditions?.ifMatch && options.conditions?.ifMatch !== constants_js_1.ETagNone) ||
-                (options.conditions?.ifNoneMatch && options.conditions?.ifNoneMatch !== constants_js_1.ETagNone) ||
-                options.conditions?.tagConditions)) {
-            throw new RangeError("The IfMatch, IfNoneMatch and tags access conditions are ignored by the service. Values other than undefined or their default values are not acceptable.");
-        }
-        return tracing_js_1.tracingClient.withSpan("BlobLeaseClient-breakLease", options, async (updatedOptions) => {
-            const operationOptions = {
-                abortSignal: options.abortSignal,
-                breakPeriod,
-                modifiedAccessConditions: {
-                    ...options.conditions,
-                    ifTags: options.conditions?.tagConditions,
-                },
-                tracingOptions: updatedOptions.tracingOptions,
-            };
-            return (0, utils_common_js_1.assertResponse)(await this._containerOrBlobOperation.breakLease(operationOptions));
-        });
-    }
-}
-exports.BlobLeaseClient = BlobLeaseClient;
-//# sourceMappingURL=BlobLeaseClient.js.map
-
-/***/ }),
-
-/***/ 223:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.reflectionCreate = void 0;
-const reflection_scalar_default_1 = __nccwpck_require__(507);
-const message_type_contract_1 = __nccwpck_require__(445);
-/**
- * Creates an instance of the generic message, using the field
- * information.
- */
-function reflectionCreate(type) {
-    /**
-     * This ternary can be removed in the next major version.
-     * The `Object.create()` code path utilizes a new `messagePrototype`
-     * property on the `IMessageType` which has this same `MESSAGE_TYPE`
-     * non-enumerable property on it. Doing it this way means that we only
-     * pay the cost of `Object.defineProperty()` once per `IMessageType`
-     * class of once per "instance". The falsy code path is only provided
-     * for backwards compatibility in cases where the runtime library is
-     * updated without also updating the generated code.
-     */
-    const msg = type.messagePrototype
-        ? Object.create(type.messagePrototype)
-        : Object.defineProperty({}, message_type_contract_1.MESSAGE_TYPE, { value: type });
-    for (let field of type.fields) {
-        let name = field.localName;
-        if (field.opt)
-            continue;
-        if (field.oneof)
-            msg[field.oneof] = { oneofKind: undefined };
-        else if (field.repeat)
-            msg[name] = [];
-        else
-            switch (field.kind) {
-                case "scalar":
-                    msg[name] = reflection_scalar_default_1.reflectionScalarDefault(field.T, field.L);
-                    break;
-                case "enum":
-                    // we require 0 to be default value for all enums
-                    msg[name] = 0;
-                    break;
-                case "map":
-                    msg[name] = {};
-                    break;
-            }
-    }
-    return msg;
-}
-exports.reflectionCreate = reflectionCreate;
-
-
-/***/ }),
-
-/***/ 224:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.storageBrowserPolicyName = void 0;
-exports.storageBrowserPolicy = storageBrowserPolicy;
-const core_util_1 = __nccwpck_require__(14);
-const constants_js_1 = __nccwpck_require__(38);
-const utils_common_js_1 = __nccwpck_require__(521);
-/**
- * The programmatic identifier of the StorageBrowserPolicy.
- */
-exports.storageBrowserPolicyName = "storageBrowserPolicy";
-/**
- * storageBrowserPolicy is a policy used to prevent browsers from caching requests
- * and to remove cookies and explicit content-length headers.
- */
-function storageBrowserPolicy() {
-    return {
-        name: exports.storageBrowserPolicyName,
-        async sendRequest(request, next) {
-            if (core_util_1.isNodeLike) {
-                return next(request);
-            }
-            if (request.method === "GET" || request.method === "HEAD") {
-                request.url = (0, utils_common_js_1.setURLParameter)(request.url, constants_js_1.URLConstants.Parameters.FORCE_BROWSER_NO_CACHE, new Date().getTime().toString());
-            }
-            request.headers.delete(constants_js_1.HeaderConstants.COOKIE);
-            // According to XHR standards, content-length should be fully controlled by browsers
-            request.headers.delete(constants_js_1.HeaderConstants.CONTENT_LENGTH);
-            return next(request);
-        },
-    };
-}
-//# sourceMappingURL=StorageBrowserPolicyV2.js.map
-
-/***/ }),
-
-/***/ 225:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const { isBlobLike, toUSVString, makeIterator } = __nccwpck_require__(570)
-const { kState } = __nccwpck_require__(15)
-const { File: UndiciFile, FileLike, isFileLike } = __nccwpck_require__(397)
-const { webidl } = __nccwpck_require__(499)
-const { Blob, File: NativeFile } = __nccwpck_require__(134)
-
-/** @type {globalThis['File']} */
-const File = NativeFile ?? UndiciFile
-
-// https://xhr.spec.whatwg.org/#formdata
-class FormData {
-  constructor (form) {
-    if (form !== undefined) {
-      throw webidl.errors.conversionFailed({
-        prefix: 'FormData constructor',
-        argument: 'Argument 1',
-        types: ['undefined']
-      })
-    }
-
-    this[kState] = []
-  }
-
-  append (name, value, filename = undefined) {
-    webidl.brandCheck(this, FormData)
-
-    webidl.argumentLengthCheck(arguments, 2, { header: 'FormData.append' })
-
-    if (arguments.length === 3 && !isBlobLike(value)) {
-      throw new TypeError(
-        "Failed to execute 'append' on 'FormData': parameter 2 is not of type 'Blob'"
-      )
-    }
-
-    // 1. Let value be value if given; otherwise blobValue.
-
-    name = webidl.converters.USVString(name)
-    value = isBlobLike(value)
-      ? webidl.converters.Blob(value, { strict: false })
-      : webidl.converters.USVString(value)
-    filename = arguments.length === 3
-      ? webidl.converters.USVString(filename)
-      : undefined
-
-    // 2. Let entry be the result of creating an entry with
-    // name, value, and filename if given.
-    const entry = makeEntry(name, value, filename)
-
-    // 3. Append entry to this’s entry list.
-    this[kState].push(entry)
-  }
-
-  delete (name) {
-    webidl.brandCheck(this, FormData)
-
-    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.delete' })
-
-    name = webidl.converters.USVString(name)
-
-    // The delete(name) method steps are to remove all entries whose name
-    // is name from this’s entry list.
-    this[kState] = this[kState].filter(entry => entry.name !== name)
-  }
-
-  get (name) {
-    webidl.brandCheck(this, FormData)
-
-    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.get' })
-
-    name = webidl.converters.USVString(name)
-
-    // 1. If there is no entry whose name is name in this’s entry list,
-    // then return null.
-    const idx = this[kState].findIndex((entry) => entry.name === name)
-    if (idx === -1) {
-      return null
-    }
-
-    // 2. Return the value of the first entry whose name is name from
-    // this’s entry list.
-    return this[kState][idx].value
-  }
-
-  getAll (name) {
-    webidl.brandCheck(this, FormData)
-
-    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.getAll' })
-
-    name = webidl.converters.USVString(name)
-
-    // 1. If there is no entry whose name is name in this’s entry list,
-    // then return the empty list.
-    // 2. Return the values of all entries whose name is name, in order,
-    // from this’s entry list.
-    return this[kState]
-      .filter((entry) => entry.name === name)
-      .map((entry) => entry.value)
-  }
-
-  has (name) {
-    webidl.brandCheck(this, FormData)
-
-    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.has' })
-
-    name = webidl.converters.USVString(name)
-
-    // The has(name) method steps are to return true if there is an entry
-    // whose name is name in this’s entry list; otherwise false.
-    return this[kState].findIndex((entry) => entry.name === name) !== -1
-  }
-
-  set (name, value, filename = undefined) {
-    webidl.brandCheck(this, FormData)
-
-    webidl.argumentLengthCheck(arguments, 2, { header: 'FormData.set' })
-
-    if (arguments.length === 3 && !isBlobLike(value)) {
-      throw new TypeError(
-        "Failed to execute 'set' on 'FormData': parameter 2 is not of type 'Blob'"
-      )
-    }
-
-    // The set(name, value) and set(name, blobValue, filename) method steps
-    // are:
-
-    // 1. Let value be value if given; otherwise blobValue.
-
-    name = webidl.converters.USVString(name)
-    value = isBlobLike(value)
-      ? webidl.converters.Blob(value, { strict: false })
-      : webidl.converters.USVString(value)
-    filename = arguments.length === 3
-      ? toUSVString(filename)
-      : undefined
-
-    // 2. Let entry be the result of creating an entry with name, value, and
-    // filename if given.
-    const entry = makeEntry(name, value, filename)
-
-    // 3. If there are entries in this’s entry list whose name is name, then
-    // replace the first such entry with entry and remove the others.
-    const idx = this[kState].findIndex((entry) => entry.name === name)
-    if (idx !== -1) {
-      this[kState] = [
-        ...this[kState].slice(0, idx),
-        entry,
-        ...this[kState].slice(idx + 1).filter((entry) => entry.name !== name)
-      ]
-    } else {
-      // 4. Otherwise, append entry to this’s entry list.
-      this[kState].push(entry)
-    }
-  }
-
-  entries () {
-    webidl.brandCheck(this, FormData)
-
-    return makeIterator(
-      () => this[kState].map(pair => [pair.name, pair.value]),
-      'FormData',
-      'key+value'
-    )
-  }
-
-  keys () {
-    webidl.brandCheck(this, FormData)
-
-    return makeIterator(
-      () => this[kState].map(pair => [pair.name, pair.value]),
-      'FormData',
-      'key'
-    )
-  }
-
-  values () {
-    webidl.brandCheck(this, FormData)
-
-    return makeIterator(
-      () => this[kState].map(pair => [pair.name, pair.value]),
-      'FormData',
-      'value'
-    )
-  }
-
-  /**
-   * @param {(value: string, key: string, self: FormData) => void} callbackFn
-   * @param {unknown} thisArg
-   */
-  forEach (callbackFn, thisArg = globalThis) {
-    webidl.brandCheck(this, FormData)
-
-    webidl.argumentLengthCheck(arguments, 1, { header: 'FormData.forEach' })
-
-    if (typeof callbackFn !== 'function') {
-      throw new TypeError(
-        "Failed to execute 'forEach' on 'FormData': parameter 1 is not of type 'Function'."
-      )
-    }
-
-    for (const [key, value] of this) {
-      callbackFn.apply(thisArg, [value, key, this])
-    }
-  }
-}
-
-FormData.prototype[Symbol.iterator] = FormData.prototype.entries
-
-Object.defineProperties(FormData.prototype, {
-  [Symbol.toStringTag]: {
-    value: 'FormData',
-    configurable: true
-  }
-})
-
-/**
- * @see https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#create-an-entry
- * @param {string} name
- * @param {string|Blob} value
- * @param {?string} filename
- * @returns
- */
-function makeEntry (name, value, filename) {
-  // 1. Set name to the result of converting name into a scalar value string.
-  // "To convert a string into a scalar value string, replace any surrogates
-  //  with U+FFFD."
-  // see: https://nodejs.org/dist/latest-v18.x/docs/api/buffer.html#buftostringencoding-start-end
-  name = Buffer.from(name).toString('utf8')
-
-  // 2. If value is a string, then set value to the result of converting
-  //    value into a scalar value string.
-  if (typeof value === 'string') {
-    value = Buffer.from(value).toString('utf8')
-  } else {
-    // 3. Otherwise:
-
-    // 1. If value is not a File object, then set value to a new File object,
-    //    representing the same bytes, whose name attribute value is "blob"
-    if (!isFileLike(value)) {
-      value = value instanceof Blob
-        ? new File([value], 'blob', { type: value.type })
-        : new FileLike(value, 'blob', { type: value.type })
-    }
-
-    // 2. If filename is given, then set value to a new File object,
-    //    representing the same bytes, whose name attribute is filename.
-    if (filename !== undefined) {
-      /** @type {FilePropertyBag} */
-      const options = {
-        type: value.type,
-        lastModified: value.lastModified
-      }
-
-      value = (NativeFile && value instanceof NativeFile) || value instanceof UndiciFile
-        ? new File([value], filename, options)
-        : new FileLike(value, filename, options)
-    }
-  }
-
-  // 4. Return an entry whose name is name and whose value is value.
-  return { name, value }
-}
-
-module.exports = { FormData }
-
-
-/***/ }),
-
-/***/ 226:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-/*
- * Copyright (c) Microsoft Corporation.
- * Licensed under the MIT License.
- *
- * Code generated by Microsoft (R) AutoRest Code Generator.
- * Changes may cause incorrect behavior and will be lost if the code is regenerated.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=appendBlob.js.map
-
-/***/ }),
-
-/***/ 227:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var getClient_exports = {};
-__export(getClient_exports, {
-  getClient: () => getClient
-});
-module.exports = __toCommonJS(getClient_exports);
-var import_clientHelpers = __nccwpck_require__(541);
-var import_sendRequest = __nccwpck_require__(491);
-var import_urlHelpers = __nccwpck_require__(356);
-var import_checkEnvironment = __nccwpck_require__(479);
-function getClient(endpoint, clientOptions = {}) {
-  const pipeline = clientOptions.pipeline ?? (0, import_clientHelpers.createDefaultPipeline)(clientOptions);
-  if (clientOptions.additionalPolicies?.length) {
-    for (const { policy, position } of clientOptions.additionalPolicies) {
-      const afterPhase = position === "perRetry" ? "Sign" : void 0;
-      pipeline.addPolicy(policy, {
-        afterPhase
-      });
-    }
-  }
-  const { allowInsecureConnection, httpClient } = clientOptions;
-  const endpointUrl = clientOptions.endpoint ?? endpoint;
-  const client = (path, ...args) => {
-    const getUrl = (requestOptions) => (0, import_urlHelpers.buildRequestUrl)(endpointUrl, path, args, { allowInsecureConnection, ...requestOptions });
-    return {
-      get: (requestOptions = {}) => {
-        return buildOperation(
-          "GET",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      },
-      post: (requestOptions = {}) => {
-        return buildOperation(
-          "POST",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      },
-      put: (requestOptions = {}) => {
-        return buildOperation(
-          "PUT",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      },
-      patch: (requestOptions = {}) => {
-        return buildOperation(
-          "PATCH",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      },
-      delete: (requestOptions = {}) => {
-        return buildOperation(
-          "DELETE",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      },
-      head: (requestOptions = {}) => {
-        return buildOperation(
-          "HEAD",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      },
-      options: (requestOptions = {}) => {
-        return buildOperation(
-          "OPTIONS",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      },
-      trace: (requestOptions = {}) => {
-        return buildOperation(
-          "TRACE",
-          getUrl(requestOptions),
-          pipeline,
-          requestOptions,
-          allowInsecureConnection,
-          httpClient
-        );
-      }
-    };
-  };
-  return {
-    path: client,
-    pathUnchecked: client,
-    pipeline
-  };
-}
-function buildOperation(method, url, pipeline, options, allowInsecureConnection, httpClient) {
-  allowInsecureConnection = options.allowInsecureConnection ?? allowInsecureConnection;
-  return {
-    then: function(onFulfilled, onrejected) {
-      return (0, import_sendRequest.sendRequest)(
-        method,
-        url,
-        pipeline,
-        { ...options, allowInsecureConnection },
-        httpClient
-      ).then(onFulfilled, onrejected);
-    },
-    async asBrowserStream() {
-      if (import_checkEnvironment.isNodeLike) {
-        throw new Error(
-          "`asBrowserStream` is supported only in the browser environment. Use `asNodeStream` instead to obtain the response body stream. If you require a Web stream of the response in Node, consider using `Readable.toWeb` on the result of `asNodeStream`."
-        );
-      } else {
-        return (0, import_sendRequest.sendRequest)(
-          method,
-          url,
-          pipeline,
-          { ...options, allowInsecureConnection, responseAsStream: true },
-          httpClient
-        );
-      }
-    },
-    async asNodeStream() {
-      if (import_checkEnvironment.isNodeLike) {
-        return (0, import_sendRequest.sendRequest)(
-          method,
-          url,
-          pipeline,
-          { ...options, allowInsecureConnection, responseAsStream: true },
-          httpClient
-        );
-      } else {
-        throw new Error(
-          "`isNodeStream` is not supported in the browser environment. Use `asBrowserStream` to obtain the response body stream."
-        );
-      }
-    }
-  };
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-//# sourceMappingURL=getClient.js.map
-
-
-/***/ }),
-
-/***/ 228:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var httpClientAdapter_exports = {};
-__export(httpClientAdapter_exports, {
-  convertHttpClient: () => convertHttpClient
-});
-module.exports = __toCommonJS(httpClientAdapter_exports);
-var import_response = __nccwpck_require__(451);
-var import_util = __nccwpck_require__(122);
-function convertHttpClient(requestPolicyClient) {
-  return {
-    sendRequest: async (request) => {
-      const response = await requestPolicyClient.sendRequest(
-        (0, import_util.toWebResourceLike)(request, { createProxy: true })
-      );
-      return (0, import_response.toPipelineResponse)(response);
-    }
-  };
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-//# sourceMappingURL=httpClientAdapter.js.map
-
-
-/***/ }),
-
-/***/ 229:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.YANK_AUDIT_WORKER_ARG = void 0;
-exports.readRegistryDependencies = readRegistryDependencies;
-exports.cratesIoSparsePath = cratesIoSparsePath;
-exports.auditDependencyYanks = auditDependencyYanks;
-exports.writeYankAuditResult = writeYankAuditResult;
-exports.readYankAuditResult = readYankAuditResult;
-exports.waitForYankAuditResult = waitForYankAuditResult;
-exports.resolveYankAuditResult = resolveYankAuditResult;
-exports.runYankAuditWorker = runYankAuditWorker;
-const fs = __importStar(__nccwpck_require__(271));
-const path = __importStar(__nccwpck_require__(560));
-const toml = __importStar(__nccwpck_require__(438));
-exports.YANK_AUDIT_WORKER_ARG = "--setup-soldr-yank-audit-worker";
-const CRATES_IO_GIT_INDEX = "registry+https://github.com/rust-lang/crates.io-index";
-const CRATES_IO_SPARSE_INDEX = "sparse+https://index.crates.io/";
-function isCratesIoSource(source) {
-    return source === CRATES_IO_GIT_INDEX || source === CRATES_IO_SPARSE_INDEX;
-}
-function readRegistryDependencies(lockfilePath) {
-    const parsed = toml.parse(fs.readFileSync(lockfilePath, "utf8"));
-    const seen = new Set();
-    const dependencies = [];
-    for (const pkg of Array.isArray(parsed.package) ? parsed.package : []) {
-        if (typeof pkg.name !== "string" || typeof pkg.version !== "string")
-            continue;
-        if (typeof pkg.source !== "string" ||
-            (!pkg.source.startsWith("registry+") && !pkg.source.startsWith("sparse+")))
-            continue;
-        const key = `${pkg.source}\0${pkg.name}\0${pkg.version}`;
-        if (seen.has(key))
-            continue;
-        seen.add(key);
-        dependencies.push({ name: pkg.name, version: pkg.version, source: pkg.source });
-    }
-    return dependencies;
-}
-function cratesIoSparsePath(crateName) {
-    const name = crateName.toLowerCase();
-    if (name.length === 1)
-        return `1/${name}`;
-    if (name.length === 2)
-        return `2/${name}`;
-    if (name.length === 3)
-        return `3/${name[0]}/${name}`;
-    return `${name.slice(0, 2)}/${name.slice(2, 4)}/${name}`;
-}
-async function fetchCrateYanks(crateName, versions, fetchImpl, timeoutMs, overallSignal) {
-    const controller = new AbortController();
-    const abortForOverallDeadline = () => controller.abort();
-    overallSignal.addEventListener("abort", abortForOverallDeadline, { once: true });
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-        const response = await fetchImpl(`https://index.crates.io/${cratesIoSparsePath(crateName)}`, {
-            headers: {
-                "Accept": "text/plain",
-                "User-Agent": "setup-soldr-yank-audit/1",
-            },
-            signal: controller.signal,
-        });
-        if (!response.ok)
-            throw new Error(`HTTP ${response.status}`);
-        const records = new Map();
-        for (const line of (await response.text()).split(/\r?\n/)) {
-            if (!line.trim())
-                continue;
-            const record = JSON.parse(line);
-            if (typeof record.vers === "string" && typeof record.yanked === "boolean") {
-                records.set(record.vers, record.yanked);
-            }
-        }
-        const checked = [];
-        const yanked = [];
-        for (const version of versions) {
-            if (!records.has(version)) {
-                throw new Error(`version ${crateName} ${version} absent from sparse index`);
-            }
-            const dependency = { name: crateName, version };
-            checked.push(dependency);
-            if (records.get(version))
-                yanked.push(dependency);
-        }
-        return { checked, yanked };
-    }
-    finally {
-        clearTimeout(timeout);
-        overallSignal.removeEventListener("abort", abortForOverallDeadline);
-    }
-}
-async function auditDependencyYanks(dependencies, options = {}) {
-    const fetchImpl = options.fetchImpl ?? fetch;
-    const timeoutMs = options.requestTimeoutMs ?? 30_000;
-    const concurrency = Math.max(1, options.concurrency ?? 12);
-    const overallTimeoutMs = Math.max(1, options.overallTimeoutMs ?? 45_000);
-    const overallController = new AbortController();
-    let overallTimeout;
-    const deadline = new Promise((resolve) => {
-        overallTimeout = setTimeout(() => {
-            overallController.abort();
-            resolve("deadline");
-        }, overallTimeoutMs);
-    });
-    const errors = [];
-    const yanked = [];
-    let checkedCount = 0;
-    const byCrate = new Map();
-    for (const dependency of dependencies) {
-        if (!isCratesIoSource(dependency.source)) {
-            errors.push(`${dependency.name} ${dependency.version}: registry ${dependency.source} is not supported`);
-            continue;
-        }
-        const versions = byCrate.get(dependency.name) ?? new Set();
-        versions.add(dependency.version);
-        byCrate.set(dependency.name, versions);
-    }
-    const work = [...byCrate.entries()];
-    let index = 0;
-    let omittedErrors = 0;
-    const recordError = (message) => {
-        if (errors.length < 20)
-            errors.push(message);
-        else
-            omittedErrors += 1;
-    };
-    const worker = async () => {
-        while (true) {
-            const item = work[index++];
-            if (!item)
-                return;
-            const [crateName, versions] = item;
-            try {
-                if (overallController.signal.aborted) {
-                    throw new Error(`audit deadline exceeded after ${overallTimeoutMs}ms`);
-                }
-                const result = await fetchCrateYanks(crateName, [...versions], fetchImpl, timeoutMs, overallController.signal);
-                checkedCount += result.checked.length;
-                yanked.push(...result.yanked);
-            }
-            catch (err) {
-                recordError(`${crateName}: ${err instanceof Error ? err.message : String(err)}`);
-            }
-        }
-    };
-    let outcome;
-    try {
-        const completed = Promise.all(Array.from({ length: Math.min(concurrency, work.length) }, () => worker())).then(() => "complete");
-        outcome = await Promise.race([completed, deadline]);
-    }
-    finally {
-        clearTimeout(overallTimeout);
-    }
-    if (outcome === "deadline") {
-        return {
-            status: "not-checked",
-            checkedAt: new Date().toISOString(),
-            dependencyCount: dependencies.length,
-            checkedCount,
-            yanked: [...yanked],
-            errors: [`audit deadline exceeded after ${overallTimeoutMs}ms`],
-            auditTimedOut: true,
-        };
-    }
-    if (omittedErrors > 0)
-        errors.push(`${omittedErrors} additional registry errors omitted`);
-    const base = {
-        checkedAt: new Date().toISOString(),
-        dependencyCount: dependencies.length,
-        checkedCount,
-    };
-    if (yanked.length > 0) {
-        return { ...base, status: "yanked", yanked, errors };
-    }
-    if (errors.length > 0) {
-        return { ...base, status: "not-checked", yanked: [], errors };
-    }
-    return { ...base, status: "clean", yanked: [], errors: [] };
-}
-function writeYankAuditResult(resultPath, result) {
-    fs.mkdirSync(path.dirname(resultPath), { recursive: true });
-    const temporaryPath = `${resultPath}.${process.pid}.tmp`;
-    fs.writeFileSync(temporaryPath, `${JSON.stringify(result)}\n`, "utf8");
-    fs.renameSync(temporaryPath, resultPath);
-}
-function readYankAuditResult(resultPath) {
-    try {
-        const result = JSON.parse(fs.readFileSync(resultPath, "utf8"));
-        if (!["pending", "clean", "yanked", "not-checked"].includes(result.status))
-            return null;
-        return result;
-    }
-    catch {
-        return null;
-    }
-}
-async function waitForYankAuditResult(resultPath, options = {}) {
-    const timeoutMs = options.timeoutMs ?? 60_000;
-    const pollMs = options.pollMs ?? 250;
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-        const result = readYankAuditResult(resultPath);
-        if (result && result.status !== "pending")
-            return result;
-        await new Promise((resolve) => setTimeout(resolve, pollMs));
-    }
-    return {
-        status: "not-checked",
-        checkedAt: new Date().toISOString(),
-        errors: [`audit did not finish within ${timeoutMs}ms`],
-        joinTimedOut: true,
-    };
-}
-/** Join an overlapped audit only until its own deadline, then recheck locally. */
-async function resolveYankAuditResult(resultPath, recheck, options = {}) {
-    const backgroundDeadlineMs = options.backgroundDeadlineMs ?? 50_000;
-    const fallbackDeadlineMs = options.fallbackDeadlineMs ?? 45_000;
-    const remaining = Math.max(0, backgroundDeadlineMs - (Date.now() - (options.startedAtMs ?? Date.now())));
-    const existing = readYankAuditResult(resultPath);
-    if (existing?.yanked?.length)
-        return { ...existing, status: "yanked" };
-    if (existing && (existing.status === "clean" || existing.status === "yanked"))
-        return existing;
-    if ((!existing || existing.status === "pending") && remaining > 0) {
-        const joined = await waitForYankAuditResult(resultPath, { timeoutMs: remaining });
-        if (joined.yanked?.length)
-            return { ...joined, status: "yanked" };
-        if (joined.status === "clean" || joined.status === "yanked")
-            return joined;
-    }
-    let timer;
-    try {
-        return await Promise.race([
-            recheck(),
-            new Promise((resolve) => {
-                timer = setTimeout(() => resolve({ status: "not-checked", errors: ["foreground recheck deadline exceeded"] }), fallbackDeadlineMs);
-            }),
-        ]);
-    }
-    catch (error) {
-        return { status: "not-checked", errors: [error instanceof Error ? error.message : String(error)] };
-    }
-    finally {
-        if (timer)
-            clearTimeout(timer);
-    }
-}
-async function runYankAuditWorker(configPath, resultPath) {
-    try {
-        writeYankAuditResult(resultPath, { status: "pending", workerPid: process.pid });
-        const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-        const result = await auditDependencyYanks(config.dependencies, {
-            requestTimeoutMs: config.requestTimeoutMs,
-            overallTimeoutMs: config.overallTimeoutMs,
-        });
-        writeYankAuditResult(resultPath, result);
-    }
-    catch (err) {
-        writeYankAuditResult(resultPath, {
-            status: "not-checked",
-            checkedAt: new Date().toISOString(),
-            errors: [err instanceof Error ? err.message : String(err)],
-        });
-    }
-}
-
-
-/***/ }),
-
-/***/ 230:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var retryPolicy_exports = {};
-__export(retryPolicy_exports, {
-  retryPolicy: () => retryPolicy
-});
-module.exports = __toCommonJS(retryPolicy_exports);
-var import_logger = __nccwpck_require__(47);
-var import_constants = __nccwpck_require__(174);
-var import_policies = __nccwpck_require__(315);
-const retryPolicyLogger = (0, import_logger.createClientLogger)("core-rest-pipeline retryPolicy");
-function retryPolicy(strategies, options = { maxRetries: import_constants.DEFAULT_RETRY_POLICY_COUNT }) {
-  return (0, import_policies.retryPolicy)(strategies, {
-    logger: retryPolicyLogger,
-    ...options
-  });
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 231:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getErrorMessage = getErrorMessage;
-const util_1 = __nccwpck_require__(162);
-/**
- * Given what is thought to be an error object, return the message if possible.
- * If the message is missing, returns a stringified version of the input.
- * @param e - Something thrown from a try block
- * @returns The error message or a string of the input
- */
-function getErrorMessage(e) {
-    if ((0, util_1.isError)(e)) {
-        return e.message;
-    }
-    else {
-        let stringified;
-        try {
-            if (typeof e === "object" && e) {
-                stringified = JSON.stringify(e);
-            }
-            else {
-                stringified = String(e);
-            }
-        }
-        catch (err) {
-            stringified = "[unable to stringify input]";
-        }
-        return `Unknown error ${stringified}`;
-    }
-}
-//# sourceMappingURL=error.js.map
-
-/***/ }),
-
-/***/ 232:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.saveCache = exports.restoreCache = exports.isFeatureAvailable = exports.FinalizeCacheError = exports.ReserveCacheError = exports.ValidationError = void 0;
-const core = __importStar(__nccwpck_require__(504));
-const path = __importStar(__nccwpck_require__(270));
-const utils = __importStar(__nccwpck_require__(83));
-const cacheHttpClient = __importStar(__nccwpck_require__(36));
-const cacheTwirpClient = __importStar(__nccwpck_require__(67));
-const config_1 = __nccwpck_require__(39);
-const tar_1 = __nccwpck_require__(481);
-const http_client_1 = __nccwpck_require__(313);
-class ValidationError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'ValidationError';
-        Object.setPrototypeOf(this, ValidationError.prototype);
-    }
-}
-exports.ValidationError = ValidationError;
-class ReserveCacheError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'ReserveCacheError';
-        Object.setPrototypeOf(this, ReserveCacheError.prototype);
-    }
-}
-exports.ReserveCacheError = ReserveCacheError;
-class FinalizeCacheError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'FinalizeCacheError';
-        Object.setPrototypeOf(this, FinalizeCacheError.prototype);
-    }
-}
-exports.FinalizeCacheError = FinalizeCacheError;
-function checkPaths(paths) {
-    if (!paths || paths.length === 0) {
-        throw new ValidationError(`Path Validation Error: At least one directory or file path is required`);
-    }
-}
-function checkKey(key) {
-    if (key.length > 512) {
-        throw new ValidationError(`Key Validation Error: ${key} cannot be larger than 512 characters.`);
-    }
-    const regex = /^[^,]*$/;
-    if (!regex.test(key)) {
-        throw new ValidationError(`Key Validation Error: ${key} cannot contain commas.`);
-    }
-}
-/**
- * isFeatureAvailable to check the presence of Actions cache service
- *
- * @returns boolean return true if Actions cache service feature is available, otherwise false
- */
-function isFeatureAvailable() {
-    const cacheServiceVersion = (0, config_1.getCacheServiceVersion)();
-    // Check availability based on cache service version
-    switch (cacheServiceVersion) {
-        case 'v2':
-            // For v2, we need ACTIONS_RESULTS_URL
-            return !!process.env['ACTIONS_RESULTS_URL'];
-        case 'v1':
-        default:
-            // For v1, we only need ACTIONS_CACHE_URL
-            return !!process.env['ACTIONS_CACHE_URL'];
-    }
-}
-exports.isFeatureAvailable = isFeatureAvailable;
-/**
- * Restores cache from keys
- *
- * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
- * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
- * @param downloadOptions cache download options
- * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
- * @returns string returns the key for the cache hit, otherwise returns undefined
- */
-function restoreCache(paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const cacheServiceVersion = (0, config_1.getCacheServiceVersion)();
-        core.debug(`Cache service version: ${cacheServiceVersion}`);
-        checkPaths(paths);
-        switch (cacheServiceVersion) {
-            case 'v2':
-                return yield restoreCacheV2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive);
-            case 'v1':
-            default:
-                return yield restoreCacheV1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive);
-        }
-    });
-}
-exports.restoreCache = restoreCache;
-/**
- * Restores cache using the legacy Cache Service
- *
- * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching.
- * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
- * @param options cache download options
- * @param enableCrossOsArchive an optional boolean enabled to restore on Windows any cache created on any platform
- * @returns string returns the key for the cache hit, otherwise returns undefined
- */
-function restoreCacheV1(paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        restoreKeys = restoreKeys || [];
-        const keys = [primaryKey, ...restoreKeys];
-        core.debug('Resolved Keys:');
-        core.debug(JSON.stringify(keys));
-        if (keys.length > 10) {
-            throw new ValidationError(`Key Validation Error: Keys are limited to a maximum of 10.`);
-        }
-        for (const key of keys) {
-            checkKey(key);
-        }
-        const compressionMethod = yield utils.getCompressionMethod();
-        let archivePath = '';
-        try {
-            // path are needed to compute version
-            const cacheEntry = yield cacheHttpClient.getCacheEntry(keys, paths, {
-                compressionMethod,
-                enableCrossOsArchive
-            });
-            if (!(cacheEntry === null || cacheEntry === void 0 ? void 0 : cacheEntry.archiveLocation)) {
-                // Cache not found
-                return undefined;
-            }
-            if (options === null || options === void 0 ? void 0 : options.lookupOnly) {
-                core.info('Lookup only - skipping download');
-                return cacheEntry.cacheKey;
-            }
-            archivePath = path.join(yield utils.createTempDirectory(), utils.getCacheFileName(compressionMethod));
-            core.debug(`Archive Path: ${archivePath}`);
-            // Download the cache from the cache entry
-            yield cacheHttpClient.downloadCache(cacheEntry.archiveLocation, archivePath, options);
-            if (core.isDebug()) {
-                yield (0, tar_1.listTar)(archivePath, compressionMethod);
-            }
-            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
-            core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
-            yield (0, tar_1.extractTar)(archivePath, compressionMethod);
-            core.info('Cache restored successfully');
-            return cacheEntry.cacheKey;
-        }
-        catch (error) {
-            const typedError = error;
-            if (typedError.name === ValidationError.name) {
-                throw error;
-            }
-            else {
-                // warn on cache restore failure and continue build
-                // Log server errors (5xx) as errors, all other errors as warnings
-                if (typedError instanceof http_client_1.HttpClientError &&
-                    typeof typedError.statusCode === 'number' &&
-                    typedError.statusCode >= 500) {
-                    core.error(`Failed to restore: ${error.message}`);
-                }
-                else {
-                    core.warning(`Failed to restore: ${error.message}`);
-                }
-            }
-        }
-        finally {
-            // Try to delete the archive to save space
-            try {
-                yield utils.unlinkFile(archivePath);
-            }
-            catch (error) {
-                core.debug(`Failed to delete archive: ${error}`);
-            }
-        }
-        return undefined;
-    });
-}
-/**
- * Restores cache using Cache Service v2
- *
- * @param paths a list of file paths to restore from the cache
- * @param primaryKey an explicit key for restoring the cache. Lookup is done with prefix matching
- * @param restoreKeys an optional ordered list of keys to use for restoring the cache if no cache hit occurred for primaryKey
- * @param downloadOptions cache download options
- * @param enableCrossOsArchive an optional boolean enabled to restore on windows any cache created on any platform
- * @returns string returns the key for the cache hit, otherwise returns undefined
- */
-function restoreCacheV2(paths, primaryKey, restoreKeys, options, enableCrossOsArchive = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Override UploadOptions to force the use of Azure
-        options = Object.assign(Object.assign({}, options), { useAzureSdk: true });
-        restoreKeys = restoreKeys || [];
-        const keys = [primaryKey, ...restoreKeys];
-        core.debug('Resolved Keys:');
-        core.debug(JSON.stringify(keys));
-        if (keys.length > 10) {
-            throw new ValidationError(`Key Validation Error: Keys are limited to a maximum of 10.`);
-        }
-        for (const key of keys) {
-            checkKey(key);
-        }
-        let archivePath = '';
-        try {
-            const twirpClient = cacheTwirpClient.internalCacheTwirpClient();
-            const compressionMethod = yield utils.getCompressionMethod();
-            const request = {
-                key: primaryKey,
-                restoreKeys,
-                version: utils.getCacheVersion(paths, compressionMethod, enableCrossOsArchive)
-            };
-            const response = yield twirpClient.GetCacheEntryDownloadURL(request);
-            if (!response.ok) {
-                core.debug(`Cache not found for version ${request.version} of keys: ${keys.join(', ')}`);
-                return undefined;
-            }
-            const isRestoreKeyMatch = request.key !== response.matchedKey;
-            if (isRestoreKeyMatch) {
-                core.info(`Cache hit for restore-key: ${response.matchedKey}`);
-            }
-            else {
-                core.info(`Cache hit for: ${response.matchedKey}`);
-            }
-            if (options === null || options === void 0 ? void 0 : options.lookupOnly) {
-                core.info('Lookup only - skipping download');
-                return response.matchedKey;
-            }
-            archivePath = path.join(yield utils.createTempDirectory(), utils.getCacheFileName(compressionMethod));
-            core.debug(`Archive path: ${archivePath}`);
-            core.debug(`Starting download of archive to: ${archivePath}`);
-            yield cacheHttpClient.downloadCache(response.signedDownloadUrl, archivePath, options);
-            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
-            core.info(`Cache Size: ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B)`);
-            if (core.isDebug()) {
-                yield (0, tar_1.listTar)(archivePath, compressionMethod);
-            }
-            yield (0, tar_1.extractTar)(archivePath, compressionMethod);
-            core.info('Cache restored successfully');
-            return response.matchedKey;
-        }
-        catch (error) {
-            const typedError = error;
-            if (typedError.name === ValidationError.name) {
-                throw error;
-            }
-            else {
-                // Supress all non-validation cache related errors because caching should be optional
-                // Log server errors (5xx) as errors, all other errors as warnings
-                if (typedError instanceof http_client_1.HttpClientError &&
-                    typeof typedError.statusCode === 'number' &&
-                    typedError.statusCode >= 500) {
-                    core.error(`Failed to restore: ${error.message}`);
-                }
-                else {
-                    core.warning(`Failed to restore: ${error.message}`);
-                }
-            }
-        }
-        finally {
-            try {
-                if (archivePath) {
-                    yield utils.unlinkFile(archivePath);
-                }
-            }
-            catch (error) {
-                core.debug(`Failed to delete archive: ${error}`);
-            }
-        }
-        return undefined;
-    });
-}
-/**
- * Saves a list of files with the specified key
- *
- * @param paths a list of file paths to be cached
- * @param key an explicit key for restoring the cache
- * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
- * @param options cache upload options
- * @returns number returns cacheId if the cache was saved successfully and throws an error if save fails
- */
-function saveCache(paths, key, options, enableCrossOsArchive = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const cacheServiceVersion = (0, config_1.getCacheServiceVersion)();
-        core.debug(`Cache service version: ${cacheServiceVersion}`);
-        checkPaths(paths);
-        checkKey(key);
-        switch (cacheServiceVersion) {
-            case 'v2':
-                return yield saveCacheV2(paths, key, options, enableCrossOsArchive);
-            case 'v1':
-            default:
-                return yield saveCacheV1(paths, key, options, enableCrossOsArchive);
-        }
-    });
-}
-exports.saveCache = saveCache;
-/**
- * Save cache using the legacy Cache Service
- *
- * @param paths
- * @param key
- * @param options
- * @param enableCrossOsArchive
- * @returns
- */
-function saveCacheV1(paths, key, options, enableCrossOsArchive = false) {
-    var _a, _b, _c, _d, _e;
-    return __awaiter(this, void 0, void 0, function* () {
-        const compressionMethod = yield utils.getCompressionMethod();
-        let cacheId = -1;
-        const cachePaths = yield utils.resolvePaths(paths);
-        core.debug('Cache Paths:');
-        core.debug(`${JSON.stringify(cachePaths)}`);
-        if (cachePaths.length === 0) {
-            throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
-        }
-        const archiveFolder = yield utils.createTempDirectory();
-        const archivePath = path.join(archiveFolder, utils.getCacheFileName(compressionMethod));
-        core.debug(`Archive Path: ${archivePath}`);
-        try {
-            yield (0, tar_1.createTar)(archiveFolder, cachePaths, compressionMethod);
-            if (core.isDebug()) {
-                yield (0, tar_1.listTar)(archivePath, compressionMethod);
-            }
-            const fileSizeLimit = 10 * 1024 * 1024 * 1024; // 10GB per repo limit
-            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
-            core.debug(`File Size: ${archiveFileSize}`);
-            // For GHES, this check will take place in ReserveCache API with enterprise file size limit
-            if (archiveFileSize > fileSizeLimit && !(0, config_1.isGhes)()) {
-                throw new Error(`Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the 10GB limit, not saving cache.`);
-            }
-            core.debug('Reserving Cache');
-            const reserveCacheResponse = yield cacheHttpClient.reserveCache(key, paths, {
-                compressionMethod,
-                enableCrossOsArchive,
-                cacheSize: archiveFileSize
-            });
-            if ((_a = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.result) === null || _a === void 0 ? void 0 : _a.cacheId) {
-                cacheId = (_b = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.result) === null || _b === void 0 ? void 0 : _b.cacheId;
-            }
-            else if ((reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.statusCode) === 400) {
-                throw new Error((_d = (_c = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.error) === null || _c === void 0 ? void 0 : _c.message) !== null && _d !== void 0 ? _d : `Cache size of ~${Math.round(archiveFileSize / (1024 * 1024))} MB (${archiveFileSize} B) is over the data cap limit, not saving cache.`);
-            }
-            else {
-                throw new ReserveCacheError(`Unable to reserve cache with key ${key}, another job may be creating this cache. More details: ${(_e = reserveCacheResponse === null || reserveCacheResponse === void 0 ? void 0 : reserveCacheResponse.error) === null || _e === void 0 ? void 0 : _e.message}`);
-            }
-            core.debug(`Saving Cache (ID: ${cacheId})`);
-            yield cacheHttpClient.saveCache(cacheId, archivePath, '', options);
-        }
-        catch (error) {
-            const typedError = error;
-            if (typedError.name === ValidationError.name) {
-                throw error;
-            }
-            else if (typedError.name === ReserveCacheError.name) {
-                core.info(`Failed to save: ${typedError.message}`);
-            }
-            else {
-                // Log server errors (5xx) as errors, all other errors as warnings
-                if (typedError instanceof http_client_1.HttpClientError &&
-                    typeof typedError.statusCode === 'number' &&
-                    typedError.statusCode >= 500) {
-                    core.error(`Failed to save: ${typedError.message}`);
-                }
-                else {
-                    core.warning(`Failed to save: ${typedError.message}`);
-                }
-            }
-        }
-        finally {
-            // Try to delete the archive to save space
-            try {
-                yield utils.unlinkFile(archivePath);
-            }
-            catch (error) {
-                core.debug(`Failed to delete archive: ${error}`);
-            }
-        }
-        return cacheId;
-    });
-}
-/**
- * Save cache using Cache Service v2
- *
- * @param paths a list of file paths to restore from the cache
- * @param key an explicit key for restoring the cache
- * @param options cache upload options
- * @param enableCrossOsArchive an optional boolean enabled to save cache on windows which could be restored on any platform
- * @returns
- */
-function saveCacheV2(paths, key, options, enableCrossOsArchive = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Override UploadOptions to force the use of Azure
-        // ...options goes first because we want to override the default values
-        // set in UploadOptions with these specific figures
-        options = Object.assign(Object.assign({}, options), { uploadChunkSize: 64 * 1024 * 1024, uploadConcurrency: 8, useAzureSdk: true });
-        const compressionMethod = yield utils.getCompressionMethod();
-        const twirpClient = cacheTwirpClient.internalCacheTwirpClient();
-        let cacheId = -1;
-        const cachePaths = yield utils.resolvePaths(paths);
-        core.debug('Cache Paths:');
-        core.debug(`${JSON.stringify(cachePaths)}`);
-        if (cachePaths.length === 0) {
-            throw new Error(`Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.`);
-        }
-        const archiveFolder = yield utils.createTempDirectory();
-        const archivePath = path.join(archiveFolder, utils.getCacheFileName(compressionMethod));
-        core.debug(`Archive Path: ${archivePath}`);
-        try {
-            yield (0, tar_1.createTar)(archiveFolder, cachePaths, compressionMethod);
-            if (core.isDebug()) {
-                yield (0, tar_1.listTar)(archivePath, compressionMethod);
-            }
-            const archiveFileSize = utils.getArchiveFileSizeInBytes(archivePath);
-            core.debug(`File Size: ${archiveFileSize}`);
-            // Set the archive size in the options, will be used to display the upload progress
-            options.archiveSizeBytes = archiveFileSize;
-            core.debug('Reserving Cache');
-            const version = utils.getCacheVersion(paths, compressionMethod, enableCrossOsArchive);
-            const request = {
-                key,
-                version
-            };
-            let signedUploadUrl;
-            try {
-                const response = yield twirpClient.CreateCacheEntry(request);
-                if (!response.ok) {
-                    if (response.message) {
-                        core.warning(`Cache reservation failed: ${response.message}`);
-                    }
-                    throw new Error(response.message || 'Response was not ok');
-                }
-                signedUploadUrl = response.signedUploadUrl;
-            }
-            catch (error) {
-                core.debug(`Failed to reserve cache: ${error}`);
-                throw new ReserveCacheError(`Unable to reserve cache with key ${key}, another job may be creating this cache.`);
-            }
-            core.debug(`Attempting to upload cache located at: ${archivePath}`);
-            yield cacheHttpClient.saveCache(cacheId, archivePath, signedUploadUrl, options);
-            const finalizeRequest = {
-                key,
-                version,
-                sizeBytes: `${archiveFileSize}`
-            };
-            const finalizeResponse = yield twirpClient.FinalizeCacheEntryUpload(finalizeRequest);
-            core.debug(`FinalizeCacheEntryUploadResponse: ${finalizeResponse.ok}`);
-            if (!finalizeResponse.ok) {
-                if (finalizeResponse.message) {
-                    throw new FinalizeCacheError(finalizeResponse.message);
-                }
-                throw new Error(`Unable to finalize cache with key ${key}, another job may be finalizing this cache.`);
-            }
-            cacheId = parseInt(finalizeResponse.entryId);
-        }
-        catch (error) {
-            const typedError = error;
-            if (typedError.name === ValidationError.name) {
-                throw error;
-            }
-            else if (typedError.name === ReserveCacheError.name) {
-                core.info(`Failed to save: ${typedError.message}`);
-            }
-            else if (typedError.name === FinalizeCacheError.name) {
-                core.warning(typedError.message);
-            }
-            else {
-                // Log server errors (5xx) as errors, all other errors as warnings
-                if (typedError instanceof http_client_1.HttpClientError &&
-                    typeof typedError.statusCode === 'number' &&
-                    typedError.statusCode >= 500) {
-                    core.error(`Failed to save: ${typedError.message}`);
-                }
-                else {
-                    core.warning(`Failed to save: ${typedError.message}`);
-                }
-            }
-        }
-        finally {
-            // Try to delete the archive to save space
-            try {
-                yield utils.unlinkFile(archivePath);
-            }
-            catch (error) {
-                core.debug(`Failed to delete archive: ${error}`);
-            }
-        }
-        return cacheId;
-    });
-}
-//# sourceMappingURL=cache.js.map
-
-/***/ }),
-
-/***/ 233:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var extendedClient_exports = {};
-__export(extendedClient_exports, {
-  ExtendedServiceClient: () => ExtendedServiceClient
-});
-module.exports = __toCommonJS(extendedClient_exports);
-var import_disableKeepAlivePolicy = __nccwpck_require__(8);
-var import_core_rest_pipeline = __nccwpck_require__(114);
-var import_core_client = __nccwpck_require__(480);
-var import_response = __nccwpck_require__(451);
-class ExtendedServiceClient extends import_core_client.ServiceClient {
-  constructor(options) {
-    super(options);
-    if (options.keepAliveOptions?.enable === false && !(0, import_disableKeepAlivePolicy.pipelineContainsDisableKeepAlivePolicy)(this.pipeline)) {
-      this.pipeline.addPolicy((0, import_disableKeepAlivePolicy.createDisableKeepAlivePolicy)());
-    }
-    if (options.redirectOptions?.handleRedirects === false) {
-      this.pipeline.removePolicy({
-        name: import_core_rest_pipeline.redirectPolicyName
-      });
-    }
-  }
-  /**
-   * Compatible send operation request function.
-   *
-   * @param operationArguments - Operation arguments
-   * @param operationSpec - Operation Spec
-   * @returns
-   */
-  async sendOperationRequest(operationArguments, operationSpec) {
-    const userProvidedCallBack = operationArguments?.options?.onResponse;
-    let lastResponse;
-    function onResponse(rawResponse, flatResponse, error) {
-      lastResponse = rawResponse;
-      if (userProvidedCallBack) {
-        userProvidedCallBack(rawResponse, flatResponse, error);
-      }
-    }
-    operationArguments.options = {
-      ...operationArguments.options,
-      onResponse
-    };
-    const result = await super.sendOperationRequest(operationArguments, operationSpec);
-    if (lastResponse) {
-      Object.defineProperty(result, "_response", {
-        value: (0, import_response.toCompatResponse)(lastResponse)
-      });
-    }
-    return result;
-  }
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-//# sourceMappingURL=extendedClient.js.map
-
-
-/***/ }),
-
-/***/ 234:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Context = void 0;
-const fs_1 = __nccwpck_require__(587);
-const os_1 = __nccwpck_require__(105);
-class Context {
-    /**
-     * Hydrate the context from the environment
-     */
-    constructor() {
-        var _a, _b, _c;
-        this.payload = {};
-        if (process.env.GITHUB_EVENT_PATH) {
-            if ((0, fs_1.existsSync)(process.env.GITHUB_EVENT_PATH)) {
-                this.payload = JSON.parse((0, fs_1.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
-            }
-            else {
-                const path = process.env.GITHUB_EVENT_PATH;
-                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${os_1.EOL}`);
-            }
-        }
-        this.eventName = process.env.GITHUB_EVENT_NAME;
-        this.sha = process.env.GITHUB_SHA;
-        this.ref = process.env.GITHUB_REF;
-        this.workflow = process.env.GITHUB_WORKFLOW;
-        this.action = process.env.GITHUB_ACTION;
-        this.actor = process.env.GITHUB_ACTOR;
-        this.job = process.env.GITHUB_JOB;
-        this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT, 10);
-        this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
-        this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
-        this.apiUrl = (_a = process.env.GITHUB_API_URL) !== null && _a !== void 0 ? _a : `https://api.github.com`;
-        this.serverUrl = (_b = process.env.GITHUB_SERVER_URL) !== null && _b !== void 0 ? _b : `https://github.com`;
-        this.graphqlUrl =
-            (_c = process.env.GITHUB_GRAPHQL_URL) !== null && _c !== void 0 ? _c : `https://api.github.com/graphql`;
-    }
-    get issue() {
-        const payload = this.payload;
-        return Object.assign(Object.assign({}, this.repo), { number: (payload.issue || payload.pull_request || payload).number });
-    }
-    get repo() {
-        if (process.env.GITHUB_REPOSITORY) {
-            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
-            return { owner, repo };
-        }
-        if (this.payload.repository) {
-            return {
-                owner: this.payload.repository.owner.login,
-                repo: this.payload.repository.name
-            };
-        }
-        throw new Error("context.repo requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
-    }
-}
-exports.Context = Context;
-//# sourceMappingURL=context.js.map
-
-/***/ }),
-
-/***/ 235:
-/***/ ((module) => {
-
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global global, define, Symbol, Reflect, Promise, SuppressedError, Iterator */
-var __extends;
-var __assign;
-var __rest;
-var __decorate;
-var __param;
-var __esDecorate;
-var __runInitializers;
-var __propKey;
-var __setFunctionName;
-var __metadata;
-var __awaiter;
-var __generator;
-var __exportStar;
-var __values;
-var __read;
-var __spread;
-var __spreadArrays;
-var __spreadArray;
-var __await;
-var __asyncGenerator;
-var __asyncDelegator;
-var __asyncValues;
-var __makeTemplateObject;
-var __importStar;
-var __importDefault;
-var __classPrivateFieldGet;
-var __classPrivateFieldSet;
-var __classPrivateFieldIn;
-var __createBinding;
-var __addDisposableResource;
-var __disposeResources;
-var __rewriteRelativeImportExtension;
-(function (factory) {
-    var root = typeof global === "object" ? global : typeof self === "object" ? self : typeof this === "object" ? this : {};
-    if (typeof define === "function" && define.amd) {
-        define("tslib", ["exports"], function (exports) { factory(createExporter(root, createExporter(exports))); });
-    }
-    else if ( true && typeof module.exports === "object") {
-        factory(createExporter(root, createExporter(module.exports)));
-    }
-    else {
-        factory(createExporter(root));
-    }
-    function createExporter(exports, previous) {
-        if (exports !== root) {
-            if (typeof Object.create === "function") {
-                Object.defineProperty(exports, "__esModule", { value: true });
-            }
-            else {
-                exports.__esModule = true;
-            }
-        }
-        return function (id, v) { return exports[id] = previous ? previous(id, v) : v; };
-    }
-})
-(function (exporter) {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-
-    __extends = function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-
-    __assign = Object.assign || function (t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-        }
-        return t;
-    };
-
-    __rest = function (s, e) {
-        var t = {};
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-            t[p] = s[p];
-        if (s != null && typeof Object.getOwnPropertySymbols === "function")
-            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                    t[p[i]] = s[p[i]];
-            }
-        return t;
-    };
-
-    __decorate = function (decorators, target, key, desc) {
-        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-        return c > 3 && r && Object.defineProperty(target, key, r), r;
-    };
-
-    __param = function (paramIndex, decorator) {
-        return function (target, key) { decorator(target, key, paramIndex); }
-    };
-
-    __esDecorate = function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
-        function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
-        var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-        var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-        var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
-        var _, done = false;
-        for (var i = decorators.length - 1; i >= 0; i--) {
-            var context = {};
-            for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
-            for (var p in contextIn.access) context.access[p] = contextIn.access[p];
-            context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
-            var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
-            if (kind === "accessor") {
-                if (result === void 0) continue;
-                if (result === null || typeof result !== "object") throw new TypeError("Object expected");
-                if (_ = accept(result.get)) descriptor.get = _;
-                if (_ = accept(result.set)) descriptor.set = _;
-                if (_ = accept(result.init)) initializers.unshift(_);
-            }
-            else if (_ = accept(result)) {
-                if (kind === "field") initializers.unshift(_);
-                else descriptor[key] = _;
-            }
-        }
-        if (target) Object.defineProperty(target, contextIn.name, descriptor);
-        done = true;
-    };
-
-    __runInitializers = function (thisArg, initializers, value) {
-        var useValue = arguments.length > 2;
-        for (var i = 0; i < initializers.length; i++) {
-            value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
-        }
-        return useValue ? value : void 0;
-    };
-
-    __propKey = function (x) {
-        return typeof x === "symbol" ? x : "".concat(x);
-    };
-
-    __setFunctionName = function (f, name, prefix) {
-        if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
-        return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
-    };
-
-    __metadata = function (metadataKey, metadataValue) {
-        if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
-    };
-
-    __awaiter = function (thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
-    };
-
-    __generator = function (thisArg, body) {
-        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-        return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-        function verb(n) { return function (v) { return step([n, v]); }; }
-        function step(op) {
-            if (f) throw new TypeError("Generator is already executing.");
-            while (g && (g = 0, op[0] && (_ = 0)), _) try {
-                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-                if (y = 0, t) op = [op[0] & 2, t.value];
-                switch (op[0]) {
-                    case 0: case 1: t = op; break;
-                    case 4: _.label++; return { value: op[1], done: false };
-                    case 5: _.label++; y = op[1]; op = [0]; continue;
-                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                    default:
-                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                        if (t[2]) _.ops.pop();
-                        _.trys.pop(); continue;
-                }
-                op = body.call(thisArg, _);
-            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-        }
-    };
-
-    __exportStar = function(m, o) {
-        for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
-    };
-
-    __createBinding = Object.create ? (function(o, m, k, k2) {
-        if (k2 === undefined) k2 = k;
-        var desc = Object.getOwnPropertyDescriptor(m, k);
-        if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-            desc = { enumerable: true, get: function() { return m[k]; } };
-        }
-        Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-        if (k2 === undefined) k2 = k;
-        o[k2] = m[k];
-    });
-
-    __values = function (o) {
-        var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
-        if (m) return m.call(o);
-        if (o && typeof o.length === "number") return {
-            next: function () {
-                if (o && i >= o.length) o = void 0;
-                return { value: o && o[i++], done: !o };
-            }
-        };
-        throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
-    };
-
-    __read = function (o, n) {
-        var m = typeof Symbol === "function" && o[Symbol.iterator];
-        if (!m) return o;
-        var i = m.call(o), r, ar = [], e;
-        try {
-            while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-        }
-        catch (error) { e = { error: error }; }
-        finally {
-            try {
-                if (r && !r.done && (m = i["return"])) m.call(i);
-            }
-            finally { if (e) throw e.error; }
-        }
-        return ar;
-    };
-
-    /** @deprecated */
-    __spread = function () {
-        for (var ar = [], i = 0; i < arguments.length; i++)
-            ar = ar.concat(__read(arguments[i]));
-        return ar;
-    };
-
-    /** @deprecated */
-    __spreadArrays = function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-        for (var r = Array(s), k = 0, i = 0; i < il; i++)
-            for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-                r[k] = a[j];
-        return r;
-    };
-
-    __spreadArray = function (to, from, pack) {
-        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-            if (ar || !(i in from)) {
-                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-                ar[i] = from[i];
-            }
-        }
-        return to.concat(ar || Array.prototype.slice.call(from));
-    };
-
-    __await = function (v) {
-        return this instanceof __await ? (this.v = v, this) : new __await(v);
-    };
-
-    __asyncGenerator = function (thisArg, _arguments, generator) {
-        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-        var g = generator.apply(thisArg, _arguments || []), i, q = [];
-        return i = Object.create((typeof AsyncIterator === "function" ? AsyncIterator : Object).prototype), verb("next"), verb("throw"), verb("return", awaitReturn), i[Symbol.asyncIterator] = function () { return this; }, i;
-        function awaitReturn(f) { return function (v) { return Promise.resolve(v).then(f, reject); }; }
-        function verb(n, f) { if (g[n]) { i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; if (f) i[n] = f(i[n]); } }
-        function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
-        function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r); }
-        function fulfill(value) { resume("next", value); }
-        function reject(value) { resume("throw", value); }
-        function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
-    };
-
-    __asyncDelegator = function (o) {
-        var i, p;
-        return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
-        function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
-    };
-
-    __asyncValues = function (o) {
-        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
-        var m = o[Symbol.asyncIterator], i;
-        return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
-        function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
-        function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
-    };
-
-    __makeTemplateObject = function (cooked, raw) {
-        if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
-        return cooked;
-    };
-
-    var __setModuleDefault = Object.create ? (function(o, v) {
-        Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-        o["default"] = v;
-    };
-
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-
-    __importStar = function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-
-    __importDefault = function (mod) {
-        return (mod && mod.__esModule) ? mod : { "default": mod };
-    };
-
-    __classPrivateFieldGet = function (receiver, state, kind, f) {
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-    };
-
-    __classPrivateFieldSet = function (receiver, state, value, kind, f) {
-        if (kind === "m") throw new TypeError("Private method is not writable");
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-        return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-    };
-
-    __classPrivateFieldIn = function (state, receiver) {
-        if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
-        return typeof state === "function" ? receiver === state : state.has(receiver);
-    };
-
-    __addDisposableResource = function (env, value, async) {
-        if (value !== null && value !== void 0) {
-            if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
-            var dispose, inner;
-            if (async) {
-                if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
-                dispose = value[Symbol.asyncDispose];
-            }
-            if (dispose === void 0) {
-                if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
-                dispose = value[Symbol.dispose];
-                if (async) inner = dispose;
-            }
-            if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
-            if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
-            env.stack.push({ value: value, dispose: dispose, async: async });
-        }
-        else if (async) {
-            env.stack.push({ async: true });
-        }
-        return value;
-    };
-
-    var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-        var e = new Error(message);
-        return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-    };
-
-    __disposeResources = function (env) {
-        function fail(e) {
-            env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
-            env.hasError = true;
-        }
-        var r, s = 0;
-        function next() {
-            while (r = env.stack.pop()) {
-                try {
-                    if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
-                    if (r.dispose) {
-                        var result = r.dispose.call(r.value);
-                        if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
-                    }
-                    else s |= 1;
-                }
-                catch (e) {
-                    fail(e);
-                }
-            }
-            if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
-            if (env.hasError) throw env.error;
-        }
-        return next();
-    };
-
-    __rewriteRelativeImportExtension = function (path, preserveJsx) {
-        if (typeof path === "string" && /^\.\.?\//.test(path)) {
-            return path.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function (m, tsx, d, ext, cm) {
-                return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : (d + ext + "." + cm.toLowerCase() + "js");
-            });
-        }
-        return path;
-    };
-
-    exporter("__extends", __extends);
-    exporter("__assign", __assign);
-    exporter("__rest", __rest);
-    exporter("__decorate", __decorate);
-    exporter("__param", __param);
-    exporter("__esDecorate", __esDecorate);
-    exporter("__runInitializers", __runInitializers);
-    exporter("__propKey", __propKey);
-    exporter("__setFunctionName", __setFunctionName);
-    exporter("__metadata", __metadata);
-    exporter("__awaiter", __awaiter);
-    exporter("__generator", __generator);
-    exporter("__exportStar", __exportStar);
-    exporter("__createBinding", __createBinding);
-    exporter("__values", __values);
-    exporter("__read", __read);
-    exporter("__spread", __spread);
-    exporter("__spreadArrays", __spreadArrays);
-    exporter("__spreadArray", __spreadArray);
-    exporter("__await", __await);
-    exporter("__asyncGenerator", __asyncGenerator);
-    exporter("__asyncDelegator", __asyncDelegator);
-    exporter("__asyncValues", __asyncValues);
-    exporter("__makeTemplateObject", __makeTemplateObject);
-    exporter("__importStar", __importStar);
-    exporter("__importDefault", __importDefault);
-    exporter("__classPrivateFieldGet", __classPrivateFieldGet);
-    exporter("__classPrivateFieldSet", __classPrivateFieldSet);
-    exporter("__classPrivateFieldIn", __classPrivateFieldIn);
-    exporter("__addDisposableResource", __addDisposableResource);
-    exporter("__disposeResources", __disposeResources);
-    exporter("__rewriteRelativeImportExtension", __rewriteRelativeImportExtension);
-});
-
-0 && (0);
-
-
-/***/ }),
-
-/***/ 236:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var bearerTokenAuthenticationPolicy_exports = {};
-__export(bearerTokenAuthenticationPolicy_exports, {
-  bearerTokenAuthenticationPolicy: () => bearerTokenAuthenticationPolicy,
-  bearerTokenAuthenticationPolicyName: () => bearerTokenAuthenticationPolicyName,
-  parseChallenges: () => parseChallenges
-});
-module.exports = __toCommonJS(bearerTokenAuthenticationPolicy_exports);
-var import_tokenCycler = __nccwpck_require__(177);
-var import_log = __nccwpck_require__(199);
-var import_restError = __nccwpck_require__(387);
-const bearerTokenAuthenticationPolicyName = "bearerTokenAuthenticationPolicy";
-async function trySendRequest(request, next) {
-  try {
-    return [await next(request), void 0];
-  } catch (e) {
-    if ((0, import_restError.isRestError)(e) && e.response) {
-      return [e.response, e];
-    } else {
-      throw e;
-    }
-  }
-}
-async function defaultAuthorizeRequest(options) {
-  const { scopes, getAccessToken, request } = options;
-  const getTokenOptions = {
-    abortSignal: request.abortSignal,
-    tracingOptions: request.tracingOptions,
-    enableCae: true
-  };
-  const accessToken = await getAccessToken(scopes, getTokenOptions);
-  if (accessToken) {
-    options.request.headers.set("Authorization", `Bearer ${accessToken.token}`);
-  }
-}
-function isChallengeResponse(response) {
-  return response.status === 401 && response.headers.has("WWW-Authenticate");
-}
-async function authorizeRequestOnCaeChallenge(onChallengeOptions, caeClaims) {
-  const { scopes } = onChallengeOptions;
-  const accessToken = await onChallengeOptions.getAccessToken(scopes, {
-    enableCae: true,
-    claims: caeClaims
-  });
-  if (!accessToken) {
-    return false;
-  }
-  onChallengeOptions.request.headers.set(
-    "Authorization",
-    `${accessToken.tokenType ?? "Bearer"} ${accessToken.token}`
-  );
-  return true;
-}
-function bearerTokenAuthenticationPolicy(options) {
-  const { credential, scopes, challengeCallbacks } = options;
-  const logger = options.logger || import_log.logger;
-  const callbacks = {
-    authorizeRequest: challengeCallbacks?.authorizeRequest?.bind(challengeCallbacks) ?? defaultAuthorizeRequest,
-    authorizeRequestOnChallenge: challengeCallbacks?.authorizeRequestOnChallenge?.bind(challengeCallbacks)
-  };
-  const getAccessToken = credential ? (0, import_tokenCycler.createTokenCycler)(
-    credential
-    /* , options */
-  ) : () => Promise.resolve(null);
-  return {
-    name: bearerTokenAuthenticationPolicyName,
-    /**
-     * If there's no challenge parameter:
-     * - It will try to retrieve the token using the cache, or the credential's getToken.
-     * - Then it will try the next policy with or without the retrieved token.
-     *
-     * It uses the challenge parameters to:
-     * - Skip a first attempt to get the token from the credential if there's no cached token,
-     *   since it expects the token to be retrievable only after the challenge.
-     * - Prepare the outgoing request if the `prepareRequest` method has been provided.
-     * - Send an initial request to receive the challenge if it fails.
-     * - Process a challenge if the response contains it.
-     * - Retrieve a token with the challenge information, then re-send the request.
-     */
-    async sendRequest(request, next) {
-      if (!request.url.toLowerCase().startsWith("https://")) {
-        throw new Error(
-          "Bearer token authentication is not permitted for non-TLS protected (non-https) URLs."
-        );
-      }
-      await callbacks.authorizeRequest({
-        scopes: Array.isArray(scopes) ? scopes : [scopes],
-        request,
-        getAccessToken,
-        logger
-      });
-      let response;
-      let error;
-      let shouldSendRequest;
-      [response, error] = await trySendRequest(request, next);
-      if (isChallengeResponse(response)) {
-        let claims = getCaeChallengeClaims(response.headers.get("WWW-Authenticate"));
-        if (claims) {
-          let parsedClaim;
-          try {
-            parsedClaim = atob(claims);
-          } catch (e) {
-            logger.warning(
-              `The WWW-Authenticate header contains "claims" that cannot be parsed. Unable to perform the Continuous Access Evaluation authentication flow. Unparsable claims: ${claims}`
-            );
-            return response;
-          }
-          shouldSendRequest = await authorizeRequestOnCaeChallenge(
-            {
-              scopes: Array.isArray(scopes) ? scopes : [scopes],
-              response,
-              request,
-              getAccessToken,
-              logger
-            },
-            parsedClaim
-          );
-          if (shouldSendRequest) {
-            [response, error] = await trySendRequest(request, next);
-          }
-        } else if (callbacks.authorizeRequestOnChallenge) {
-          shouldSendRequest = await callbacks.authorizeRequestOnChallenge({
-            scopes: Array.isArray(scopes) ? scopes : [scopes],
-            request,
-            response,
-            getAccessToken,
-            logger
-          });
-          if (shouldSendRequest) {
-            [response, error] = await trySendRequest(request, next);
-          }
-          if (isChallengeResponse(response)) {
-            claims = getCaeChallengeClaims(response.headers.get("WWW-Authenticate"));
-            if (claims) {
-              let parsedClaim;
-              try {
-                parsedClaim = atob(claims);
-              } catch (e) {
-                logger.warning(
-                  `The WWW-Authenticate header contains "claims" that cannot be parsed. Unable to perform the Continuous Access Evaluation authentication flow. Unparsable claims: ${claims}`
-                );
-                return response;
-              }
-              shouldSendRequest = await authorizeRequestOnCaeChallenge(
-                {
-                  scopes: Array.isArray(scopes) ? scopes : [scopes],
-                  response,
-                  request,
-                  getAccessToken,
-                  logger
-                },
-                parsedClaim
-              );
-              if (shouldSendRequest) {
-                [response, error] = await trySendRequest(request, next);
-              }
-            }
-          }
-        }
-      }
-      if (error) {
-        throw error;
-      } else {
-        return response;
-      }
-    }
-  };
-}
-function parseChallenges(challenges) {
-  const challengeRegex = /(\w+)\s+((?:\w+=(?:"[^"]*"|[^,]*),?\s*)+)/g;
-  const paramRegex = /(\w+)="([^"]*)"/g;
-  const parsedChallenges = [];
-  let match;
-  while ((match = challengeRegex.exec(challenges)) !== null) {
-    const scheme = match[1];
-    const paramsString = match[2];
-    const params = {};
-    let paramMatch;
-    while ((paramMatch = paramRegex.exec(paramsString)) !== null) {
-      params[paramMatch[1]] = paramMatch[2];
-    }
-    parsedChallenges.push({ scheme, params });
-  }
-  return parsedChallenges;
-}
-function getCaeChallengeClaims(challenges) {
-  if (!challenges) {
-    return;
-  }
-  const parsedChallenges = parseChallenges(challenges);
-  return parsedChallenges.find(
-    (x) => x.scheme === "Bearer" && x.params.claims && x.params.error === "insufficient_claims"
-  )?.params.claims;
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 237:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var systemErrorRetryPolicy_exports = {};
-__export(systemErrorRetryPolicy_exports, {
-  systemErrorRetryPolicy: () => systemErrorRetryPolicy,
-  systemErrorRetryPolicyName: () => systemErrorRetryPolicyName
-});
-module.exports = __toCommonJS(systemErrorRetryPolicy_exports);
-var import_policies = __nccwpck_require__(315);
-const systemErrorRetryPolicyName = import_policies.systemErrorRetryPolicyName;
-function systemErrorRetryPolicy(options = {}) {
-  return (0, import_policies.systemErrorRetryPolicy)(options);
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 238:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-/*
- * Copyright (c) Microsoft Corporation.
- * Licensed under the MIT License.
- *
- * Code generated by Microsoft (R) AutoRest Code Generator.
- * Changes may cause incorrect behavior and will be lost if the code is regenerated.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ContainerImpl = void 0;
-const tslib_1 = __nccwpck_require__(235);
-const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
-const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
-const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
-/** Class containing Container operations. */
-class ContainerImpl {
-    client;
-    /**
-     * Initialize a new instance of the class Container class.
-     * @param client Reference to the service client
-     */
-    constructor(client) {
-        this.client = client;
-    }
-    /**
-     * creates a new container under the specified account. If the container with the same name already
-     * exists, the operation fails
-     * @param options The options parameters.
-     */
-    create(options) {
-        return this.client.sendOperationRequest({ options }, createOperationSpec);
-    }
-    /**
-     * returns all user-defined metadata and system properties for the specified container. The data
-     * returned does not include the container's list of blobs
-     * @param options The options parameters.
-     */
-    getProperties(options) {
-        return this.client.sendOperationRequest({ options }, getPropertiesOperationSpec);
-    }
-    /**
-     * operation marks the specified container for deletion. The container and any blobs contained within
-     * it are later deleted during garbage collection
-     * @param options The options parameters.
-     */
-    delete(options) {
-        return this.client.sendOperationRequest({ options }, deleteOperationSpec);
-    }
-    /**
-     * operation sets one or more user-defined name-value pairs for the specified container.
-     * @param options The options parameters.
-     */
-    setMetadata(options) {
-        return this.client.sendOperationRequest({ options }, setMetadataOperationSpec);
-    }
-    /**
-     * gets the permissions for the specified container. The permissions indicate whether container data
-     * may be accessed publicly.
-     * @param options The options parameters.
-     */
-    getAccessPolicy(options) {
-        return this.client.sendOperationRequest({ options }, getAccessPolicyOperationSpec);
-    }
-    /**
-     * sets the permissions for the specified container. The permissions indicate whether blobs in a
-     * container may be accessed publicly.
-     * @param options The options parameters.
-     */
-    setAccessPolicy(options) {
-        return this.client.sendOperationRequest({ options }, setAccessPolicyOperationSpec);
-    }
-    /**
-     * Restores a previously-deleted container.
-     * @param options The options parameters.
-     */
-    restore(options) {
-        return this.client.sendOperationRequest({ options }, restoreOperationSpec);
-    }
-    /**
-     * Renames an existing container.
-     * @param sourceContainerName Required.  Specifies the name of the container to rename.
-     * @param options The options parameters.
-     */
-    rename(sourceContainerName, options) {
-        return this.client.sendOperationRequest({ sourceContainerName, options }, renameOperationSpec);
-    }
-    /**
-     * The Batch operation allows multiple API calls to be embedded into a single HTTP request.
-     * @param contentLength The length of the request.
-     * @param multipartContentType Required. The value of this header must be multipart/mixed with a batch
-     *                             boundary. Example header value: multipart/mixed; boundary=batch_<GUID>
-     * @param body Initial data
-     * @param options The options parameters.
-     */
-    submitBatch(contentLength, multipartContentType, body, options) {
-        return this.client.sendOperationRequest({ contentLength, multipartContentType, body, options }, submitBatchOperationSpec);
-    }
-    /**
-     * The Filter Blobs operation enables callers to list blobs in a container whose tags match a given
-     * search expression.  Filter blobs searches within the given container.
-     * @param options The options parameters.
-     */
-    filterBlobs(options) {
-        return this.client.sendOperationRequest({ options }, filterBlobsOperationSpec);
-    }
-    /**
-     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
-     * be 15 to 60 seconds, or can be infinite
-     * @param options The options parameters.
-     */
-    acquireLease(options) {
-        return this.client.sendOperationRequest({ options }, acquireLeaseOperationSpec);
-    }
-    /**
-     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
-     * be 15 to 60 seconds, or can be infinite
-     * @param leaseId Specifies the current lease ID on the resource.
-     * @param options The options parameters.
-     */
-    releaseLease(leaseId, options) {
-        return this.client.sendOperationRequest({ leaseId, options }, releaseLeaseOperationSpec);
-    }
-    /**
-     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
-     * be 15 to 60 seconds, or can be infinite
-     * @param leaseId Specifies the current lease ID on the resource.
-     * @param options The options parameters.
-     */
-    renewLease(leaseId, options) {
-        return this.client.sendOperationRequest({ leaseId, options }, renewLeaseOperationSpec);
-    }
-    /**
-     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
-     * be 15 to 60 seconds, or can be infinite
-     * @param options The options parameters.
-     */
-    breakLease(options) {
-        return this.client.sendOperationRequest({ options }, breakLeaseOperationSpec);
-    }
-    /**
-     * [Update] establishes and manages a lock on a container for delete operations. The lock duration can
-     * be 15 to 60 seconds, or can be infinite
-     * @param leaseId Specifies the current lease ID on the resource.
-     * @param proposedLeaseId Proposed lease ID, in a GUID string format. The Blob service returns 400
-     *                        (Invalid request) if the proposed lease ID is not in the correct format. See Guid Constructor
-     *                        (String) for a list of valid GUID string formats.
-     * @param options The options parameters.
-     */
-    changeLease(leaseId, proposedLeaseId, options) {
-        return this.client.sendOperationRequest({ leaseId, proposedLeaseId, options }, changeLeaseOperationSpec);
-    }
-    /**
-     * [Update] The List Blobs operation returns a list of the blobs under the specified container
-     * @param options The options parameters.
-     */
-    listBlobFlatSegment(options) {
-        return this.client.sendOperationRequest({ options }, listBlobFlatSegmentOperationSpec);
-    }
-    /**
-     * [Update] The List Blobs operation returns a list of the blobs under the specified container
-     * @param delimiter When the request includes this parameter, the operation returns a BlobPrefix
-     *                  element in the response body that acts as a placeholder for all blobs whose names begin with the
-     *                  same substring up to the appearance of the delimiter character. The delimiter may be a single
-     *                  character or a string.
-     * @param options The options parameters.
-     */
-    listBlobHierarchySegment(delimiter, options) {
-        return this.client.sendOperationRequest({ delimiter, options }, listBlobHierarchySegmentOperationSpec);
-    }
-    /**
-     * Returns the sku name and account kind
-     * @param options The options parameters.
-     */
-    getAccountInfo(options) {
-        return this.client.sendOperationRequest({ options }, getAccountInfoOperationSpec);
-    }
-}
-exports.ContainerImpl = ContainerImpl;
-// Operation Specifications
-const xmlSerializer = coreClient.createSerializer(Mappers, /* isXml */ true);
-const createOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        201: {
-            headersMapper: Mappers.ContainerCreateHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerCreateExceptionHeaders,
-        },
-    },
-    queryParameters: [Parameters.timeoutInSeconds, Parameters.restype2],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.metadata,
-        Parameters.access,
-        Parameters.defaultEncryptionScope,
-        Parameters.preventEncryptionScopeOverride,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const getPropertiesOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerGetPropertiesHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerGetPropertiesExceptionHeaders,
-        },
-    },
-    queryParameters: [Parameters.timeoutInSeconds, Parameters.restype2],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.leaseId,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const deleteOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "DELETE",
-    responses: {
-        202: {
-            headersMapper: Mappers.ContainerDeleteHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerDeleteExceptionHeaders,
-        },
-    },
-    queryParameters: [Parameters.timeoutInSeconds, Parameters.restype2],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.leaseId,
-        Parameters.ifModifiedSince,
-        Parameters.ifUnmodifiedSince,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const setMetadataOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerSetMetadataHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerSetMetadataExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp6,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.metadata,
-        Parameters.leaseId,
-        Parameters.ifModifiedSince,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const getAccessPolicyOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: {
-                type: {
-                    name: "Sequence",
-                    element: {
-                        type: { name: "Composite", className: "SignedIdentifier" },
-                    },
-                },
-                serializedName: "SignedIdentifiers",
-                xmlName: "SignedIdentifiers",
-                xmlIsWrapped: true,
-                xmlElementName: "SignedIdentifier",
-            },
-            headersMapper: Mappers.ContainerGetAccessPolicyHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerGetAccessPolicyExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp7,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.leaseId,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const setAccessPolicyOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerSetAccessPolicyHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerSetAccessPolicyExceptionHeaders,
-        },
-    },
-    requestBody: Parameters.containerAcl,
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp7,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.contentType,
-        Parameters.accept,
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.access,
-        Parameters.leaseId,
-        Parameters.ifModifiedSince,
-        Parameters.ifUnmodifiedSince,
-    ],
-    isXML: true,
-    contentType: "application/xml; charset=utf-8",
-    mediaType: "xml",
-    serializer: xmlSerializer,
-};
-const restoreOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        201: {
-            headersMapper: Mappers.ContainerRestoreHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerRestoreExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp8,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.deletedContainerName,
-        Parameters.deletedContainerVersion,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const renameOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerRenameHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerRenameExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp9,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.sourceContainerName,
-        Parameters.sourceLeaseId,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const submitBatchOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "POST",
-    responses: {
-        202: {
-            bodyMapper: {
-                type: { name: "Stream" },
-                serializedName: "parsedResponse",
-            },
-            headersMapper: Mappers.ContainerSubmitBatchHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerSubmitBatchExceptionHeaders,
-        },
-    },
-    requestBody: Parameters.body,
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.comp4,
-        Parameters.restype2,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.accept,
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.contentLength,
-        Parameters.multipartContentType,
-    ],
-    isXML: true,
-    contentType: "application/xml; charset=utf-8",
-    mediaType: "xml",
-    serializer: xmlSerializer,
-};
-const filterBlobsOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: Mappers.FilterBlobSegment,
-            headersMapper: Mappers.ContainerFilterBlobsHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerFilterBlobsExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.marker,
-        Parameters.maxPageSize,
-        Parameters.comp5,
-        Parameters.where,
-        Parameters.restype2,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const acquireLeaseOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        201: {
-            headersMapper: Mappers.ContainerAcquireLeaseHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerAcquireLeaseExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp10,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.ifModifiedSince,
-        Parameters.ifUnmodifiedSince,
-        Parameters.action,
-        Parameters.duration,
-        Parameters.proposedLeaseId,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const releaseLeaseOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerReleaseLeaseHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerReleaseLeaseExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp10,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.ifModifiedSince,
-        Parameters.ifUnmodifiedSince,
-        Parameters.action1,
-        Parameters.leaseId1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const renewLeaseOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerRenewLeaseHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerRenewLeaseExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp10,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.ifModifiedSince,
-        Parameters.ifUnmodifiedSince,
-        Parameters.leaseId1,
-        Parameters.action2,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const breakLeaseOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        202: {
-            headersMapper: Mappers.ContainerBreakLeaseHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerBreakLeaseExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp10,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.ifModifiedSince,
-        Parameters.ifUnmodifiedSince,
-        Parameters.action3,
-        Parameters.breakPeriod,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const changeLeaseOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "PUT",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerChangeLeaseHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerChangeLeaseExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.restype2,
-        Parameters.comp10,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-        Parameters.ifModifiedSince,
-        Parameters.ifUnmodifiedSince,
-        Parameters.leaseId1,
-        Parameters.action4,
-        Parameters.proposedLeaseId1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const listBlobFlatSegmentOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: Mappers.ListBlobsFlatSegmentResponse,
-            headersMapper: Mappers.ContainerListBlobFlatSegmentHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerListBlobFlatSegmentExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.comp2,
-        Parameters.prefix,
-        Parameters.marker,
-        Parameters.maxPageSize,
-        Parameters.restype2,
-        Parameters.include1,
-        Parameters.startFrom,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const listBlobHierarchySegmentOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: Mappers.ListBlobsHierarchySegmentResponse,
-            headersMapper: Mappers.ContainerListBlobHierarchySegmentHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerListBlobHierarchySegmentExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.comp2,
-        Parameters.prefix,
-        Parameters.marker,
-        Parameters.maxPageSize,
-        Parameters.restype2,
-        Parameters.include1,
-        Parameters.startFrom,
-        Parameters.delimiter,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const getAccountInfoOperationSpec = {
-    path: "/{containerName}",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            headersMapper: Mappers.ContainerGetAccountInfoHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ContainerGetAccountInfoExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.comp,
-        Parameters.timeoutInSeconds,
-        Parameters.restype1,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-//# sourceMappingURL=container.js.map
-
-/***/ }),
-
-/***/ 239:
-/***/ ((module) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var tlsPolicy_exports = {};
-__export(tlsPolicy_exports, {
-  tlsPolicy: () => tlsPolicy,
-  tlsPolicyName: () => tlsPolicyName
-});
-module.exports = __toCommonJS(tlsPolicy_exports);
-const tlsPolicyName = "tlsPolicy";
-function tlsPolicy(tlsSettings) {
-  return {
-    name: tlsPolicyName,
-    sendRequest: async (req, next) => {
-      if (!req.tlsSettings) {
-        req.tlsSettings = tlsSettings;
-      }
-      return next(req);
-    }
-  };
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-//# sourceMappingURL=tlsPolicy.js.map
-
-
-/***/ }),
-
-/***/ 240:
-/***/ ((module) => {
-
-module.exports = removeHook;
-
-function removeHook(state, name, method) {
-  if (!state.registry[name]) {
-    return;
-  }
-
-  var index = state.registry[name]
-    .map(function (registered) {
-      return registered.orig;
-    })
-    .indexOf(method);
-
-  if (index === -1) {
-    return;
-  }
-
-  state.registry[name].splice(index, 1);
-}
-
-
-/***/ }),
-
-/***/ 241:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.safeTrimTrailingSeparator = exports.normalizeSeparators = exports.hasRoot = exports.hasAbsoluteRoot = exports.ensureAbsoluteRoot = exports.dirname = void 0;
-const path = __importStar(__nccwpck_require__(270));
-const assert_1 = __importDefault(__nccwpck_require__(581));
-const IS_WINDOWS = process.platform === 'win32';
-/**
- * Similar to path.dirname except normalizes the path separators and slightly better handling for Windows UNC paths.
- *
- * For example, on Linux/macOS:
- * - `/               => /`
- * - `/hello          => /`
- *
- * For example, on Windows:
- * - `C:\             => C:\`
- * - `C:\hello        => C:\`
- * - `C:              => C:`
- * - `C:hello         => C:`
- * - `\               => \`
- * - `\hello          => \`
- * - `\\hello         => \\hello`
- * - `\\hello\world   => \\hello\world`
- */
-function dirname(p) {
-    // Normalize slashes and trim unnecessary trailing slash
-    p = safeTrimTrailingSeparator(p);
-    // Windows UNC root, e.g. \\hello or \\hello\world
-    if (IS_WINDOWS && /^\\\\[^\\]+(\\[^\\]+)?$/.test(p)) {
-        return p;
-    }
-    // Get dirname
-    let result = path.dirname(p);
-    // Trim trailing slash for Windows UNC root, e.g. \\hello\world\
-    if (IS_WINDOWS && /^\\\\[^\\]+\\[^\\]+\\$/.test(result)) {
-        result = safeTrimTrailingSeparator(result);
-    }
-    return result;
-}
-exports.dirname = dirname;
-/**
- * Roots the path if not already rooted. On Windows, relative roots like `\`
- * or `C:` are expanded based on the current working directory.
- */
-function ensureAbsoluteRoot(root, itemPath) {
-    assert_1.default(root, `ensureAbsoluteRoot parameter 'root' must not be empty`);
-    assert_1.default(itemPath, `ensureAbsoluteRoot parameter 'itemPath' must not be empty`);
-    // Already rooted
-    if (hasAbsoluteRoot(itemPath)) {
-        return itemPath;
-    }
-    // Windows
-    if (IS_WINDOWS) {
-        // Check for itemPath like C: or C:foo
-        if (itemPath.match(/^[A-Z]:[^\\/]|^[A-Z]:$/i)) {
-            let cwd = process.cwd();
-            assert_1.default(cwd.match(/^[A-Z]:\\/i), `Expected current directory to start with an absolute drive root. Actual '${cwd}'`);
-            // Drive letter matches cwd? Expand to cwd
-            if (itemPath[0].toUpperCase() === cwd[0].toUpperCase()) {
-                // Drive only, e.g. C:
-                if (itemPath.length === 2) {
-                    // Preserve specified drive letter case (upper or lower)
-                    return `${itemPath[0]}:\\${cwd.substr(3)}`;
-                }
-                // Drive + path, e.g. C:foo
-                else {
-                    if (!cwd.endsWith('\\')) {
-                        cwd += '\\';
-                    }
-                    // Preserve specified drive letter case (upper or lower)
-                    return `${itemPath[0]}:\\${cwd.substr(3)}${itemPath.substr(2)}`;
-                }
-            }
-            // Different drive
-            else {
-                return `${itemPath[0]}:\\${itemPath.substr(2)}`;
-            }
-        }
-        // Check for itemPath like \ or \foo
-        else if (normalizeSeparators(itemPath).match(/^\\$|^\\[^\\]/)) {
-            const cwd = process.cwd();
-            assert_1.default(cwd.match(/^[A-Z]:\\/i), `Expected current directory to start with an absolute drive root. Actual '${cwd}'`);
-            return `${cwd[0]}:\\${itemPath.substr(1)}`;
-        }
-    }
-    assert_1.default(hasAbsoluteRoot(root), `ensureAbsoluteRoot parameter 'root' must have an absolute root`);
-    // Otherwise ensure root ends with a separator
-    if (root.endsWith('/') || (IS_WINDOWS && root.endsWith('\\'))) {
-        // Intentionally empty
-    }
-    else {
-        // Append separator
-        root += path.sep;
-    }
-    return root + itemPath;
-}
-exports.ensureAbsoluteRoot = ensureAbsoluteRoot;
-/**
- * On Linux/macOS, true if path starts with `/`. On Windows, true for paths like:
- * `\\hello\share` and `C:\hello` (and using alternate separator).
- */
-function hasAbsoluteRoot(itemPath) {
-    assert_1.default(itemPath, `hasAbsoluteRoot parameter 'itemPath' must not be empty`);
-    // Normalize separators
-    itemPath = normalizeSeparators(itemPath);
-    // Windows
-    if (IS_WINDOWS) {
-        // E.g. \\hello\share or C:\hello
-        return itemPath.startsWith('\\\\') || /^[A-Z]:\\/i.test(itemPath);
-    }
-    // E.g. /hello
-    return itemPath.startsWith('/');
-}
-exports.hasAbsoluteRoot = hasAbsoluteRoot;
-/**
- * On Linux/macOS, true if path starts with `/`. On Windows, true for paths like:
- * `\`, `\hello`, `\\hello\share`, `C:`, and `C:\hello` (and using alternate separator).
- */
-function hasRoot(itemPath) {
-    assert_1.default(itemPath, `isRooted parameter 'itemPath' must not be empty`);
-    // Normalize separators
-    itemPath = normalizeSeparators(itemPath);
-    // Windows
-    if (IS_WINDOWS) {
-        // E.g. \ or \hello or \\hello
-        // E.g. C: or C:\hello
-        return itemPath.startsWith('\\') || /^[A-Z]:/i.test(itemPath);
-    }
-    // E.g. /hello
-    return itemPath.startsWith('/');
-}
-exports.hasRoot = hasRoot;
-/**
- * Removes redundant slashes and converts `/` to `\` on Windows
- */
-function normalizeSeparators(p) {
-    p = p || '';
-    // Windows
-    if (IS_WINDOWS) {
-        // Convert slashes on Windows
-        p = p.replace(/\//g, '\\');
-        // Remove redundant slashes
-        const isUnc = /^\\\\+[^\\]/.test(p); // e.g. \\hello
-        return (isUnc ? '\\' : '') + p.replace(/\\\\+/g, '\\'); // preserve leading \\ for UNC
-    }
-    // Remove redundant slashes
-    return p.replace(/\/\/+/g, '/');
-}
-exports.normalizeSeparators = normalizeSeparators;
-/**
- * Normalizes the path separators and trims the trailing separator (when safe).
- * For example, `/foo/ => /foo` but `/ => /`
- */
-function safeTrimTrailingSeparator(p) {
-    // Short-circuit if empty
-    if (!p) {
-        return '';
-    }
-    // Normalize separators
-    p = normalizeSeparators(p);
-    // No trailing slash
-    if (!p.endsWith(path.sep)) {
-        return p;
-    }
-    // Check '/' on Linux/macOS and '\' on Windows
-    if (p === path.sep) {
-        return p;
-    }
-    // On Windows check if drive root. E.g. C:\
-    if (IS_WINDOWS && /^[A-Z]:\\$/i.test(p)) {
-        return p;
-    }
-    // Otherwise trim trailing slash
-    return p.substr(0, p.length - 1);
-}
-exports.safeTrimTrailingSeparator = safeTrimTrailingSeparator;
-//# sourceMappingURL=internal-path-helper.js.map
-
-/***/ }),
-
-/***/ 242:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-module.exports = __nccwpck_require__(317)
-module.exports.async = __nccwpck_require__(450)
-module.exports.stream = __nccwpck_require__(460)
-module.exports.prettyError = __nccwpck_require__(307)
-
-
-/***/ }),
-
-/***/ 243:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.HttpProxyAgent = void 0;
-const net = __importStar(__nccwpck_require__(561));
-const tls = __importStar(__nccwpck_require__(556));
-const debug_1 = __importDefault(__nccwpck_require__(567));
-const events_1 = __nccwpck_require__(517);
-const agent_base_1 = __nccwpck_require__(262);
-const url_1 = __nccwpck_require__(97);
-const debug = (0, debug_1.default)('http-proxy-agent');
-/**
- * The `HttpProxyAgent` implements an HTTP Agent subclass that connects
- * to the specified "HTTP proxy server" in order to proxy HTTP requests.
- */
-class HttpProxyAgent extends agent_base_1.Agent {
-    constructor(proxy, opts) {
-        super(opts);
-        this.proxy = typeof proxy === 'string' ? new url_1.URL(proxy) : proxy;
-        this.proxyHeaders = opts?.headers ?? {};
-        debug('Creating new HttpProxyAgent instance: %o', this.proxy.href);
-        // Trim off the brackets from IPv6 addresses
-        const host = (this.proxy.hostname || this.proxy.host).replace(/^\[|\]$/g, '');
-        const port = this.proxy.port
-            ? parseInt(this.proxy.port, 10)
-            : this.proxy.protocol === 'https:'
-                ? 443
-                : 80;
-        this.connectOpts = {
-            ...(opts ? omit(opts, 'headers') : null),
-            host,
-            port,
-        };
-    }
-    addRequest(req, opts) {
-        req._header = null;
-        this.setRequestProps(req, opts);
-        // @ts-expect-error `addRequest()` isn't defined in `@types/node`
-        super.addRequest(req, opts);
-    }
-    setRequestProps(req, opts) {
-        const { proxy } = this;
-        const protocol = opts.secureEndpoint ? 'https:' : 'http:';
-        const hostname = req.getHeader('host') || 'localhost';
-        const base = `${protocol}//${hostname}`;
-        const url = new url_1.URL(req.path, base);
-        if (opts.port !== 80) {
-            url.port = String(opts.port);
-        }
-        // Change the `http.ClientRequest` instance's "path" field
-        // to the absolute path of the URL that will be requested.
-        req.path = String(url);
-        // Inject the `Proxy-Authorization` header if necessary.
-        const headers = typeof this.proxyHeaders === 'function'
-            ? this.proxyHeaders()
-            : { ...this.proxyHeaders };
-        if (proxy.username || proxy.password) {
-            const auth = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`;
-            headers['Proxy-Authorization'] = `Basic ${Buffer.from(auth).toString('base64')}`;
-        }
-        if (!headers['Proxy-Connection']) {
-            headers['Proxy-Connection'] = this.keepAlive
-                ? 'Keep-Alive'
-                : 'close';
-        }
-        for (const name of Object.keys(headers)) {
-            const value = headers[name];
-            if (value) {
-                req.setHeader(name, value);
-            }
-        }
-    }
-    async connect(req, opts) {
-        req._header = null;
-        if (!req.path.includes('://')) {
-            this.setRequestProps(req, opts);
-        }
-        // At this point, the http ClientRequest's internal `_header` field
-        // might have already been set. If this is the case then we'll need
-        // to re-generate the string since we just changed the `req.path`.
-        let first;
-        let endOfHeaders;
-        debug('Regenerating stored HTTP header string for request');
-        req._implicitHeader();
-        if (req.outputData && req.outputData.length > 0) {
-            debug('Patching connection write() output buffer with updated header');
-            first = req.outputData[0].data;
-            endOfHeaders = first.indexOf('\r\n\r\n') + 4;
-            req.outputData[0].data =
-                req._header + first.substring(endOfHeaders);
-            debug('Output buffer: %o', req.outputData[0].data);
-        }
-        // Create a socket connection to the proxy server.
-        let socket;
-        if (this.proxy.protocol === 'https:') {
-            debug('Creating `tls.Socket`: %o', this.connectOpts);
-            socket = tls.connect(this.connectOpts);
-        }
-        else {
-            debug('Creating `net.Socket`: %o', this.connectOpts);
-            socket = net.connect(this.connectOpts);
-        }
-        // Wait for the socket's `connect` event, so that this `callback()`
-        // function throws instead of the `http` request machinery. This is
-        // important for i.e. `PacProxyAgent` which determines a failed proxy
-        // connection via the `callback()` function throwing.
-        await (0, events_1.once)(socket, 'connect');
-        return socket;
-    }
-}
-HttpProxyAgent.protocols = ['http', 'https'];
-exports.HttpProxyAgent = HttpProxyAgent;
-function omit(obj, ...keys) {
-    const ret = {};
-    let key;
-    for (key in obj) {
-        if (!keys.includes(key)) {
-            ret[key] = obj[key];
-        }
-    }
-    return ret;
-}
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 244:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCmdPath = exports.tryGetExecutablePath = exports.isRooted = exports.isDirectory = exports.exists = exports.READONLY = exports.UV_FS_O_EXLOCK = exports.IS_WINDOWS = exports.unlink = exports.symlink = exports.stat = exports.rmdir = exports.rm = exports.rename = exports.readlink = exports.readdir = exports.open = exports.mkdir = exports.lstat = exports.copyFile = exports.chmod = void 0;
-const fs = __importStar(__nccwpck_require__(587));
-const path = __importStar(__nccwpck_require__(270));
-_a = fs.promises
-// export const {open} = 'fs'
-, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.open = _a.open, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rm = _a.rm, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
-// export const {open} = 'fs'
-exports.IS_WINDOWS = process.platform === 'win32';
-// See https://github.com/nodejs/node/blob/d0153aee367422d0858105abec186da4dff0a0c5/deps/uv/include/uv/win.h#L691
-exports.UV_FS_O_EXLOCK = 0x10000000;
-exports.READONLY = fs.constants.O_RDONLY;
-function exists(fsPath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            yield exports.stat(fsPath);
-        }
-        catch (err) {
-            if (err.code === 'ENOENT') {
-                return false;
-            }
-            throw err;
-        }
-        return true;
-    });
-}
-exports.exists = exists;
-function isDirectory(fsPath, useStat = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const stats = useStat ? yield exports.stat(fsPath) : yield exports.lstat(fsPath);
-        return stats.isDirectory();
-    });
-}
-exports.isDirectory = isDirectory;
-/**
- * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
- * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
- */
-function isRooted(p) {
-    p = normalizeSeparators(p);
-    if (!p) {
-        throw new Error('isRooted() parameter "p" cannot be empty');
-    }
-    if (exports.IS_WINDOWS) {
-        return (p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
-        ); // e.g. C: or C:\hello
-    }
-    return p.startsWith('/');
-}
-exports.isRooted = isRooted;
-/**
- * Best effort attempt to determine whether a file exists and is executable.
- * @param filePath    file path to check
- * @param extensions  additional file extensions to try
- * @return if file exists and is executable, returns the file path. otherwise empty string.
- */
-function tryGetExecutablePath(filePath, extensions) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let stats = undefined;
-        try {
-            // test file exists
-            stats = yield exports.stat(filePath);
-        }
-        catch (err) {
-            if (err.code !== 'ENOENT') {
-                // eslint-disable-next-line no-console
-                console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
-            }
-        }
-        if (stats && stats.isFile()) {
-            if (exports.IS_WINDOWS) {
-                // on Windows, test for valid extension
-                const upperExt = path.extname(filePath).toUpperCase();
-                if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
-                    return filePath;
-                }
-            }
-            else {
-                if (isUnixExecutable(stats)) {
-                    return filePath;
-                }
-            }
-        }
-        // try each extension
-        const originalFilePath = filePath;
-        for (const extension of extensions) {
-            filePath = originalFilePath + extension;
-            stats = undefined;
-            try {
-                stats = yield exports.stat(filePath);
-            }
-            catch (err) {
-                if (err.code !== 'ENOENT') {
-                    // eslint-disable-next-line no-console
-                    console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
-                }
-            }
-            if (stats && stats.isFile()) {
-                if (exports.IS_WINDOWS) {
-                    // preserve the case of the actual file (since an extension was appended)
-                    try {
-                        const directory = path.dirname(filePath);
-                        const upperName = path.basename(filePath).toUpperCase();
-                        for (const actualName of yield exports.readdir(directory)) {
-                            if (upperName === actualName.toUpperCase()) {
-                                filePath = path.join(directory, actualName);
-                                break;
-                            }
-                        }
-                    }
-                    catch (err) {
-                        // eslint-disable-next-line no-console
-                        console.log(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
-                    }
-                    return filePath;
-                }
-                else {
-                    if (isUnixExecutable(stats)) {
-                        return filePath;
-                    }
-                }
-            }
-        }
-        return '';
-    });
-}
-exports.tryGetExecutablePath = tryGetExecutablePath;
-function normalizeSeparators(p) {
-    p = p || '';
-    if (exports.IS_WINDOWS) {
-        // convert slashes on Windows
-        p = p.replace(/\//g, '\\');
-        // remove redundant slashes
-        return p.replace(/\\\\+/g, '\\');
-    }
-    // remove redundant slashes
-    return p.replace(/\/\/+/g, '/');
-}
-// on Mac/Linux, test the execute bit
-//     R   W  X  R  W X R W X
-//   256 128 64 32 16 8 4 2 1
-function isUnixExecutable(stats) {
-    return ((stats.mode & 1) > 0 ||
-        ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
-        ((stats.mode & 64) > 0 && stats.uid === process.getuid()));
-}
-// Get the path of cmd.exe in windows
-function getCmdPath() {
-    var _a;
-    return (_a = process.env['COMSPEC']) !== null && _a !== void 0 ? _a : `cmd.exe`;
-}
-exports.getCmdPath = getCmdPath;
-//# sourceMappingURL=io-util.js.map
-
-/***/ }),
-
-/***/ 245:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createHttpPoller = void 0;
-const tslib_1 = __nccwpck_require__(235);
-var poller_js_1 = __nccwpck_require__(351);
-Object.defineProperty(exports, "createHttpPoller", ({ enumerable: true, get: function () { return poller_js_1.createHttpPoller; } }));
-/**
- * This can be uncommented to expose the protocol-agnostic poller
- */
-// export {
-//   BuildCreatePollerOptions,
-//   Operation,
-//   CreatePollerOptions,
-//   OperationConfig,
-//   RestorableOperationState,
-// } from "./poller/models";
-// export { buildCreatePoller } from "./poller/poller";
-/** legacy */
-tslib_1.__exportStar(__nccwpck_require__(266), exports);
-tslib_1.__exportStar(__nccwpck_require__(82), exports);
-tslib_1.__exportStar(__nccwpck_require__(42), exports);
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 246:
-/***/ ((module) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var apiVersionPolicy_exports = {};
-__export(apiVersionPolicy_exports, {
-  apiVersionPolicy: () => apiVersionPolicy,
-  apiVersionPolicyName: () => apiVersionPolicyName
-});
-module.exports = __toCommonJS(apiVersionPolicy_exports);
-const apiVersionPolicyName = "ApiVersionPolicy";
-function apiVersionPolicy(options) {
-  return {
-    name: apiVersionPolicyName,
-    sendRequest: (req, next) => {
-      const url = new URL(req.url);
-      if (!url.searchParams.get("api-version") && options.apiVersion) {
-        req.url = `${req.url}${Array.from(url.searchParams.keys()).length > 0 ? "&" : "?"}api-version=${options.apiVersion}`;
-      }
-      return next(req);
-    }
-  };
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-//# sourceMappingURL=apiVersionPolicy.js.map
-
-
-/***/ }),
-
-/***/ 247:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.prepareActionsCacheArchive = prepareActionsCacheArchive;
-exports.saveReservedCache = saveReservedCache;
-exports.isReservationConflict = isReservationConflict;
-const fsp = __importStar(__nccwpck_require__(121));
-const path = __importStar(__nccwpck_require__(560));
-const config_js_1 = __nccwpck_require__(39);
-const cacheHttpClient = __importStar(__nccwpck_require__(36));
-const cacheUtils = __importStar(__nccwpck_require__(83));
-const twirp = __importStar(__nccwpck_require__(67));
-const cacheTar = __importStar(__nccwpck_require__(481));
-const save_policy_js_1 = __nccwpck_require__(101);
-const defaultArchiveTools = {
-    resolvePaths: cacheUtils.resolvePaths,
-    createTempDirectory: cacheUtils.createTempDirectory,
-    createTar: cacheTar.createTar,
-    stat: fsp.stat,
-    removeDirectory: async (directory) => {
-        await fsp.rm(directory, { recursive: true, force: true });
-    },
-};
-async function prepareActionsCacheArchive(reservation, archive, tools = defaultArchiveTools) {
-    const cachePaths = await tools.resolvePaths([archive.archivePath]);
-    if (cachePaths.length === 0) {
-        throw new Error(`produced archive does not exist: ${archive.archivePath}`);
-    }
-    const archiveFolder = await tools.createTempDirectory();
-    try {
-        const uploadArchivePath = path.join(archiveFolder, cacheUtils.getCacheFileName(reservation.compressionMethod));
-        await tools.createTar(archiveFolder, cachePaths, reservation.compressionMethod);
-        const archiveBytes = (await tools.stat(uploadArchivePath)).size;
-        return { archivePath: uploadArchivePath, archiveBytes, cleanupDir: archiveFolder };
-    }
-    catch (error) {
-        await tools.removeDirectory(archiveFolder).catch(() => undefined);
-        throw error;
-    }
-}
-function log(options, message) {
-    options.log?.(`two-phase-cache: ${message}`);
-}
-async function reserve(options) {
-    const compressionMethod = await cacheUtils.getCompressionMethod();
-    const enableCrossOsArchive = options.enableCrossOsArchive ?? false;
-    if ((0, config_js_1.getCacheServiceVersion)() === "v2") {
-        const version = cacheUtils.getCacheVersion(options.paths, compressionMethod, enableCrossOsArchive);
-        const response = await twirp.internalCacheTwirpClient().CreateCacheEntry({
-            key: options.key,
-            version,
-        });
-        if (!response.ok || !response.signedUploadUrl)
-            return null;
-        return {
-            service: "v2",
-            compressionMethod,
-            version,
-            signedUploadUrl: response.signedUploadUrl,
-        };
-    }
-    const response = await cacheHttpClient.reserveCache(options.key, options.paths, {
-        compressionMethod,
-        enableCrossOsArchive,
-    });
-    const cacheId = response.result?.cacheId;
-    if (typeof cacheId !== "number")
-        return null;
-    return { service: "v1", compressionMethod, cacheId };
-}
-/**
- * Reserve an exact Actions cache key before producing the archive. The
- * producer is never called after a reservation conflict, which is the key
- * property missing from the public saveCache convenience API.
- */
-async function saveReservedCache(options) {
-    // #527: shared save policy. No reservation, no archive, no upload.
-    if (!(0, save_policy_js_1.allowCacheSave)(options.layer ?? "actions-cache", (m) => options.log?.(m))) {
-        return { status: "policy-skip" };
-    }
-    let reservation;
-    try {
-        reservation = options.reserve ? await options.reserve() : await reserve(options);
-    }
-    catch (error) {
-        log(options, `reservation failed: ${error instanceof Error ? error.message : String(error)}`);
-        return { status: "skipped-reservation" };
-    }
-    if (!reservation) {
-        log(options, `reservation conflict for key=${options.key}`);
-        return { status: "skipped-reservation" };
-    }
-    let archive;
-    try {
-        archive = await options.produce();
-    }
-    catch (error) {
-        log(options, `archive production failed: ${error instanceof Error ? error.message : String(error)}`);
-        return { status: "failed", error: error instanceof Error ? error.message : String(error) };
-    }
-    let uploadArchive;
-    try {
-        uploadArchive = options.prepareUpload
-            ? await options.prepareUpload(reservation, archive)
-            : await prepareActionsCacheArchive(reservation, archive);
-        log(options, `prepared Actions-cache wrapper inner=${archive.archiveBytes}B outer=${uploadArchive.archiveBytes}B`);
-        if (options.upload) {
-            const cacheId = await options.upload(reservation, uploadArchive);
-            return { status: "saved", cacheId, archive };
-        }
-        if (reservation.service === "v1") {
-            await cacheHttpClient.saveCache(reservation.cacheId, uploadArchive.archivePath, "", {
-                archiveSizeBytes: uploadArchive.archiveBytes,
-            });
-            return { status: "saved", cacheId: reservation.cacheId, archive };
-        }
-        await cacheHttpClient.saveCache(-1, uploadArchive.archivePath, reservation.signedUploadUrl, {
-            archiveSizeBytes: uploadArchive.archiveBytes,
-            uploadChunkSize: 64 * 1024 * 1024,
-            uploadConcurrency: 8,
-            useAzureSdk: true,
-        });
-        const finalized = await twirp.internalCacheTwirpClient().FinalizeCacheEntryUpload({
-            key: options.key,
-            version: reservation.version,
-            sizeBytes: `${uploadArchive.archiveBytes}`,
-        });
-        if (!finalized.ok)
-            throw new Error(finalized.message || "cache finalization failed");
-        return { status: "saved", cacheId: Number.parseInt(finalized.entryId, 10), archive };
-    }
-    catch (error) {
-        return { status: "failed", error: error instanceof Error ? error.message : String(error), archive };
-    }
-    finally {
-        await fsp.rm(archive.archivePath, { force: true }).catch(() => undefined);
-        if (uploadArchive?.cleanupDir) {
-            await fsp.rm(uploadArchive.cleanupDir, { recursive: true, force: true }).catch(() => undefined);
-        }
-    }
-}
-function isReservationConflict(result) {
-    return result.status === "skipped-reservation";
-}
-
-
-/***/ }),
-
-/***/ 248:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-/// <reference path="../shims-public.d.ts" />
-const listenersMap = new WeakMap();
-const abortedMap = new WeakMap();
-/**
- * An aborter instance implements AbortSignal interface, can abort HTTP requests.
- *
- * - Call AbortSignal.none to create a new AbortSignal instance that cannot be cancelled.
- * Use `AbortSignal.none` when you are required to pass a cancellation token but the operation
- * cannot or will not ever be cancelled.
- *
- * @example
- * Abort without timeout
- * ```ts
- * await doAsyncWork(AbortSignal.none);
- * ```
- */
-class AbortSignal {
-    constructor() {
-        /**
-         * onabort event listener.
-         */
-        this.onabort = null;
-        listenersMap.set(this, []);
-        abortedMap.set(this, false);
-    }
-    /**
-     * Status of whether aborted or not.
-     *
-     * @readonly
-     */
-    get aborted() {
-        if (!abortedMap.has(this)) {
-            throw new TypeError("Expected `this` to be an instance of AbortSignal.");
-        }
-        return abortedMap.get(this);
-    }
-    /**
-     * Creates a new AbortSignal instance that will never be aborted.
-     *
-     * @readonly
-     */
-    static get none() {
-        return new AbortSignal();
-    }
-    /**
-     * Added new "abort" event listener, only support "abort" event.
-     *
-     * @param _type - Only support "abort" event
-     * @param listener - The listener to be added
-     */
-    addEventListener(
-    // tslint:disable-next-line:variable-name
-    _type, listener) {
-        if (!listenersMap.has(this)) {
-            throw new TypeError("Expected `this` to be an instance of AbortSignal.");
-        }
-        const listeners = listenersMap.get(this);
-        listeners.push(listener);
-    }
-    /**
-     * Remove "abort" event listener, only support "abort" event.
-     *
-     * @param _type - Only support "abort" event
-     * @param listener - The listener to be removed
-     */
-    removeEventListener(
-    // tslint:disable-next-line:variable-name
-    _type, listener) {
-        if (!listenersMap.has(this)) {
-            throw new TypeError("Expected `this` to be an instance of AbortSignal.");
-        }
-        const listeners = listenersMap.get(this);
-        const index = listeners.indexOf(listener);
-        if (index > -1) {
-            listeners.splice(index, 1);
-        }
-    }
-    /**
-     * Dispatches a synthetic event to the AbortSignal.
-     */
-    dispatchEvent(_event) {
-        throw new Error("This is a stub dispatchEvent implementation that should not be used.  It only exists for type-checking purposes.");
-    }
-}
-/**
- * Helper to trigger an abort event immediately, the onabort and all abort event listeners will be triggered.
- * Will try to trigger abort event for all linked AbortSignal nodes.
- *
- * - If there is a timeout, the timer will be cancelled.
- * - If aborted is true, nothing will happen.
- *
- * @internal
- */
-// eslint-disable-next-line @azure/azure-sdk/ts-use-interface-parameters
-function abortSignal(signal) {
-    if (signal.aborted) {
-        return;
-    }
-    if (signal.onabort) {
-        signal.onabort.call(signal);
-    }
-    const listeners = listenersMap.get(signal);
-    if (listeners) {
-        // Create a copy of listeners so mutations to the array
-        // (e.g. via removeListener calls) don't affect the listeners
-        // we invoke.
-        listeners.slice().forEach((listener) => {
-            listener.call(signal, { type: "abort" });
-        });
-    }
-    abortedMap.set(signal, true);
-}
-
-// Copyright (c) Microsoft Corporation.
-/**
- * This error is thrown when an asynchronous operation has been aborted.
- * Check for this error by testing the `name` that the name property of the
- * error matches `"AbortError"`.
- *
- * @example
- * ```ts
- * const controller = new AbortController();
- * controller.abort();
- * try {
- *   doAsyncWork(controller.signal)
- * } catch (e) {
- *   if (e.name === 'AbortError') {
- *     // handle abort error here.
- *   }
- * }
- * ```
- */
-class AbortError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "AbortError";
-    }
-}
-/**
- * An AbortController provides an AbortSignal and the associated controls to signal
- * that an asynchronous operation should be aborted.
- *
- * @example
- * Abort an operation when another event fires
- * ```ts
- * const controller = new AbortController();
- * const signal = controller.signal;
- * doAsyncWork(signal);
- * button.addEventListener('click', () => controller.abort());
- * ```
- *
- * @example
- * Share aborter cross multiple operations in 30s
- * ```ts
- * // Upload the same data to 2 different data centers at the same time,
- * // abort another when any of them is finished
- * const controller = AbortController.withTimeout(30 * 1000);
- * doAsyncWork(controller.signal).then(controller.abort);
- * doAsyncWork(controller.signal).then(controller.abort);
- *```
- *
- * @example
- * Cascaded aborting
- * ```ts
- * // All operations can't take more than 30 seconds
- * const aborter = Aborter.timeout(30 * 1000);
- *
- * // Following 2 operations can't take more than 25 seconds
- * await doAsyncWork(aborter.withTimeout(25 * 1000));
- * await doAsyncWork(aborter.withTimeout(25 * 1000));
- * ```
- */
-class AbortController {
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-    constructor(parentSignals) {
-        this._signal = new AbortSignal();
-        if (!parentSignals) {
-            return;
-        }
-        // coerce parentSignals into an array
-        if (!Array.isArray(parentSignals)) {
-            // eslint-disable-next-line prefer-rest-params
-            parentSignals = arguments;
-        }
-        for (const parentSignal of parentSignals) {
-            // if the parent signal has already had abort() called,
-            // then call abort on this signal as well.
-            if (parentSignal.aborted) {
-                this.abort();
-            }
-            else {
-                // when the parent signal aborts, this signal should as well.
-                parentSignal.addEventListener("abort", () => {
-                    this.abort();
-                });
-            }
-        }
-    }
-    /**
-     * The AbortSignal associated with this controller that will signal aborted
-     * when the abort method is called on this controller.
-     *
-     * @readonly
-     */
-    get signal() {
-        return this._signal;
-    }
-    /**
-     * Signal that any operations passed this controller's associated abort signal
-     * to cancel any remaining work and throw an `AbortError`.
-     */
-    abort() {
-        abortSignal(this._signal);
-    }
-    /**
-     * Creates a new AbortSignal instance that will abort after the provided ms.
-     * @param ms - Elapsed time in milliseconds to trigger an abort.
-     */
-    static timeout(ms) {
-        const signal = new AbortSignal();
-        const timer = setTimeout(abortSignal, ms, signal);
-        // Prevent the active Timer from keeping the Node.js event loop active.
-        if (typeof timer.unref === "function") {
-            timer.unref();
-        }
-        return signal;
-    }
-}
-
-exports.AbortController = AbortController;
-exports.AbortError = AbortError;
-exports.AbortSignal = AbortSignal;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 249:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AVRO_SCHEMA_KEY = exports.AVRO_CODEC_KEY = exports.AVRO_INIT_BYTES = exports.AVRO_SYNC_MARKER_SIZE = void 0;
-exports.AVRO_SYNC_MARKER_SIZE = 16;
-exports.AVRO_INIT_BYTES = new Uint8Array([79, 98, 106, 1]);
-exports.AVRO_CODEC_KEY = "avro.codec";
-exports.AVRO_SCHEMA_KEY = "avro.schema";
-//# sourceMappingURL=AvroConstants.js.map
-
-/***/ }),
-
-/***/ 250:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-/*
- * Copyright (c) Microsoft Corporation.
- * Licensed under the MIT License.
- *
- * Code generated by Microsoft (R) AutoRest Code Generator.
- * Changes may cause incorrect behavior and will be lost if the code is regenerated.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ServiceImpl = void 0;
-const tslib_1 = __nccwpck_require__(235);
-const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
-const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
-const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
-/** Class containing Service operations. */
-class ServiceImpl {
-    client;
-    /**
-     * Initialize a new instance of the class Service class.
-     * @param client Reference to the service client
-     */
-    constructor(client) {
-        this.client = client;
-    }
-    /**
-     * Sets properties for a storage account's Blob service endpoint, including properties for Storage
-     * Analytics and CORS (Cross-Origin Resource Sharing) rules
-     * @param blobServiceProperties The StorageService properties.
-     * @param options The options parameters.
-     */
-    setProperties(blobServiceProperties, options) {
-        return this.client.sendOperationRequest({ blobServiceProperties, options }, setPropertiesOperationSpec);
-    }
-    /**
-     * gets the properties of a storage account's Blob service, including properties for Storage Analytics
-     * and CORS (Cross-Origin Resource Sharing) rules.
-     * @param options The options parameters.
-     */
-    getProperties(options) {
-        return this.client.sendOperationRequest({ options }, getPropertiesOperationSpec);
-    }
-    /**
-     * Retrieves statistics related to replication for the Blob service. It is only available on the
-     * secondary location endpoint when read-access geo-redundant replication is enabled for the storage
-     * account.
-     * @param options The options parameters.
-     */
-    getStatistics(options) {
-        return this.client.sendOperationRequest({ options }, getStatisticsOperationSpec);
-    }
-    /**
-     * The List Containers Segment operation returns a list of the containers under the specified account
-     * @param options The options parameters.
-     */
-    listContainersSegment(options) {
-        return this.client.sendOperationRequest({ options }, listContainersSegmentOperationSpec);
-    }
-    /**
-     * Retrieves a user delegation key for the Blob service. This is only a valid operation when using
-     * bearer token authentication.
-     * @param keyInfo Key information
-     * @param options The options parameters.
-     */
-    getUserDelegationKey(keyInfo, options) {
-        return this.client.sendOperationRequest({ keyInfo, options }, getUserDelegationKeyOperationSpec);
-    }
-    /**
-     * Returns the sku name and account kind
-     * @param options The options parameters.
-     */
-    getAccountInfo(options) {
-        return this.client.sendOperationRequest({ options }, getAccountInfoOperationSpec);
-    }
-    /**
-     * The Batch operation allows multiple API calls to be embedded into a single HTTP request.
-     * @param contentLength The length of the request.
-     * @param multipartContentType Required. The value of this header must be multipart/mixed with a batch
-     *                             boundary. Example header value: multipart/mixed; boundary=batch_<GUID>
-     * @param body Initial data
-     * @param options The options parameters.
-     */
-    submitBatch(contentLength, multipartContentType, body, options) {
-        return this.client.sendOperationRequest({ contentLength, multipartContentType, body, options }, submitBatchOperationSpec);
-    }
-    /**
-     * The Filter Blobs operation enables callers to list blobs across all containers whose tags match a
-     * given search expression.  Filter blobs searches across all containers within a storage account but
-     * can be scoped within the expression to a single container.
-     * @param options The options parameters.
-     */
-    filterBlobs(options) {
-        return this.client.sendOperationRequest({ options }, filterBlobsOperationSpec);
-    }
-}
-exports.ServiceImpl = ServiceImpl;
-// Operation Specifications
-const xmlSerializer = coreClient.createSerializer(Mappers, /* isXml */ true);
-const setPropertiesOperationSpec = {
-    path: "/",
-    httpMethod: "PUT",
-    responses: {
-        202: {
-            headersMapper: Mappers.ServiceSetPropertiesHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceSetPropertiesExceptionHeaders,
-        },
-    },
-    requestBody: Parameters.blobServiceProperties,
-    queryParameters: [
-        Parameters.restype,
-        Parameters.comp,
-        Parameters.timeoutInSeconds,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.contentType,
-        Parameters.accept,
-        Parameters.version,
-        Parameters.requestId,
-    ],
-    isXML: true,
-    contentType: "application/xml; charset=utf-8",
-    mediaType: "xml",
-    serializer: xmlSerializer,
-};
-const getPropertiesOperationSpec = {
-    path: "/",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: Mappers.BlobServiceProperties,
-            headersMapper: Mappers.ServiceGetPropertiesHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceGetPropertiesExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.restype,
-        Parameters.comp,
-        Parameters.timeoutInSeconds,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const getStatisticsOperationSpec = {
-    path: "/",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: Mappers.BlobServiceStatistics,
-            headersMapper: Mappers.ServiceGetStatisticsHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceGetStatisticsExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.restype,
-        Parameters.timeoutInSeconds,
-        Parameters.comp1,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const listContainersSegmentOperationSpec = {
-    path: "/",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: Mappers.ListContainersSegmentResponse,
-            headersMapper: Mappers.ServiceListContainersSegmentHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceListContainersSegmentExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.comp2,
-        Parameters.prefix,
-        Parameters.marker,
-        Parameters.maxPageSize,
-        Parameters.include,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const getUserDelegationKeyOperationSpec = {
-    path: "/",
-    httpMethod: "POST",
-    responses: {
-        200: {
-            bodyMapper: Mappers.UserDelegationKey,
-            headersMapper: Mappers.ServiceGetUserDelegationKeyHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceGetUserDelegationKeyExceptionHeaders,
-        },
-    },
-    requestBody: Parameters.keyInfo,
-    queryParameters: [
-        Parameters.restype,
-        Parameters.timeoutInSeconds,
-        Parameters.comp3,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.contentType,
-        Parameters.accept,
-        Parameters.version,
-        Parameters.requestId,
-    ],
-    isXML: true,
-    contentType: "application/xml; charset=utf-8",
-    mediaType: "xml",
-    serializer: xmlSerializer,
-};
-const getAccountInfoOperationSpec = {
-    path: "/",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            headersMapper: Mappers.ServiceGetAccountInfoHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceGetAccountInfoExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.comp,
-        Parameters.timeoutInSeconds,
-        Parameters.restype1,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-const submitBatchOperationSpec = {
-    path: "/",
-    httpMethod: "POST",
-    responses: {
-        202: {
-            bodyMapper: {
-                type: { name: "Stream" },
-                serializedName: "parsedResponse",
-            },
-            headersMapper: Mappers.ServiceSubmitBatchHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceSubmitBatchExceptionHeaders,
-        },
-    },
-    requestBody: Parameters.body,
-    queryParameters: [Parameters.timeoutInSeconds, Parameters.comp4],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.accept,
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.contentLength,
-        Parameters.multipartContentType,
-    ],
-    isXML: true,
-    contentType: "application/xml; charset=utf-8",
-    mediaType: "xml",
-    serializer: xmlSerializer,
-};
-const filterBlobsOperationSpec = {
-    path: "/",
-    httpMethod: "GET",
-    responses: {
-        200: {
-            bodyMapper: Mappers.FilterBlobSegment,
-            headersMapper: Mappers.ServiceFilterBlobsHeaders,
-        },
-        default: {
-            bodyMapper: Mappers.StorageError,
-            headersMapper: Mappers.ServiceFilterBlobsExceptionHeaders,
-        },
-    },
-    queryParameters: [
-        Parameters.timeoutInSeconds,
-        Parameters.marker,
-        Parameters.maxPageSize,
-        Parameters.comp5,
-        Parameters.where,
-    ],
-    urlParameters: [Parameters.url],
-    headerParameters: [
-        Parameters.version,
-        Parameters.requestId,
-        Parameters.accept1,
-    ],
-    isXML: true,
-    serializer: xmlSerializer,
-};
-//# sourceMappingURL=service.js.map
-
-/***/ }),
-
-/***/ 251:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var agentPolicy_exports = {};
-__export(agentPolicy_exports, {
-  agentPolicy: () => agentPolicy,
-  agentPolicyName: () => agentPolicyName
-});
-module.exports = __toCommonJS(agentPolicy_exports);
-var import_policies = __nccwpck_require__(315);
-const agentPolicyName = import_policies.agentPolicyName;
-function agentPolicy(agent) {
-  return (0, import_policies.agentPolicy)(agent);
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 252:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const { UndiciError } = __nccwpck_require__(537)
-
-class MockNotMatchedError extends UndiciError {
-  constructor (message) {
-    super(message)
-    Error.captureStackTrace(this, MockNotMatchedError)
-    this.name = 'MockNotMatchedError'
-    this.message = message || 'The request does not match any registered mock dispatches'
-    this.code = 'UND_MOCK_ERR_MOCK_NOT_MATCHED'
-  }
-}
-
-module.exports = {
-  MockNotMatchedError
-}
-
-
-/***/ }),
-
-/***/ 253:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const { Transform } = __nccwpck_require__(147)
-const { Console } = __nccwpck_require__(34)
-
-/**
- * Gets the output of `console.table(…)` as a string.
- */
-module.exports = class PendingInterceptorsFormatter {
-  constructor ({ disableColors } = {}) {
-    this.transform = new Transform({
-      transform (chunk, _enc, cb) {
-        cb(null, chunk)
-      }
-    })
-
-    this.logger = new Console({
-      stdout: this.transform,
-      inspectOptions: {
-        colors: !disableColors && !process.env.CI
-      }
-    })
-  }
-
-  format (pendingInterceptors) {
-    const withPrettyHeaders = pendingInterceptors.map(
-      ({ method, path, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
-        Method: method,
-        Origin: origin,
-        Path: path,
-        'Status code': statusCode,
-        Persistent: persist ? '✅' : '❌',
-        Invocations: timesInvoked,
-        Remaining: persist ? Infinity : times - timesInvoked
-      }))
-
-    this.logger.table(withPrettyHeaders)
-    return this.transform.read().toString()
-  }
-}
-
-
-/***/ }),
-
-/***/ 254:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CacheMetadata = void 0;
-const runtime_1 = __nccwpck_require__(19);
-const runtime_2 = __nccwpck_require__(19);
-const runtime_3 = __nccwpck_require__(19);
-const runtime_4 = __nccwpck_require__(19);
-const runtime_5 = __nccwpck_require__(19);
-const cachescope_1 = __nccwpck_require__(433);
-// @generated message type with reflection information, may provide speed optimized methods
-class CacheMetadata$Type extends runtime_5.MessageType {
-    constructor() {
-        super("github.actions.results.entities.v1.CacheMetadata", [
-            { no: 1, name: "repository_id", kind: "scalar", T: 3 /*ScalarType.INT64*/ },
-            { no: 2, name: "scope", kind: "message", repeat: 1 /*RepeatType.PACKED*/, T: () => cachescope_1.CacheScope }
-        ]);
-    }
-    create(value) {
-        const message = { repositoryId: "0", scope: [] };
-        globalThis.Object.defineProperty(message, runtime_4.MESSAGE_TYPE, { enumerable: false, value: this });
-        if (value !== undefined)
-            (0, runtime_3.reflectionMergePartial)(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader, length, options, target) {
-        let message = target !== null && target !== void 0 ? target : this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* int64 repository_id */ 1:
-                    message.repositoryId = reader.int64().toString();
-                    break;
-                case /* repeated github.actions.results.entities.v1.CacheScope scope */ 2:
-                    message.scope.push(cachescope_1.CacheScope.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? runtime_2.UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message, writer, options) {
-        /* int64 repository_id = 1; */
-        if (message.repositoryId !== "0")
-            writer.tag(1, runtime_1.WireType.Varint).int64(message.repositoryId);
-        /* repeated github.actions.results.entities.v1.CacheScope scope = 2; */
-        for (let i = 0; i < message.scope.length; i++)
-            cachescope_1.CacheScope.internalBinaryWrite(message.scope[i], writer.tag(2, runtime_1.WireType.LengthDelimited).fork(), options).join();
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? runtime_2.UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message github.actions.results.entities.v1.CacheMetadata
- */
-exports.CacheMetadata = new CacheMetadata$Type();
-//# sourceMappingURL=cachemetadata.js.map
-
-/***/ }),
-
-/***/ 255:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var defaultHttpClient_exports = {};
-__export(defaultHttpClient_exports, {
-  createDefaultHttpClient: () => createDefaultHttpClient
-});
-module.exports = __toCommonJS(defaultHttpClient_exports);
-var import_ts_http_runtime = __nccwpck_require__(102);
-var import_wrapAbortSignal = __nccwpck_require__(487);
-function createDefaultHttpClient() {
-  const client = (0, import_ts_http_runtime.createDefaultHttpClient)();
-  return {
-    async sendRequest(request) {
-      const { abortSignal, cleanup } = request.abortSignal ? (0, import_wrapAbortSignal.wrapAbortSignalLike)(request.abortSignal) : {};
-      try {
-        request.abortSignal = abortSignal;
-        return await client.sendRequest(request);
-      } finally {
-        cleanup?.();
-      }
-    }
-  };
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 256:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-class Deprecation extends Error {
-  constructor(message) {
-    super(message); // Maintains proper stack trace (only available on V8)
-
-    /* istanbul ignore next */
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-
-    this.name = 'Deprecation';
-  }
-
-}
-
-exports.Deprecation = Deprecation;
-
-
-/***/ }),
-
-/***/ 257:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-// AES-256-GCM cache-encryption wrapper. Issue #387 Feature 1.
-//
-// When the consumer sets `cache-encrypt-key`, every managed cache layer's
-// .tar.zst archive is wrapped with authenticated encryption before being
-// uploaded to the GitHub Actions Cache, and verified+decrypted before being
-// handed to the existing decompress path. The wrapping is opt-in: when the
-// key env var is absent, compressCache / decompressCache run today's
-// plaintext path with no extra cache-API roundtrip and no extra disk pass.
-//
-// On-disk frame (little-endian where noted):
-//   magic   : 8 bytes ASCII "SOLDRENC"
-//   version : 1 byte  (currently 0x01)
-//   iv      : 12 bytes random per archive
-//   body    : ciphertext stream produced by aes-256-gcm
-//   tag     : 16 bytes GCM authentication tag (appended last)
-//
-// AAD bound into the GCM tag includes the cache key and the runner platform,
-// so a poisoned blob from one (key, layer) tuple cannot be replayed at
-// another tuple even with the same encryption key.
-//
-// Failure modes:
-//   - wrong key, tampered ciphertext, or AAD mismatch -> tag verification
-//     fails -> caller surfaces a red error and refuses to unpack.
-//   - missing key with encrypted entry on disk -> treated as a cold miss,
-//     no error (lets users rotate keys without wiping caches).
-//   - legacy plaintext entry with key set -> accepted with a warning;
-//     the next save will write encrypted.
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.tmpdir = exports.KEY_BYTES = exports.HEADER_BYTES = exports.TAG_BYTES = exports.IV_BYTES = exports.ENCRYPT_VERSION = exports.ENCRYPT_MAGIC = void 0;
-exports.parseEncryptionKey = parseEncryptionKey;
-exports.buildAad = buildAad;
-exports.encryptFile = encryptFile;
-exports.decryptFile = decryptFile;
-exports.isEncryptedArchive = isEncryptedArchive;
-exports.getEncryptionConfig = getEncryptionConfig;
-exports.decryptedTempPathFor = decryptedTempPathFor;
-exports._testInMemoryRoundTrip = _testInMemoryRoundTrip;
-const crypto = __importStar(__nccwpck_require__(301));
-const fs = __importStar(__nccwpck_require__(271));
-const fsp = __importStar(__nccwpck_require__(121));
-const path = __importStar(__nccwpck_require__(560));
-const os = __importStar(__nccwpck_require__(414));
-const promises_1 = __nccwpck_require__(425);
-exports.ENCRYPT_MAGIC = Buffer.from("SOLDRENC", "ascii");
-exports.ENCRYPT_VERSION = 0x01;
-exports.IV_BYTES = 12;
-exports.TAG_BYTES = 16;
-exports.HEADER_BYTES = exports.ENCRYPT_MAGIC.length + 1 + exports.IV_BYTES; // 21
-exports.KEY_BYTES = 32;
-/**
- * Parse a user-supplied key string into a 32-byte buffer.
- * Accepts:
- *   - 64-char hex (case-insensitive)
- *   - 44-char base64 (standard, with `=` padding)
- *   - 43-char base64url (no padding)
- * Rejects anything else with a precise diagnostic. The supplied raw value
- * is NEVER echoed back in the error message, so we do not accidentally leak
- * it into a log line.
- */
-function parseEncryptionKey(raw) {
-    const trimmed = (raw ?? "").trim();
-    if (!trimmed) {
-        throw new Error("cache-encrypt-key: empty value");
-    }
-    if (/^[0-9a-fA-F]{64}$/.test(trimmed)) {
-        return Buffer.from(trimmed, "hex");
-    }
-    if (/^[A-Za-z0-9+/]{43}=$/.test(trimmed) || /^[A-Za-z0-9+/]{44}$/.test(trimmed)) {
-        const buf = Buffer.from(trimmed, "base64");
-        if (buf.length === exports.KEY_BYTES)
-            return buf;
-    }
-    if (/^[A-Za-z0-9_-]{43}$/.test(trimmed)) {
-        const buf = Buffer.from(trimmed, "base64url");
-        if (buf.length === exports.KEY_BYTES)
-            return buf;
-    }
-    throw new Error("cache-encrypt-key: expected a 256-bit key as 64-char hex, 44-char base64, or 43-char base64url");
-}
-/**
- * Build the GCM additional-authenticated-data buffer for a cache layer.
- * Format: `v1|<platform>|<cacheKey>` (UTF-8 bytes). The leading version
- * lets us extend the AAD format later without invalidating old archives —
- * the version is part of the file frame too, so a reader knows which AAD
- * shape to construct.
- */
-function buildAad(cacheKey, platform = process.platform) {
-    return Buffer.from(`v1|${platform}|${cacheKey}`, "utf8");
-}
-/**
- * Stream-encrypt `srcPath` (plaintext) into `dstPath` (framed ciphertext).
- *
- * Uses a temp sibling file + atomic rename so an interrupted encrypt cannot
- * leave a half-written archive at `dstPath` that the cache layer would
- * then upload. The temp lives next to `dstPath` (not in os.tmpdir()) so
- * the rename stays on the same filesystem.
- */
-async function encryptFile(srcPath, dstPath, cfg) {
-    const iv = crypto.randomBytes(exports.IV_BYTES);
-    const cipher = crypto.createCipheriv("aes-256-gcm", cfg.key, iv);
-    cipher.setAAD(cfg.aad);
-    const tmpPath = `${dstPath}.tmp-${process.pid}-${Date.now()}`;
-    const reader = fs.createReadStream(srcPath);
-    const writer = fs.createWriteStream(tmpPath);
-    // Write the frame header up-front so a partial file is unambiguously broken.
-    writer.write(exports.ENCRYPT_MAGIC);
-    writer.write(Buffer.from([exports.ENCRYPT_VERSION]));
-    writer.write(iv);
-    let ciphertextBytes = 0;
-    try {
-        await (0, promises_1.pipeline)(reader, cipher, async function* (source) {
-            for await (const chunk of source) {
-                ciphertextBytes += chunk.length;
-                yield chunk;
-            }
-        }, writer);
-        // pipeline closes the writer; reopen for the tag append.
-        const tag = cipher.getAuthTag();
-        if (tag.length !== exports.TAG_BYTES) {
-            throw new Error(`cache-encrypt: unexpected GCM tag length ${tag.length}`);
-        }
-        await fsp.appendFile(tmpPath, tag);
-        await fsp.rename(tmpPath, dstPath);
-    }
-    catch (err) {
-        await fsp.rm(tmpPath, { force: true }).catch(() => undefined);
-        throw err;
-    }
-    return { ciphertextBytes };
-}
-/**
- * Stream-decrypt `srcPath` (framed ciphertext) into `dstPath` (plaintext).
- *
- * Throws an Error tagged with `cause.code === "EAUTHFAIL"` when the GCM tag
- * fails to verify (wrong key, tampered ciphertext, or AAD mismatch). The
- * partial output file is removed before the error propagates so the caller
- * never observes half-decrypted bytes that look like a valid archive.
- */
-async function decryptFile(srcPath, dstPath, cfg) {
-    const stat = await fsp.stat(srcPath);
-    if (stat.size < exports.HEADER_BYTES + exports.TAG_BYTES) {
-        throw makeDecryptError("encrypted archive is shorter than header+tag");
-    }
-    const handle = await fsp.open(srcPath, "r");
-    let plaintextBytes = 0;
-    const tmpPath = `${dstPath}.tmp-${process.pid}-${Date.now()}`;
-    try {
-        const headerBuf = Buffer.alloc(exports.HEADER_BYTES);
-        await handle.read(headerBuf, 0, exports.HEADER_BYTES, 0);
-        if (!headerBuf.subarray(0, exports.ENCRYPT_MAGIC.length).equals(exports.ENCRYPT_MAGIC)) {
-            throw makeDecryptError("magic byte mismatch");
-        }
-        const version = headerBuf[exports.ENCRYPT_MAGIC.length];
-        if (version !== exports.ENCRYPT_VERSION) {
-            throw makeDecryptError(`unsupported frame version ${version}`);
-        }
-        const iv = headerBuf.subarray(exports.ENCRYPT_MAGIC.length + 1, exports.HEADER_BYTES);
-        const tagBuf = Buffer.alloc(exports.TAG_BYTES);
-        await handle.read(tagBuf, 0, exports.TAG_BYTES, stat.size - exports.TAG_BYTES);
-        const decipher = crypto.createDecipheriv("aes-256-gcm", cfg.key, iv);
-        decipher.setAAD(cfg.aad);
-        decipher.setAuthTag(tagBuf);
-        const bodyStart = exports.HEADER_BYTES;
-        const bodyEnd = stat.size - exports.TAG_BYTES; // exclusive
-        const reader = fs.createReadStream(srcPath, {
-            start: bodyStart,
-            end: bodyEnd - 1, // inclusive end for createReadStream
-        });
-        const writer = fs.createWriteStream(tmpPath);
-        try {
-            await (0, promises_1.pipeline)(reader, decipher, async function* (source) {
-                for await (const chunk of source) {
-                    plaintextBytes += chunk.length;
-                    yield chunk;
-                }
-            }, writer);
-        }
-        catch (err) {
-            // node:crypto raises "Unsupported state or unable to authenticate data"
-            // on tag mismatch — normalize so callers can `catch (e) { if (e.code === "EAUTHFAIL") ... }`.
-            throw makeDecryptError(err instanceof Error ? err.message : String(err));
-        }
-        await fsp.rename(tmpPath, dstPath);
-    }
-    finally {
-        await handle.close().catch(() => undefined);
-        await fsp.rm(tmpPath, { force: true }).catch(() => undefined);
-    }
-    return { plaintextBytes };
-}
-function makeDecryptError(detail) {
-    const err = new Error(`cache-encrypt: ${detail}`);
-    err.code = "EAUTHFAIL";
-    return err;
-}
-/**
- * Inspect the first 8 bytes of `filePath`: is it a framed encrypted archive?
- * Used by decompressCache to dispatch between the plaintext and encrypted
- * decompression paths.
- */
-async function isEncryptedArchive(filePath) {
-    let handle = null;
-    try {
-        handle = await fsp.open(filePath, "r");
-        const buf = Buffer.alloc(exports.ENCRYPT_MAGIC.length);
-        const { bytesRead } = await handle.read(buf, 0, exports.ENCRYPT_MAGIC.length, 0);
-        if (bytesRead < exports.ENCRYPT_MAGIC.length)
-            return false;
-        return buf.equals(exports.ENCRYPT_MAGIC);
-    }
-    catch {
-        return false;
-    }
-    finally {
-        if (handle)
-            await handle.close().catch(() => undefined);
-    }
-}
-/**
- * Read the env-supplied cache-encryption configuration and build a
- * per-call EncryptionConfig keyed on the supplied cache key. Returns
- * `null` when no key is configured — the caller should then use the
- * plaintext path with no extra work.
- *
- * The key MUST be `core.setSecret()`-marked by the caller before this
- * runs so any incidental log line that captures it is auto-redacted.
- */
-function getEncryptionConfig(opts) {
-    const raw = (opts.env["SETUP_SOLDR_CACHE_ENCRYPT_KEY"] ?? "").trim();
-    if (!raw)
-        return null;
-    const key = parseEncryptionKey(raw);
-    const onFailureRaw = (opts.env["SETUP_SOLDR_CACHE_ENCRYPT_ON_FAILURE"] ?? "error")
-        .trim()
-        .toLowerCase();
-    const onFailure = onFailureRaw === "skip" ? "skip" : "error";
-    return {
-        key,
-        aad: buildAad(opts.cacheKey),
-        onFailure,
-    };
-}
-/**
- * Convenience: produce a temp file path adjacent to `archivePath` for the
- * intermediate decrypted artifact. Used by decompressCache.
- */
-function decryptedTempPathFor(archivePath) {
-    return path.join(path.dirname(archivePath), `.${path.basename(archivePath)}.plain-${process.pid}`);
-}
-/** Test helper: in-memory round trip without disk. Exported only for tests. */
-function _testInMemoryRoundTrip(plaintext, cfg) {
-    const iv = crypto.randomBytes(exports.IV_BYTES);
-    const cipher = crypto.createCipheriv("aes-256-gcm", cfg.key, iv);
-    cipher.setAAD(cfg.aad);
-    const body = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-    const tag = cipher.getAuthTag();
-    return Buffer.concat([exports.ENCRYPT_MAGIC, Buffer.from([exports.ENCRYPT_VERSION]), iv, body, tag]);
-}
-// Re-export for callers that just want a "where can I write a scratch
-// tmp file that doesn't pollute the runner-temp"; keeps the helper close
-// to where it's consumed.
-exports.tmpdir = os.tmpdir;
-
-
-/***/ }),
-
-/***/ 258:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:process");
-
-/***/ }),
-
-/***/ 259:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getRequestUrl = getRequestUrl;
-exports.appendQueryParams = appendQueryParams;
-const operationHelpers_js_1 = __nccwpck_require__(472);
-const interfaceHelpers_js_1 = __nccwpck_require__(437);
-const CollectionFormatToDelimiterMap = {
-    CSV: ",",
-    SSV: " ",
-    Multi: "Multi",
-    TSV: "\t",
-    Pipes: "|",
-};
-function getRequestUrl(baseUri, operationSpec, operationArguments, fallbackObject) {
-    const urlReplacements = calculateUrlReplacements(operationSpec, operationArguments, fallbackObject);
-    let isAbsolutePath = false;
-    let requestUrl = replaceAll(baseUri, urlReplacements);
-    if (operationSpec.path) {
-        let path = replaceAll(operationSpec.path, urlReplacements);
-        // QUIRK: sometimes we get a path component like /{nextLink}
-        // which may be a fully formed URL with a leading /. In that case, we should
-        // remove the leading /
-        if (operationSpec.path === "/{nextLink}" && path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        // QUIRK: sometimes we get a path component like {nextLink}
-        // which may be a fully formed URL. In that case, we should
-        // ignore the baseUri.
-        if (isAbsoluteUrl(path)) {
-            requestUrl = path;
-            isAbsolutePath = true;
-        }
-        else {
-            requestUrl = appendPath(requestUrl, path);
-        }
-    }
-    const { queryParams, sequenceParams } = calculateQueryParameters(operationSpec, operationArguments, fallbackObject);
-    /**
-     * Notice that this call sets the `noOverwrite` parameter to true if the `requestUrl`
-     * is an absolute path. This ensures that existing query parameter values in `requestUrl`
-     * do not get overwritten. On the other hand when `requestUrl` is not absolute path, it
-     * is still being built so there is nothing to overwrite.
-     */
-    requestUrl = appendQueryParams(requestUrl, queryParams, sequenceParams, isAbsolutePath);
-    return requestUrl;
-}
-function replaceAll(input, replacements) {
-    let result = input;
-    for (const [searchValue, replaceValue] of replacements) {
-        result = result.split(searchValue).join(replaceValue);
-    }
-    return result;
-}
-function calculateUrlReplacements(operationSpec, operationArguments, fallbackObject) {
-    const result = new Map();
-    if (operationSpec.urlParameters?.length) {
-        for (const urlParameter of operationSpec.urlParameters) {
-            let urlParameterValue = (0, operationHelpers_js_1.getOperationArgumentValueFromParameter)(operationArguments, urlParameter, fallbackObject);
-            const parameterPathString = (0, interfaceHelpers_js_1.getPathStringFromParameter)(urlParameter);
-            urlParameterValue = operationSpec.serializer.serialize(urlParameter.mapper, urlParameterValue, parameterPathString);
-            if (!urlParameter.skipEncoding) {
-                urlParameterValue = encodeURIComponent(urlParameterValue);
-            }
-            result.set(`{${urlParameter.mapper.serializedName || parameterPathString}}`, urlParameterValue);
-        }
-    }
-    return result;
-}
-function isAbsoluteUrl(url) {
-    return url.includes("://");
-}
-function appendPath(url, pathToAppend) {
-    if (!pathToAppend) {
-        return url;
-    }
-    const parsedUrl = new URL(url);
-    let newPath = parsedUrl.pathname;
-    if (!newPath.endsWith("/")) {
-        newPath = `${newPath}/`;
-    }
-    if (pathToAppend.startsWith("/")) {
-        pathToAppend = pathToAppend.substring(1);
-    }
-    const searchStart = pathToAppend.indexOf("?");
-    if (searchStart !== -1) {
-        const path = pathToAppend.substring(0, searchStart);
-        const search = pathToAppend.substring(searchStart + 1);
-        newPath = newPath + path;
-        if (search) {
-            parsedUrl.search = parsedUrl.search ? `${parsedUrl.search}&${search}` : search;
-        }
-    }
-    else {
-        newPath = newPath + pathToAppend;
-    }
-    parsedUrl.pathname = newPath;
-    return parsedUrl.toString();
-}
-function calculateQueryParameters(operationSpec, operationArguments, fallbackObject) {
-    const result = new Map();
-    const sequenceParams = new Set();
-    if (operationSpec.queryParameters?.length) {
-        for (const queryParameter of operationSpec.queryParameters) {
-            if (queryParameter.mapper.type.name === "Sequence" && queryParameter.mapper.serializedName) {
-                sequenceParams.add(queryParameter.mapper.serializedName);
-            }
-            let queryParameterValue = (0, operationHelpers_js_1.getOperationArgumentValueFromParameter)(operationArguments, queryParameter, fallbackObject);
-            if ((queryParameterValue !== undefined && queryParameterValue !== null) ||
-                queryParameter.mapper.required) {
-                queryParameterValue = operationSpec.serializer.serialize(queryParameter.mapper, queryParameterValue, (0, interfaceHelpers_js_1.getPathStringFromParameter)(queryParameter));
-                const delimiter = queryParameter.collectionFormat
-                    ? CollectionFormatToDelimiterMap[queryParameter.collectionFormat]
-                    : "";
-                if (Array.isArray(queryParameterValue)) {
-                    // replace null and undefined
-                    queryParameterValue = queryParameterValue.map((item) => {
-                        if (item === null || item === undefined) {
-                            return "";
-                        }
-                        return item;
-                    });
-                }
-                if (queryParameter.collectionFormat === "Multi" && queryParameterValue.length === 0) {
-                    continue;
-                }
-                else if (Array.isArray(queryParameterValue) &&
-                    (queryParameter.collectionFormat === "SSV" || queryParameter.collectionFormat === "TSV")) {
-                    queryParameterValue = queryParameterValue.join(delimiter);
-                }
-                if (!queryParameter.skipEncoding) {
-                    if (Array.isArray(queryParameterValue)) {
-                        queryParameterValue = queryParameterValue.map((item) => {
-                            return encodeURIComponent(item);
-                        });
-                    }
-                    else {
-                        queryParameterValue = encodeURIComponent(queryParameterValue);
-                    }
-                }
-                // Join pipes and CSV *after* encoding, or the server will be upset.
-                if (Array.isArray(queryParameterValue) &&
-                    (queryParameter.collectionFormat === "CSV" || queryParameter.collectionFormat === "Pipes")) {
-                    queryParameterValue = queryParameterValue.join(delimiter);
-                }
-                result.set(queryParameter.mapper.serializedName || (0, interfaceHelpers_js_1.getPathStringFromParameter)(queryParameter), queryParameterValue);
-            }
-        }
-    }
-    return {
-        queryParams: result,
-        sequenceParams,
-    };
-}
-function simpleParseQueryParams(queryString) {
-    const result = new Map();
-    if (!queryString || queryString[0] !== "?") {
-        return result;
-    }
-    // remove the leading ?
-    queryString = queryString.slice(1);
-    const pairs = queryString.split("&");
-    for (const pair of pairs) {
-        const [name, value] = pair.split("=", 2);
-        const existingValue = result.get(name);
-        if (existingValue) {
-            if (Array.isArray(existingValue)) {
-                existingValue.push(value);
-            }
-            else {
-                result.set(name, [existingValue, value]);
-            }
-        }
-        else {
-            result.set(name, value);
-        }
-    }
-    return result;
-}
-/** @internal */
-function appendQueryParams(url, queryParams, sequenceParams, noOverwrite = false) {
-    if (queryParams.size === 0) {
-        return url;
-    }
-    const parsedUrl = new URL(url);
-    // QUIRK: parsedUrl.searchParams will have their name/value pairs decoded, which
-    // can change their meaning to the server, such as in the case of a SAS signature.
-    // To avoid accidentally un-encoding a query param, we parse the key/values ourselves
-    const combinedParams = simpleParseQueryParams(parsedUrl.search);
-    for (const [name, value] of queryParams) {
-        const existingValue = combinedParams.get(name);
-        if (Array.isArray(existingValue)) {
-            if (Array.isArray(value)) {
-                existingValue.push(...value);
-                const valueSet = new Set(existingValue);
-                combinedParams.set(name, Array.from(valueSet));
-            }
-            else {
-                existingValue.push(value);
-            }
-        }
-        else if (existingValue) {
-            if (Array.isArray(value)) {
-                value.unshift(existingValue);
-            }
-            else if (sequenceParams.has(name)) {
-                combinedParams.set(name, [existingValue, value]);
-            }
-            if (!noOverwrite) {
-                combinedParams.set(name, value);
-            }
-        }
-        else {
-            combinedParams.set(name, value);
-        }
-    }
-    const searchPieces = [];
-    for (const [name, value] of combinedParams) {
-        if (typeof value === "string") {
-            searchPieces.push(`${name}=${value}`);
-        }
-        else if (Array.isArray(value)) {
-            // QUIRK: If we get an array of values, include multiple key/value pairs
-            for (const subValue of value) {
-                searchPieces.push(`${name}=${subValue}`);
-            }
-        }
-        else {
-            searchPieces.push(`${name}=${value}`);
-        }
-    }
-    // QUIRK: we have to set search manually as searchParams will encode comma when it shouldn't.
-    parsedUrl.search = searchPieces.length ? `?${searchPieces.join("&")}` : "";
-    return parsedUrl.toString();
-}
-//# sourceMappingURL=urlHelpers.js.map
-
-/***/ }),
-
-/***/ 260:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var decompressResponsePolicy_exports = {};
-__export(decompressResponsePolicy_exports, {
-  decompressResponsePolicy: () => decompressResponsePolicy,
-  decompressResponsePolicyName: () => decompressResponsePolicyName
-});
-module.exports = __toCommonJS(decompressResponsePolicy_exports);
-var import_policies = __nccwpck_require__(315);
-const decompressResponsePolicyName = import_policies.decompressResponsePolicyName;
-function decompressResponsePolicy() {
-  return (0, import_policies.decompressResponsePolicy)();
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 261:
-/***/ ((module) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var ndJsonPolicy_exports = {};
-__export(ndJsonPolicy_exports, {
-  ndJsonPolicy: () => ndJsonPolicy,
-  ndJsonPolicyName: () => ndJsonPolicyName
-});
-module.exports = __toCommonJS(ndJsonPolicy_exports);
-const ndJsonPolicyName = "ndJsonPolicy";
-function ndJsonPolicy() {
-  return {
-    name: ndJsonPolicyName,
-    async sendRequest(request, next) {
-      if (typeof request.body === "string" && request.body.startsWith("[")) {
-        const body = JSON.parse(request.body);
-        if (Array.isArray(body)) {
-          request.body = body.map((item) => JSON.stringify(item) + "\n").join("");
-        }
-      }
-      return next(request);
-    }
-  };
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 262:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Agent = void 0;
-const net = __importStar(__nccwpck_require__(561));
-const http = __importStar(__nccwpck_require__(362));
-const https_1 = __nccwpck_require__(78);
-__exportStar(__nccwpck_require__(176), exports);
-const INTERNAL = Symbol('AgentBaseInternalState');
-class Agent extends http.Agent {
-    constructor(opts) {
-        super(opts);
-        this[INTERNAL] = {};
-    }
-    /**
-     * Determine whether this is an `http` or `https` request.
-     */
-    isSecureEndpoint(options) {
-        if (options) {
-            // First check the `secureEndpoint` property explicitly, since this
-            // means that a parent `Agent` is "passing through" to this instance.
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if (typeof options.secureEndpoint === 'boolean') {
-                return options.secureEndpoint;
-            }
-            // If no explicit `secure` endpoint, check if `protocol` property is
-            // set. This will usually be the case since using a full string URL
-            // or `URL` instance should be the most common usage.
-            if (typeof options.protocol === 'string') {
-                return options.protocol === 'https:';
-            }
-        }
-        // Finally, if no `protocol` property was set, then fall back to
-        // checking the stack trace of the current call stack, and try to
-        // detect the "https" module.
-        const { stack } = new Error();
-        if (typeof stack !== 'string')
-            return false;
-        return stack
-            .split('\n')
-            .some((l) => l.indexOf('(https.js:') !== -1 ||
-            l.indexOf('node:https:') !== -1);
-    }
-    // In order to support async signatures in `connect()` and Node's native
-    // connection pooling in `http.Agent`, the array of sockets for each origin
-    // has to be updated synchronously. This is so the length of the array is
-    // accurate when `addRequest()` is next called. We achieve this by creating a
-    // fake socket and adding it to `sockets[origin]` and incrementing
-    // `totalSocketCount`.
-    incrementSockets(name) {
-        // If `maxSockets` and `maxTotalSockets` are both Infinity then there is no
-        // need to create a fake socket because Node.js native connection pooling
-        // will never be invoked.
-        if (this.maxSockets === Infinity && this.maxTotalSockets === Infinity) {
-            return null;
-        }
-        // All instances of `sockets` are expected TypeScript errors. The
-        // alternative is to add it as a private property of this class but that
-        // will break TypeScript subclassing.
-        if (!this.sockets[name]) {
-            // @ts-expect-error `sockets` is readonly in `@types/node`
-            this.sockets[name] = [];
-        }
-        const fakeSocket = new net.Socket({ writable: false });
-        this.sockets[name].push(fakeSocket);
-        // @ts-expect-error `totalSocketCount` isn't defined in `@types/node`
-        this.totalSocketCount++;
-        return fakeSocket;
-    }
-    decrementSockets(name, socket) {
-        if (!this.sockets[name] || socket === null) {
-            return;
-        }
-        const sockets = this.sockets[name];
-        const index = sockets.indexOf(socket);
-        if (index !== -1) {
-            sockets.splice(index, 1);
-            // @ts-expect-error  `totalSocketCount` isn't defined in `@types/node`
-            this.totalSocketCount--;
-            if (sockets.length === 0) {
-                // @ts-expect-error `sockets` is readonly in `@types/node`
-                delete this.sockets[name];
-            }
-        }
-    }
-    // In order to properly update the socket pool, we need to call `getName()` on
-    // the core `https.Agent` if it is a secureEndpoint.
-    getName(options) {
-        const secureEndpoint = this.isSecureEndpoint(options);
-        if (secureEndpoint) {
-            // @ts-expect-error `getName()` isn't defined in `@types/node`
-            return https_1.Agent.prototype.getName.call(this, options);
-        }
-        // @ts-expect-error `getName()` isn't defined in `@types/node`
-        return super.getName(options);
-    }
-    createSocket(req, options, cb) {
-        const connectOpts = {
-            ...options,
-            secureEndpoint: this.isSecureEndpoint(options),
-        };
-        const name = this.getName(connectOpts);
-        const fakeSocket = this.incrementSockets(name);
-        Promise.resolve()
-            .then(() => this.connect(req, connectOpts))
-            .then((socket) => {
-            this.decrementSockets(name, fakeSocket);
-            if (socket instanceof http.Agent) {
-                try {
-                    // @ts-expect-error `addRequest()` isn't defined in `@types/node`
-                    return socket.addRequest(req, connectOpts);
-                }
-                catch (err) {
-                    return cb(err);
-                }
-            }
-            this[INTERNAL].currentSocket = socket;
-            // @ts-expect-error `createSocket()` isn't defined in `@types/node`
-            super.createSocket(req, options, cb);
-        }, (err) => {
-            this.decrementSockets(name, fakeSocket);
-            cb(err);
-        });
-    }
-    createConnection() {
-        const socket = this[INTERNAL].currentSocket;
-        this[INTERNAL].currentSocket = undefined;
-        if (!socket) {
-            throw new Error('No socket was returned in the `connect()` function');
-        }
-        return socket;
-    }
-    get defaultPort() {
-        return (this[INTERNAL].defaultPort ??
-            (this.protocol === 'https:' ? 443 : 80));
-    }
-    set defaultPort(v) {
-        if (this[INTERNAL]) {
-            this[INTERNAL].defaultPort = v;
-        }
-    }
-    get protocol() {
-        return (this[INTERNAL].protocol ??
-            (this.isSecureEndpoint() ? 'https:' : 'http:'));
-    }
-    set protocol(v) {
-        if (this[INTERNAL]) {
-            this[INTERNAL].protocol = v;
-        }
-    }
-}
-exports.Agent = Agent;
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 263:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.mergeJsonOptions = exports.jsonWriteOptions = exports.jsonReadOptions = void 0;
-const defaultsWrite = {
-    emitDefaultValues: false,
-    enumAsInteger: false,
-    useProtoFieldName: false,
-    prettySpaces: 0,
-}, defaultsRead = {
-    ignoreUnknownFields: false,
-};
-/**
- * Make options for reading JSON data from partial options.
- */
-function jsonReadOptions(options) {
-    return options ? Object.assign(Object.assign({}, defaultsRead), options) : defaultsRead;
-}
-exports.jsonReadOptions = jsonReadOptions;
-/**
- * Make options for writing JSON data from partial options.
- */
-function jsonWriteOptions(options) {
-    return options ? Object.assign(Object.assign({}, defaultsWrite), options) : defaultsWrite;
-}
-exports.jsonWriteOptions = jsonWriteOptions;
-/**
- * Merges JSON write or read options. Later values override earlier values. Type registries are merged.
- */
-function mergeJsonOptions(a, b) {
-    var _a, _b;
-    let c = Object.assign(Object.assign({}, a), b);
-    c.typeRegistry = [...((_a = a === null || a === void 0 ? void 0 : a.typeRegistry) !== null && _a !== void 0 ? _a : []), ...((_b = b === null || b === void 0 ? void 0 : b.typeRegistry) !== null && _b !== void 0 ? _b : [])];
-    return c;
-}
-exports.mergeJsonOptions = mergeJsonOptions;
-
-
-/***/ }),
-
-/***/ 264:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var httpHeaders_exports = {};
-__export(httpHeaders_exports, {
-  createHttpHeaders: () => createHttpHeaders
-});
-module.exports = __toCommonJS(httpHeaders_exports);
-var import_ts_http_runtime = __nccwpck_require__(102);
-function createHttpHeaders(rawHeaders) {
-  return (0, import_ts_http_runtime.createHttpHeaders)(rawHeaders);
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 265:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.assertTargetOperationSupported = assertTargetOperationSupported;
-exports.normalizeTargetPlan = normalizeTargetPlan;
-exports.buildUniversal2TargetContract = buildUniversal2TargetContract;
-exports.mergeTargetEnvironment = mergeTargetEnvironment;
-exports.buildTargetHooks = buildTargetHooks;
-exports.buildTargetOperationOutputs = buildTargetOperationOutputs;
-exports.targetArtifactDirectory = targetArtifactDirectory;
-const path = __importStar(__nccwpck_require__(560));
-/** Fail before invoking an operation that Soldr did not advertise. */
-function assertTargetOperationSupported(contract, operation) {
-    const requested = operation.trim();
-    if (!requested || contract.supportedOperations.includes(requested))
-        return;
-    const reported = contract.supportedOperations.length > 0
-        ? contract.supportedOperations.join(", ")
-        : "none";
-    throw new Error(`Soldr target plan for ${contract.canonicalTarget} does not support requested operation '${requested}'; reported: ${reported}`);
-}
-function stringRecord(value) {
-    if (!value || typeof value !== "object" || Array.isArray(value))
-        return {};
-    return Object.fromEntries(Object.entries(value).filter((entry) => typeof entry[1] === "string"));
-}
-function objectRecord(value) {
-    return value && typeof value === "object" && !Array.isArray(value)
-        ? value
-        : {};
-}
-/** Convert Soldr's snake-case JSON into setup-soldr's stable output contract. */
-function normalizeTargetPlan(fallbackTarget, raw) {
-    const root = objectRecord(raw);
-    const targetPlan = objectRecord(root["target_plan"]);
-    const target = String(targetPlan["canonical_target"] ?? root["rust_triple"] ?? fallbackTarget).trim();
-    const supported = Array.isArray(targetPlan["supported_operations"])
-        ? targetPlan["supported_operations"].filter((v) => typeof v === "string")
-        : [];
-    return {
-        schemaVersion: Number(targetPlan["schema_version"] ?? root["schema_version"] ?? 1),
-        canonicalTarget: target,
-        cacheIdentity: String(targetPlan["cache_identity"] ?? target),
-        supportedOperations: supported,
-        environment: stringRecord(root["env"]),
-        toolchain: objectRecord(targetPlan["toolchain"]),
-        platform: objectRecord(targetPlan["platform"]),
-    };
-}
-/** Aggregate two real Apple target plans into a packaging-only universal2 contract. */
-function buildUniversal2TargetContract(contracts) {
-    const expected = ["aarch64-apple-darwin", "x86_64-apple-darwin"];
-    const ordered = [...contracts].sort((a, b) => a.canonicalTarget.localeCompare(b.canonicalTarget));
-    if (ordered.length !== expected.length || ordered.some((contract, index) => contract.canonicalTarget !== expected[index])) {
-        throw new Error(`universal2-apple-darwin requires target plans for ${expected.join(" and ")}`);
-    }
-    const sharedOperations = ordered[0].supportedOperations.filter((operation) => ordered.every((contract) => contract.supportedOperations.includes(operation)));
-    const packagingOperations = sharedOperations.filter((operation) => operation === "prepare" || operation === "pep517-wheel" || operation === "pep517-sdist");
-    return {
-        schemaVersion: Math.max(...ordered.map((contract) => contract.schemaVersion)),
-        canonicalTarget: "universal2-apple-darwin",
-        cacheIdentity: `universal2/${ordered.map((contract) => contract.cacheIdentity).join("+")}`,
-        supportedOperations: packagingOperations,
-        environment: Object.assign({}, ...ordered.map((contract) => contract.environment)),
-        toolchain: {
-            family: "apple-universal2-packaging",
-            realTargets: ordered.map((contract) => ({
-                canonicalTarget: contract.canonicalTarget,
-                cacheIdentity: contract.cacheIdentity,
-                supportedOperations: contract.supportedOperations,
-                toolchain: contract.toolchain,
-            })),
-        },
-        platform: {
-            kind: "apple-universal2-packaging",
-            realTargets: ordered.map((contract) => ({
-                canonicalTarget: contract.canonicalTarget,
-                platform: contract.platform,
-            })),
-        },
-    };
-}
-function isMergeableFlag(key) {
-    return key === "RUSTFLAGS"
-        || key.endsWith("_RUSTFLAGS")
-        || key.startsWith("CFLAGS_")
-        || key.startsWith("CXXFLAGS_")
-        || key.startsWith("LDFLAGS_")
-        || key.endsWith("_CFLAGS")
-        || key.endsWith("_CXXFLAGS")
-        || key.endsWith("_LDFLAGS");
-}
-/** Merge target-scoped flags without discarding project-provided flags. */
-function mergeTargetEnvironment(existing, planned) {
-    const merged = Object.fromEntries(Object.entries(existing).filter((entry) => typeof entry[1] === "string"));
-    for (const [key, value] of Object.entries(planned)) {
-        const prior = existing[key]?.trim() ?? "";
-        const next = value.trim();
-        if (isMergeableFlag(key) && prior && next) {
-            merged[key] = `${prior} ${next}`;
-        }
-        else {
-            merged[key] = next || prior;
-        }
-    }
-    return merged;
-}
-function buildTargetHooks(target) {
-    const canonical = target.trim();
-    return {
-        build: `soldr build --target ${canonical}`,
-        clippy: `soldr cargo clippy --target ${canonical}`,
-        testNoRun: `soldr cargo test --no-run --target ${canonical}`,
-        pep517Wheel: "python -m build --wheel",
-        pep517Sdist: "python -m build --sdist",
-    };
-}
-/** Expose only operation hooks that the target contract says are callable. */
-function buildTargetOperationOutputs(workspace, contract) {
-    const hooks = buildTargetHooks(contract.canonicalTarget);
-    const supports = (operation) => contract.supportedOperations.includes(operation);
-    return {
-        artifactDirectory: supports("build")
-            ? targetArtifactDirectory(workspace, contract.canonicalTarget)
-            : "",
-        build: supports("build") ? hooks.build : "",
-        clippy: supports("clippy") ? hooks.clippy : "",
-        testNoRun: supports("test-no-run") ? hooks.testNoRun : "",
-        pep517Wheel: supports("pep517-wheel") ? hooks.pep517Wheel : "",
-        pep517Sdist: supports("pep517-sdist") ? hooks.pep517Sdist : "",
-    };
-}
-function targetArtifactDirectory(workspace, target) {
-    return path.join(workspace, "target", target);
-}
-
-
-/***/ }),
-
-/***/ 266:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LroEngine = void 0;
-var lroEngine_js_1 = __nccwpck_require__(193);
-Object.defineProperty(exports, "LroEngine", ({ enumerable: true, get: function () { return lroEngine_js_1.LroEngine; } }));
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 267:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var pipeline_exports = {};
-__export(pipeline_exports, {
-  createEmptyPipeline: () => createEmptyPipeline
-});
-module.exports = __toCommonJS(pipeline_exports);
-var import_ts_http_runtime = __nccwpck_require__(102);
-function createEmptyPipeline() {
-  return (0, import_ts_http_runtime.createEmptyPipeline)();
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 268:
+/***/ 269:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 var __create = Object.create;
@@ -57870,7 +59456,7 @@ function createClientLogger(namespace) {
 
 /***/ }),
 
-/***/ 269:
+/***/ 270:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -57917,7 +59503,7 @@ function isTokenCredential(credential) {
 
 /***/ }),
 
-/***/ 270:
+/***/ 271:
 /***/ ((module) => {
 
 "use strict";
@@ -57925,7 +59511,7 @@ module.exports = require("path");
 
 /***/ }),
 
-/***/ 271:
+/***/ 272:
 /***/ ((module) => {
 
 "use strict";
@@ -57933,7 +59519,7 @@ module.exports = require("node:fs");
 
 /***/ }),
 
-/***/ 272:
+/***/ 273:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -58244,7 +59830,7 @@ module.exports = {
 
 /***/ }),
 
-/***/ 273:
+/***/ 274:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -58252,7 +59838,7 @@ module.exports = {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BinaryWriter = exports.binaryWriteOptions = void 0;
 const pb_long_1 = __nccwpck_require__(132);
-const goog_varint_1 = __nccwpck_require__(221);
+const goog_varint_1 = __nccwpck_require__(220);
 const assert_1 = __nccwpck_require__(532);
 const defaultsWrite = {
     writeUnknownFields: true,
@@ -58484,7 +60070,7 @@ exports.BinaryWriter = BinaryWriter;
 
 /***/ }),
 
-/***/ 274:
+/***/ 275:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -58534,7 +60120,7 @@ exports.decideBlessedPrepareCacheUse = decideBlessedPrepareCacheUse;
 exports.validateBlessedPrepareRestore = validateBlessedPrepareRestore;
 exports.assertMinimumSoldrVersion = assertMinimumSoldrVersion;
 exports.executeBlessedPrepare = executeBlessedPrepare;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const exec = __importStar(__nccwpck_require__(18));
 const cache_keys_js_1 = __nccwpck_require__(340);
@@ -58689,7 +60275,7 @@ async function executeBlessedPrepare(input) {
 
 /***/ }),
 
-/***/ 275:
+/***/ 276:
 /***/ ((module) => {
 
 module.exports = register;
@@ -58723,7 +60309,7 @@ function register(state, name, method, options) {
 
 /***/ }),
 
-/***/ 276:
+/***/ 277:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -58820,7 +60406,7 @@ exports.AvroReadableFromStream = AvroReadableFromStream;
 
 /***/ }),
 
-/***/ 277:
+/***/ 278:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -58874,7 +60460,7 @@ exports.isTimestampsEnabled = isTimestampsEnabled;
 exports.getTimestampFormat = getTimestampFormat;
 exports.streamExec = streamExec;
 const core = __importStar(__nccwpck_require__(504));
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 function makeFileLogger(env) {
     const logPath = (env["SETUP_SOLDR_LOG"] ?? "").trim();
     if (!logPath)
@@ -59085,7 +60671,7 @@ async function streamExec(command, args, opts = {}) {
 
 /***/ }),
 
-/***/ 278:
+/***/ 279:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -59106,7 +60692,7 @@ function getCachedDefaultHttpClient() {
 
 /***/ }),
 
-/***/ 279:
+/***/ 280:
 /***/ ((module) => {
 
 "use strict";
@@ -59143,7 +60729,7 @@ module.exports = class Pluralizer {
 
 /***/ }),
 
-/***/ 280:
+/***/ 281:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
@@ -59172,7 +60758,7 @@ module.exports = createRedirectInterceptor
 
 /***/ }),
 
-/***/ 281:
+/***/ 282:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 var __defProp = Object.defineProperty;
@@ -59226,7 +60812,7 @@ async function getUserAgentValue(prefix) {
 
 /***/ }),
 
-/***/ 282:
+/***/ 283:
 /***/ ((module) => {
 
 "use strict";
@@ -59234,7 +60820,7 @@ module.exports = require("stream/web");
 
 /***/ }),
 
-/***/ 283:
+/***/ 284:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -59244,7 +60830,7 @@ module.exports = require("stream/web");
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getBodyAsText = getBodyAsText;
 exports.utf8ByteLength = utf8ByteLength;
-const utils_js_1 = __nccwpck_require__(220);
+const utils_js_1 = __nccwpck_require__(219);
 const constants_js_1 = __nccwpck_require__(164);
 async function getBodyAsText(batchResponse) {
     let buffer = Buffer.alloc(constants_js_1.BATCH_MAX_PAYLOAD_IN_BYTES);
@@ -59260,7 +60846,7 @@ function utf8ByteLength(str) {
 
 /***/ }),
 
-/***/ 284:
+/***/ 285:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 var __defProp = Object.defineProperty;
@@ -59307,1592 +60893,6 @@ function wrapAbortSignalLikePolicy() {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
-
-
-/***/ }),
-
-/***/ 285:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-// Top-level resolve-setup entry point. Owned by Agent 1.
-//
-// Full port of resolve_setup.py::main(). Reads INPUT_* / GITHUB_* env vars,
-// resolves the toolchain spec, derives all cache keys, computes the env
-// exports + outputs the orchestrator needs.
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pythonDefaultJson = exports.buildOutputs = exports.detectMuslCcEnv = exports.detectUserLinkerEnv = exports.parseRustBacktrace = exports.parseCacheShutdownOnIdleSeconds = exports.readRawInputs = void 0;
-exports.setupEnabled = setupEnabled;
-exports.resolveRustupStrategy = resolveRustupStrategy;
-exports.detectZccachePrivateOverlap = detectZccachePrivateOverlap;
-exports.detectZccacheTestBinOptIn = detectZccacheTestBinOptIn;
-exports.detectCiTestsTargetTreeRefusal = detectCiTestsTargetTreeRefusal;
-exports.resolveLocalSourceIdentity = resolveLocalSourceIdentity;
-exports.resolveLocalSourceVersion = resolveLocalSourceVersion;
-exports.resolveManifestWorkspace = resolveManifestWorkspace;
-exports.resolveSetup = resolveSetup;
-exports.applyResolveResult = applyResolveResult;
-const os = __importStar(__nccwpck_require__(414));
-const path = __importStar(__nccwpck_require__(560));
-const fs = __importStar(__nccwpck_require__(271));
-const node_child_process_1 = __nccwpck_require__(215);
-const core = __importStar(__nccwpck_require__(504));
-const toml = __importStar(__nccwpck_require__(438));
-const cache_keys_js_1 = __nccwpck_require__(340);
-const blessed_cross_prepare_js_1 = __nccwpck_require__(274);
-const log_utils_js_1 = __nccwpck_require__(277);
-const cache_encrypt_js_1 = __nccwpck_require__(257);
-const dylint_nightly_js_1 = __nccwpck_require__(376);
-const detect_musl_cc_js_1 = __nccwpck_require__(452);
-Object.defineProperty(exports, "detectMuslCcEnv", ({ enumerable: true, get: function () { return detect_musl_cc_js_1.detectMuslCcEnv; } }));
-const build_outputs_js_1 = __nccwpck_require__(86);
-Object.defineProperty(exports, "buildOutputs", ({ enumerable: true, get: function () { return build_outputs_js_1.buildOutputs; } }));
-const raw_inputs_js_1 = __nccwpck_require__(584);
-Object.defineProperty(exports, "readRawInputs", ({ enumerable: true, get: function () { return raw_inputs_js_1.readRawInputs; } }));
-const local_profile_js_1 = __nccwpck_require__(70);
-const phase_timing_js_1 = __nccwpck_require__(569);
-const input_parsers_js_1 = __nccwpck_require__(95);
-Object.defineProperty(exports, "detectUserLinkerEnv", ({ enumerable: true, get: function () { return input_parsers_js_1.detectUserLinkerEnv; } }));
-Object.defineProperty(exports, "parseCacheShutdownOnIdleSeconds", ({ enumerable: true, get: function () { return input_parsers_js_1.parseCacheShutdownOnIdleSeconds; } }));
-Object.defineProperty(exports, "parseRustBacktrace", ({ enumerable: true, get: function () { return input_parsers_js_1.parseRustBacktrace; } }));
-const fetch_release_js_1 = __nccwpck_require__(203);
-const cargo_registry_archive_js_1 = __nccwpck_require__(586);
-const soldr_load_shim_js_1 = __nccwpck_require__(542);
-const python_json_js_1 = __nccwpck_require__(11);
-Object.defineProperty(exports, "pythonDefaultJson", ({ enumerable: true, get: function () { return python_json_js_1.pythonDefaultJson; } }));
-const toolchain_js_1 = __nccwpck_require__(125);
-const FALSY_VALUES = new Set(["0", "false", "no", "off"]);
-const TRUTHY_VALUES = new Set(["1", "true", "yes", "on"]);
-function setupEnabled(input) {
-    const value = input.trim() || "true";
-    if (!TRUTHY_VALUES.has(value.toLowerCase()) && !FALSY_VALUES.has(value.toLowerCase())) {
-        throw new Error(`invalid 'enable' input: '${value}'. Allowed: true | false`);
-    }
-    return !FALSY_VALUES.has(value.toLowerCase());
-}
-const ALLOWED_LINKER_VALUES = [
-    "default",
-    "platform-default",
-    "ld",
-    "mold",
-    "rust-lld",
-    "fast",
-];
-// CARGO_MAKEFLAGS / MAKEFLAGS describe an in-process jobserver pipe whose
-// FDs are closed once the producing process exits. Forwarding via $GITHUB_ENV
-// causes "failed to connect to jobserver" warnings in every downstream step.
-// See setup-soldr#71.
-const GITHUB_ENV_DENY_LIST = new Set(["CARGO_MAKEFLAGS", "MAKEFLAGS"]);
-function expanduser(p, env) {
-    if (!p)
-        return p;
-    if (p.startsWith("~")) {
-        const home = env["HOME"] || env["USERPROFILE"] || "";
-        if (p === "~")
-            return home;
-        if (p.startsWith("~/") || p.startsWith("~\\")) {
-            return path.join(home, p.slice(2));
-        }
-    }
-    return p;
-}
-function resolveAbsolute(p, env) {
-    return path.resolve(expanduser(p, env));
-}
-function isFalsy(value) {
-    return FALSY_VALUES.has(value.trim().toLowerCase());
-}
-function isTruthy(value) {
-    return TRUTHY_VALUES.has(value.trim().toLowerCase());
-}
-function defaultHomeDir(env, name) {
-    const home = env["HOME"] || env["USERPROFILE"] || os.homedir();
-    return path.resolve(path.join(home, name));
-}
-function parseOptInBool(inputName, value, defaultValue = false) {
-    const raw = value.trim().toLowerCase();
-    if (!raw)
-        return defaultValue;
-    if (TRUTHY_VALUES.has(raw))
-        return true;
-    if (FALSY_VALUES.has(raw))
-        return false;
-    throw new Error(`invalid '${inputName}' input: '${value}'. Allowed: true | false`);
-}
-function semverAtLeast(value, minimum) {
-    const parse = (v) => {
-        const m = v.trim().replace(/^v/, "").match(/^(\d+)\.(\d+)\.(\d+)/);
-        if (!m)
-            return null;
-        return [Number(m[1]), Number(m[2]), Number(m[3])];
-    };
-    const got = parse(value);
-    const want = parse(minimum);
-    if (!got || !want)
-        return false;
-    for (let i = 0; i < 3; i += 1) {
-        if (got[i] > want[i])
-            return true;
-        if (got[i] < want[i])
-            return false;
-    }
-    return true;
-}
-function rustHostTriple(runnerOs, runnerArch) {
-    const osName = runnerOs.trim().toLowerCase();
-    const archName = runnerArch.trim().toLowerCase();
-    const arch = archName === "x64" || archName === "amd64"
-        ? "x86_64"
-        : archName === "arm64" || archName === "aarch64"
-            ? "aarch64"
-            : archName === "x86" || archName === "ia32"
-                ? "i686"
-                : (0, cache_keys_js_1.sanitizeFragment)(archName || "unknown");
-    if (osName === "windows" || osName === "win32")
-        return `${arch}-pc-windows-msvc`;
-    if (osName === "macos" || osName === "darwin")
-        return `${arch}-apple-darwin`;
-    if (osName === "linux")
-        return `${arch}-unknown-linux-gnu`;
-    return `${arch}-${(0, cache_keys_js_1.sanitizeFragment)(osName || "unknown")}`;
-}
-function splitPathInput(value) {
-    return value
-        .split(/[\r\n,]+/g)
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0);
-}
-function defaultDylintCachePaths(cargoHome, driverPath) {
-    return [
-        path.join(cargoHome, "bin", "cargo-dylint*"),
-        path.join(cargoHome, "bin", "dylint-link*"),
-        path.join(cargoHome, ".crates.toml"),
-        path.join(cargoHome, ".crates2.json"),
-        driverPath,
-    ];
-}
-function makeDirs(...paths) {
-    for (const p of paths) {
-        fs.mkdirSync(p, { recursive: true });
-    }
-}
-/**
- * Pure helper: decide the final rustup strategy from the requested one and
- * the host platform. On macOS we always override `system` to `managed` to
- * avoid the pre-installed rustup toolchain conflicts (see setup-soldr#105).
- *
- * GitHub-hosted `macos-15` (ARM) runners ship with a stable rustup toolchain
- * that already includes `clippy`. Downstream actions that try to install a
- * different toolchain with clippy hit
- *   detected conflict: 'bin/cargo-clippy'
- * because rustup component add refuses to overwrite the existing binary in
- * the shared rustup home. Forcing the managed strategy gives setup-soldr its
- * own private rustup home so the pre-installed components cannot collide.
- *
- * `explicit` (user-provided RUSTUP_HOME) is left untouched on every platform
- * — opting in to a specific home means accepting any conflicts that come
- * with it.
- */
-function resolveRustupStrategy(opts) {
-    const { requested, platform, warn } = opts;
-    if (platform === "darwin" && requested === "system") {
-        warn?.("setup-soldr: forcing rustup strategy to 'managed' on macOS to avoid " +
-            "pre-installed rustup toolchain component conflicts (e.g. " +
-            "\"detected conflict: 'bin/cargo-clippy'\" on macos-15 runners). " +
-            "See https://github.com/zackees/setup-soldr/issues/105 for context. " +
-            "This may change which setup-cache key is used compared to other " +
-            "platforms.");
-        return "managed";
-    }
-    return requested;
-}
-/**
- * Detect the `SOLDR_ZCCACHE_PRIVATE` ↔ `ZCCACHE_CACHE_DIR` overlap.
- *
- * soldr#807 added `SOLDR_ZCCACHE_PRIVATE` as an opt-in that reroutes the
- * managed zccache cache to `<cwd>/.zccache` — but only when
- * `ZCCACHE_CACHE_DIR` is *not* explicitly set. setup-soldr always sets
- * `ZCCACHE_CACHE_DIR` to `<soldr-root>/cache/zccache`, so when a workflow
- * also sets `SOLDR_ZCCACHE_PRIVATE=1` (truthy: `1`/`true`/`yes`/`on`)
- * the env var becomes a silent no-op. Return a warning string the caller
- * should surface via `core.warning`; return `null` otherwise.
- */
-function detectZccachePrivateOverlap(env) {
-    const raw = (env["SOLDR_ZCCACHE_PRIVATE"] ?? "").trim().toLowerCase();
-    if (!TRUTHY_VALUES.has(raw))
-        return null;
-    return ("setup-soldr: SOLDR_ZCCACHE_PRIVATE is set but will be ignored — " +
-        "setup-soldr pins ZCCACHE_CACHE_DIR=<soldr-root>/cache/zccache " +
-        "explicitly, and soldr#807 makes explicit ZCCACHE_CACHE_DIR take " +
-        "precedence over the private-session opt-in. The zccache cache " +
-        "will stay in setup-soldr's managed location, not <cwd>/.zccache. " +
-        "Unset ZCCACHE_CACHE_DIR (or run outside setup-soldr) to use the " +
-        "private cache path.");
-}
-/**
- * Detect a job-level `ZCCACHE_CACHE_TEST_BINS` opt-in (soldr#2931 /
- * setup-soldr#496).
- *
- * zccache#1527 made the compiler service refuse `--test` harness link products
- * at cache admission *by default*, because a test executable statically links
- * the whole dependency graph: its identity key changes with any transitive
- * input while its size is measured in tens of megabytes, so it is the single
- * worst size-per-stability trade in the store. `ZCCACHE_CACHE_TEST_BINS=1` is
- * the escape hatch that turns that exclusion back off.
- *
- * setup-soldr never sets that variable (see the env-export block below), but a
- * workflow can set it at the job/step level and it would then silently reverse
- * the tier-3 rule for every compile this action wraps. Return a warning string
- * the caller should surface via `core.warning`; return `null` otherwise.
- * Mirrors `detectZccachePrivateOverlap` above — the detector is pure so it can
- * be unit-tested without a runner.
- */
-function detectZccacheTestBinOptIn(env) {
-    const raw = (env["ZCCACHE_CACHE_TEST_BINS"] ?? "").trim().toLowerCase();
-    if (!TRUTHY_VALUES.has(raw))
-        return null;
-    return ("setup-soldr: ZCCACHE_CACHE_TEST_BINS is set truthy in this job's " +
-        "environment, which re-enables caching of linked test binaries. " +
-        "soldr#2931 classifies linked test products (integration-test " +
-        "executables, benches, examples built for tests, doctest products and " +
-        "their debug sidecars) as tier-3 'none' — never cacheable at any layer, " +
-        "because their identity key is maximally unstable relative to their " +
-        "size. zccache#1527 excludes them by default and setup-soldr " +
-        "deliberately never sets this variable. Unset it unless you are " +
-        "knowingly reproducing the 3.3 GB nextest-archive failure that " +
-        "exhausted a hosted Windows runner's disk (os error 112). See " +
-        "https://github.com/zackees/soldr/issues/2931.");
-}
-/**
- * Decide whether a `ci-tests: true` lane must refuse the bulk `target/`
- * snapshot that `build-cache-mode: full` would otherwise persist
- * (soldr#2931 / setup-soldr#496).
- *
- * WHY THIS EXISTS. `build-cache-mode: full` + target caching is the only
- * configuration in this action that saves the *entire* `target/` directory
- * (see the `targetTreeCacheEnabled` branch below, where `targetCachePaths`
- * becomes `[targetCachePath, targetCacheBundlePath]`). `target/<profile>/deps/`
- * is where every linked test executable lands, so a bulk snapshot is by
- * construction a snapshot of tier-3 artifacts. soldr's own repo is the worked
- * example: `crates/soldr-cli/tests/` had 98 top-level files, each compiled into
- * its own executable statically linking the whole dependency graph, which
- * produced a 3,302,138,143-byte nextest archive and exhausted a hosted Windows
- * runner's disk with `os error 112`.
- *
- * A ci-test lane is the *worst possible producer* for that snapshot, because
- * linked test products are not a side effect of the lane — they are its entire
- * output. So `ci-tests: true` carries a cache-ownership contract: this job will
- * not persist a bulk target tree.
- *
- * WHY THE REFUSAL IS ABSOLUTE RATHER THAN EXPLICIT-INPUT-WINS. The
- * `cache-preset` convention in this file is "explicit fine-grained input beats
- * the preset" — a preset is a bundle of *defaults*, so anything the user
- * actually typed outranks it. That rule governs preset-vs-explicit; it does not
- * govern explicit-vs-explicit, which is what this conflict is: `ci-tests` and
- * `build-cache-mode` are both things the user typed. Note also that no preset
- * can even reach this state — `cache-preset: full` resolves `buildCacheMode` to
- * `"thin"`, so the bulk-snapshot path is reachable only from an explicit
- * `build-cache-mode: full` (or the deprecated `target-cache-mode: full`). If
- * explicit input won here, the contract would be unreachable and this code
- * would be a no-op.
- *
- * For explicit-vs-explicit cache-layer conflicts this file already refuses
- * outright: `dylint-output-cache` + `build-cache-mode=full` *throws*. We soften
- * that to warn-and-degrade because, unlike the Dylint overlap, the degraded
- * result is still correct — the bounded thin bundle plus the per-unit zccache
- * store carry the lane, just with a smaller warm set — and hard-failing an
- * existing workflow over a cache-shape preference is disproportionate. The
- * escape hatch is free and needs no new input surface: a job that genuinely
- * wants a bulk `target/` snapshot simply does not opt into the `ci-tests`
- * profile.
- *
- * Returns the warning to surface via `core.warning`, or `null` when the
- * configuration is already compliant. Pure so it can be unit-tested directly,
- * matching the `detectZccachePrivateOverlap` idiom above.
- */
-function detectCiTestsTargetTreeRefusal(opts) {
-    const { ciTestsEnabled, buildCacheEnabled, targetCacheRequested, buildCacheMode } = opts;
-    if (!ciTestsEnabled)
-        return null;
-    if (buildCacheMode !== "full")
-        return null;
-    // Mirrors the `targetTreeCacheEnabled` predicate below: no bulk snapshot is
-    // taken unless build-cache is on AND target caching was requested, so there
-    // is nothing to refuse in any other combination.
-    if (!buildCacheEnabled || !targetCacheRequested)
-        return null;
-    return ("setup-soldr: refusing build-cache-mode=full on a ci-tests lane; " +
-        "degrading to 'thin'. `ci-tests: true` declares that this job's product " +
-        "is linked test binaries (integration-test executables, benches, " +
-        "examples built for tests, doctest products and their debug sidecars), " +
-        "and mode 'full' persists a bulk snapshot of the whole target/ " +
-        "directory — which on such a lane is almost entirely those products. " +
-        "soldr#2931 classifies them as tier-3 'none': never cacheable at any " +
-        "layer. Only tier-1 cook dependency compilation and the tier-2 per-unit " +
-        "zccache store are durable, and both survive this degrade. The worked " +
-        "example is soldr's own repo, where 98 top-level integration-test files " +
-        "each linked their own executable and produced a 3,302,138,143-byte " +
-        "archive that exhausted a hosted Windows runner's disk (os error 112). " +
-        "If you really want a bulk target/ snapshot on this job, drop " +
-        "`ci-tests: true`. See https://github.com/zackees/soldr/issues/2931 and " +
-        "https://github.com/zackees/setup-soldr/issues/496.");
-}
-// `fetchReleaseTagDefault` and `resolveSoldrReleaseVersion` live in
-// ./fetch-release.js — used directly from resolveSetup() below.
-function resolveLocalSourceIdentity(sourcePath) {
-    const runGit = (args) => (0, node_child_process_1.execFileSync)("git", ["-C", sourcePath, ...args], {
-        encoding: "utf8",
-        maxBuffer: 4 * 1024 * 1024,
-        windowsHide: true,
-    }).trim();
-    let head;
-    try {
-        head = runGit(["rev-parse", "HEAD"]);
-    }
-    catch (error) {
-        throw new Error(`source-path must be a Git checkout with a resolvable HEAD: ${sourcePath}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-    return `local-${head}`;
-}
-function resolveLocalSourceVersion(sourcePath) {
-    const manifestPath = path.join(sourcePath, "Cargo.toml");
-    let parsed;
-    try {
-        parsed = toml.parse(fs.readFileSync(manifestPath, "utf8"));
-    }
-    catch (error) {
-        throw new Error(`failed to parse local Soldr Cargo.toml at ${manifestPath}: ${error instanceof Error ? error.message : String(error)}`);
-    }
-    const root = parsed;
-    const workspace = root["workspace"];
-    const packageTable = workspace?.["package"];
-    const version = packageTable?.["version"];
-    if (typeof version !== "string" || !/^\d+\.\d+\.\d+(?:[-+].*)?$/.test(version)) {
-        throw new Error(`local Soldr Cargo.toml has no valid workspace.package.version: ${manifestPath}`);
-    }
-    return version;
-}
-function resolveManifestWorkspace(targetDir, workspace) {
-    let current = path.dirname(path.resolve(targetDir));
-    while (true) {
-        if (fs.existsSync(path.join(current, "Cargo.toml")))
-            return current;
-        const parent = path.dirname(current);
-        if (parent === current)
-            break;
-        current = parent;
-    }
-    return path.resolve(workspace);
-}
-/**
- * Resolve setup state. The orchestrator calls this once at the start of the
- * action and uses the returned ResolveResult to drive every subsequent step.
- */
-async function resolveSetup(ctx, inputs, deps) {
-    const env = { ...ctx.env };
-    // ---- timing seed ----
-    const logStart = String(Math.floor(Date.now() / 1000));
-    const timestamps = (inputs.timestamps && inputs.timestamps.trim()) || "true";
-    const timestampFormatRaw = (inputs.timestampFormat || "").trim().toLowerCase();
-    const VALID_TIMESTAMP_FORMATS = ["mmss", "seconds"];
-    if (timestampFormatRaw && !VALID_TIMESTAMP_FORMATS.includes(timestampFormatRaw)) {
-        throw new Error(`invalid timestamp-format '${inputs.timestampFormat}'; expected one of ${VALID_TIMESTAMP_FORMATS.join(", ")}`);
-    }
-    const timestampFormat = timestampFormatRaw || "mmss";
-    env["SETUP_SOLDR_LOG_START_EPOCH"] = logStart;
-    env["SETUP_SOLDR_TIMESTAMPS"] = timestamps;
-    env["SETUP_SOLDR_TIMESTAMP_FORMAT"] = timestampFormat;
-    // ---- #387 Feature 1: cache encryption ----
-    // Validate the key shape NOW (fail fast on a malformed key) and mark the
-    // raw value as a GitHub Actions secret so any incidental log line that
-    // captures it is auto-redacted. We do NOT keep the parsed Buffer in
-    // ResolveResult — downstream cache layers re-read SETUP_SOLDR_CACHE_ENCRYPT_KEY
-    // at the time of use and re-parse, so the key only exists in memory inside
-    // the closure that needs it.
-    const cacheEncryptKeyRaw = (inputs.cacheEncryptKey || "").trim();
-    if (cacheEncryptKeyRaw) {
-        core.setSecret(cacheEncryptKeyRaw);
-        // Throw early with a clean diagnostic when the key shape is wrong. The
-        // raw value is never echoed back in the error message.
-        (0, cache_encrypt_js_1.parseEncryptionKey)(cacheEncryptKeyRaw);
-    }
-    const cacheEncryptOnFailureRaw = (inputs.cacheEncryptOnFailure || "error")
-        .trim()
-        .toLowerCase();
-    if (cacheEncryptOnFailureRaw && !["error", "skip"].includes(cacheEncryptOnFailureRaw)) {
-        throw new Error(`invalid cache-encrypt-on-failure '${inputs.cacheEncryptOnFailure}'; expected 'error' or 'skip'`);
-    }
-    const cacheEncryptOnFailure = cacheEncryptOnFailureRaw === "skip" ? "skip" : "error";
-    if (cacheEncryptKeyRaw) {
-        env["SETUP_SOLDR_CACHE_ENCRYPT_KEY"] = cacheEncryptKeyRaw;
-        env["SETUP_SOLDR_CACHE_ENCRYPT_ON_FAILURE"] = cacheEncryptOnFailure;
-    }
-    const logger = ctx.logger ?? (0, log_utils_js_1.createLogger)(env);
-    const log = (msg) => logger.log(msg);
-    if (!ctx.workspace) {
-        throw new Error("ACTION_WORKSPACE / ctx.workspace must be set");
-    }
-    const workspace = path.resolve(ctx.workspace);
-    const runnerTemp = ctx.runnerTemp
-        ? path.resolve(ctx.runnerTemp)
-        : path.resolve(path.join(workspace, ".tmp"));
-    const ciTestsEnabled = parseOptInBool("ci-tests", inputs.ciTests, false);
-    // Dylint has its own nightly/driver compatibility matrix and is deliberately
-    // not folded into ci-tests. The ci-test resource contract shares the stable
-    // compile domain; callers opt into Dylint separately when they need it.
-    const dylintModeEnabled = parseOptInBool("dylint", inputs.dylint, false);
-    const explicitCargoRegistryCache = inputs.cargoRegistryCache.trim();
-    // ---- cache-preset resolution (#251) ----
-    // The umbrella `cache-preset` fills any cache-affecting input the consumer
-    // left unset; explicit fine-grained inputs always win. Resolved BEFORE the
-    // per-layer reads below so downstream logic only sees the post-preset
-    // values. The historical default of each input is the fallback when
-    // neither an explicit value nor a preset is set, which keeps behavior
-    // identical for consumers who never set `cache-preset`.
-    const cachePresetRaw = inputs.cachePreset.trim().toLowerCase();
-    const validCachePresets = ["minimal", "foundation", "full"];
-    if (cachePresetRaw && !validCachePresets.includes(cachePresetRaw)) {
-        throw new Error(`invalid cache-preset '${inputs.cachePreset}'; expected one of ${validCachePresets.join(", ")}`);
-    }
-    const cachePresetEffective = (cachePresetRaw || "");
-    const cachePresetMap = {
-        minimal: {
-            buildCache: "false",
-            targetCache: "false",
-            cargoRegistryCache: "true",
-            prebuildDeps: "soldr-cook",
-            buildCacheMode: "",
-        },
-        foundation: {
-            buildCache: "true",
-            targetCache: "false",
-            cargoRegistryCache: "true",
-            prebuildDeps: "soldr-cook",
-            buildCacheMode: "",
-        },
-        full: {
-            buildCache: "true",
-            targetCache: "true",
-            cargoRegistryCache: "true",
-            prebuildDeps: "soldr-cook",
-            buildCacheMode: "thin",
-        },
-    };
-    const cachePresetCfg = cachePresetEffective ? cachePresetMap[cachePresetEffective] : null;
-    // Explicit non-empty user value wins; else preset value when a preset is
-    // set; else leave empty so the existing downstream fall-through
-    // (`inputs.X.trim() || "<historical default>"`) applies as before. This
-    // preserves behavior for consumers who never set `cache-preset` — only
-    // unset inputs *under a preset* are filled here. Mutating `inputs` folds
-    // the resolution into the single source of truth that downstream code
-    // (here + main.ts + cook-cache.ts) reads from.
-    if (cachePresetCfg) {
-        const fillFromPreset = (explicit, presetValue) => {
-            const e = explicit.trim();
-            return e ? e : presetValue;
-        };
-        inputs.buildCache = fillFromPreset(inputs.buildCache, cachePresetCfg.buildCache);
-        inputs.targetCache = fillFromPreset(inputs.targetCache, cachePresetCfg.targetCache);
-        inputs.cargoRegistryCache = fillFromPreset(inputs.cargoRegistryCache, cachePresetCfg.cargoRegistryCache);
-        inputs.prebuildDeps = fillFromPreset(inputs.prebuildDeps, cachePresetCfg.prebuildDeps);
-        inputs.buildCacheMode = fillFromPreset(inputs.buildCacheMode, cachePresetCfg.buildCacheMode);
-    }
-    if (dylintModeEnabled) {
-        if (!explicitCargoRegistryCache)
-            inputs.cargoRegistryCache = "true";
-        // Ordinary cook is stable/build-shaped and cannot warm Dylint's isolated
-        // nightly/check-shaped tree. Dylint mode therefore always disables it.
-        inputs.prebuildDeps = "none";
-    }
-    // ---- cache roots ----
-    const requestedCacheDir = inputs.cacheDir.trim();
-    const cacheRoot = requestedCacheDir
-        ? resolveAbsolute(requestedCacheDir, env)
-        : path.resolve(path.join(runnerTemp, "setup-soldr"));
-    const soldrRoot = path.join(path.dirname(cacheRoot), `${path.basename(cacheRoot)}-soldr`);
-    const cargoHomeInput = (env["CARGO_HOME"] ?? "").trim();
-    const cargoHome = cargoHomeInput
-        ? resolveAbsolute(cargoHomeInput, env)
-        : defaultHomeDir(env, ".cargo");
-    const binDir = path.join(cacheRoot, "bin");
-    const setupCachePath = cacheRoot;
-    const soldrBinCachePath = path.join(soldrRoot, "bin");
-    const zccacheCacheDir = path.join(soldrRoot, "cache", "zccache");
-    const thinTargetCacheBundlePath = path.join(path.dirname(cacheRoot), `${path.basename(cacheRoot)}-target-thin`);
-    // When the action is disabled (`enable: false`), we write a script-based
-    // passthrough stub at soldrPath instead of installing the real binary.
-    // The stub is a bash script on Unix and a .cmd shim on Windows — Windows
-    // cannot spawn a script via the .exe extension without a real PE, so
-    // soldrPath must end in .cmd in passthrough mode.
-    const enabled = setupEnabled(inputs.enable);
-    const soldrBinary = enabled
-        ? process.platform === "win32"
-            ? "soldr.exe"
-            : "soldr"
-        : process.platform === "win32"
-            ? "soldr.cmd"
-            : "soldr";
-    const soldrPath = path.join(binDir, soldrBinary);
-    // ---- toolchain ----
-    // #302: sub-phase timing on the awaits inside resolve so we can see
-    // which step is dominating (toolchain-spec / rustup-probe / hash walks
-    // / soldr-version fetch). Cheap finally-block bookkeeping; no behavior
-    // change for callers.
-    const toolchain = await (0, phase_timing_js_1.timeSubPhase)("resolve", "toolchain-spec", () => (0, toolchain_js_1.loadToolchainSpec)({
-        workspace,
-        toolchainFile: inputs.toolchainFile || "rust-toolchain.toml",
-        toolchainOverride: inputs.toolchain,
-        log,
-    }));
-    const crossTarget = (0, blessed_cross_prepare_js_1.parseSingleCrossTarget)(inputs.crossTargets);
-    toolchain.targets = (0, blessed_cross_prepare_js_1.mergeToolchainTargets)(toolchain.targets, crossTarget);
-    // ---- rustup home selection ----
-    const explicitRustupHome = (env["RUSTUP_HOME"] ?? "").trim();
-    let rustupHome;
-    let rustupStrategy;
-    if (explicitRustupHome) {
-        rustupHome = resolveAbsolute(explicitRustupHome, env);
-        rustupStrategy = "explicit";
-    }
-    else {
-        const runnerRustupHome = defaultHomeDir(env, ".rustup");
-        let satisfied = false;
-        if (deps?.systemRustupOverride) {
-            satisfied = await (0, phase_timing_js_1.timeSubPhase)("resolve", "rustup-probe", () => deps.systemRustupOverride(cargoHome, runnerRustupHome, toolchain));
-        }
-        else {
-            satisfied = await (0, phase_timing_js_1.timeSubPhase)("resolve", "rustup-probe", () => (0, toolchain_js_1.systemRustupSatisfiesRequest)({
-                cargoHome,
-                rustupHome: runnerRustupHome,
-                bootstrapSoldr: enabled ? ctx.bootstrapSoldr : undefined,
-                getBootstrapSoldr: enabled ? ctx.getBootstrapSoldr : undefined,
-                allowUnmanagedProbe: !enabled,
-                toolchain,
-                env,
-                logger,
-                deps: deps?.systemRustup,
-            }));
-        }
-        if (satisfied) {
-            rustupHome = runnerRustupHome;
-            rustupStrategy = "system";
-        }
-        else {
-            rustupHome = path.join(cacheRoot, "rustup-home");
-            rustupStrategy = "managed";
-        }
-        // Platform override: macOS pre-installed rustup toolchains conflict with
-        // downstream component adds (setup-soldr#105). Force `managed` when the
-        // initial selection landed on `system` so we get a private rustup home.
-        const overridden = resolveRustupStrategy({
-            requested: rustupStrategy,
-            platform: process.platform,
-            warn: (msg) => logger.warning(msg),
-        });
-        if (overridden !== rustupStrategy) {
-            rustupStrategy = overridden;
-            if (rustupStrategy === "managed") {
-                rustupHome = path.join(cacheRoot, "rustup-home");
-            }
-        }
-    }
-    let setupCachePathsList = (0, cache_keys_js_1.setupCachePaths)(setupCachePath, binDir, soldrBinCachePath, rustupHome);
-    let setupCacheLayoutValue = (0, cache_keys_js_1.setupCacheLayout)(setupCachePath, rustupHome);
-    if (dylintModeEnabled) {
-        // The Dylint foundation owns exact nightly toolchain paths. Do not let
-        // setup-cache's broad rustup directories overlap that layer or carry a
-        // Dylint nightly into a later non-Dylint job.
-        const rustupOwnedPaths = new Set([
-            path.normalize(path.join(rustupHome, "update-hashes")),
-            path.normalize(path.join(rustupHome, "settings.toml")),
-            path.normalize(path.join(rustupHome, "toolchains")),
-        ]);
-        setupCachePathsList = setupCachePathsList
-            .split(/\r?\n/)
-            .filter((candidate) => !rustupOwnedPaths.has(path.normalize(candidate)))
-            .join("\n");
-        setupCacheLayoutValue = "bin+soldr-bin";
-    }
-    for (const dir of [
-        cacheRoot,
-        soldrRoot,
-        path.join(soldrRoot, "cache"),
-        soldrBinCachePath,
-        cargoHome,
-        path.join(cargoHome, "bin"),
-        rustupHome,
-        binDir,
-        zccacheCacheDir,
-        thinTargetCacheBundlePath,
-    ]) {
-        makeDirs(dir);
-    }
-    const soldrRepo = inputs.repo.trim() || "zackees/soldr";
-    const sourcePathInput = inputs.sourcePath.trim();
-    let soldrSourcePath = "";
-    let soldrSourceIdentity = "";
-    let soldrSourceVersion = "";
-    if (sourcePathInput) {
-        soldrSourcePath = expanduser(sourcePathInput, env);
-        if (!path.isAbsolute(soldrSourcePath))
-            soldrSourcePath = path.join(workspace, soldrSourcePath);
-        soldrSourcePath = path.resolve(soldrSourcePath);
-        if (!fs.existsSync(path.join(soldrSourcePath, "Cargo.toml"))) {
-            throw new Error(`source-path does not contain Cargo.toml: ${soldrSourcePath}`);
-        }
-        [soldrSourceIdentity, soldrSourceVersion] = await (0, phase_timing_js_1.timeSubPhase)("resolve", "soldr-source", async () => [
-            resolveLocalSourceIdentity(soldrSourcePath),
-            resolveLocalSourceVersion(soldrSourcePath),
-        ]);
-    }
-    const soldrRef = soldrSourcePath ? "local-source" : inputs.ref.trim();
-    const soldrVersionRequested = soldrSourcePath ? "" : inputs.version.trim();
-    const soldrVersionResolved = soldrSourcePath
-        ? soldrSourceVersion
-        : await (0, phase_timing_js_1.timeSubPhase)("resolve", "soldr-version", () => (0, fetch_release_js_1.resolveSoldrReleaseVersion)(soldrRepo, soldrVersionRequested, soldrRef, env, deps));
-    const toolchainSignature = {
-        channel: toolchain.cacheChannel,
-        profile: toolchain.profile,
-        components: toolchain.components,
-        targets: toolchain.targets,
-        source: toolchain.source,
-        file_hash: toolchain.fileHash,
-        setup_cache_layout: setupCacheLayoutValue,
-        soldr_repo: soldrRepo,
-        soldr_ref: soldrRef || "release",
-        soldr_source_identity: soldrSourceIdentity,
-        soldr_version: soldrVersionResolved || soldrRef || "source-ref",
-    };
-    // Python uses json.dumps(sort_keys=True) without compact separators here,
-    // so canonical_json_stringify is wrong; mirror Python's default separators
-    // (", " and ": ") to match byte-for-byte.
-    const signatureString = (0, python_json_js_1.pythonDefaultJson)(toolchainSignature);
-    const { createHash } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 301, 23));
-    const digest = createHash("sha256").update(signatureString, "utf8").digest("hex").slice(0, 16);
-    // setup-soldr#625: the build cache (zccache store) keys on a digest of the
-    // toolchain WITHOUT the soldr identity, and carries the soldr digest as the
-    // key's last segment instead. The exact key still records which soldr wrote
-    // the store, but the job-scoped restore fallback no longer changes on every
-    // soldr release, so a new release restores the previous store and rebuilds
-    // only the delta. rustc release, components, targets, profile, os and arch
-    // all stay in the fallback.
-    const { soldr_repo: _soldrRepo, soldr_ref: _soldrRef, soldr_source_identity: _soldrSourceIdentity, soldr_version: _soldrVersion, ...soldrFreeSignature } = toolchainSignature;
-    const buildCacheDigest = createHash("sha256")
-        .update((0, python_json_js_1.pythonDefaultJson)(soldrFreeSignature), "utf8").digest("hex").slice(0, 16);
-    const soldrDigest = createHash("sha256")
-        .update((0, python_json_js_1.pythonDefaultJson)({
-        soldr_repo: _soldrRepo,
-        soldr_ref: _soldrRef,
-        soldr_source_identity: _soldrSourceIdentity,
-        soldr_version: _soldrVersion,
-    }), "utf8").digest("hex").slice(0, 16);
-    const runnerOs = (0, cache_keys_js_1.sanitizeFragment)((env["ACTION_OS"]?.trim() || env["RUNNER_OS"]?.trim() || process.platform).toLowerCase());
-    const runnerArch = (0, cache_keys_js_1.sanitizeFragment)((env["ACTION_ARCH"]?.trim() || env["RUNNER_ARCH"]?.trim() || process.arch).toLowerCase());
-    const cachePrefix = `setup-soldr-v4-${runnerOs}-${runnerArch}`;
-    let cacheKey = `${cachePrefix}-${digest}`;
-    const targetDirInput = inputs.targetDir.trim() || "target";
-    let targetCachePath = expanduser(targetDirInput, env);
-    if (!path.isAbsolute(targetCachePath)) {
-        targetCachePath = path.join(workspace, targetCachePath);
-    }
-    targetCachePath = path.resolve(targetCachePath);
-    const manifestWorkspace = resolveManifestWorkspace(targetCachePath, workspace);
-    // #295-followup: parallelize the independent manifest and Cargo-config
-    // walks. Manifests are rooted at the nearest Cargo.toml ancestor of the
-    // selected target directory (falling back to the action workspace), so
-    // nonstandard target layouts stay correct while a tracked development tool
-    // checkout under `_vender/` cannot add unrelated traversal.
-    const [wsManifestHash, cargoConfigHashValue] = await (0, phase_timing_js_1.timeSubPhase)("resolve", "ws-hash", () => Promise.all([(0, cache_keys_js_1.workspaceManifestHash)(manifestWorkspace), (0, cache_keys_js_1.cargoConfigHash)(workspace)]));
-    const suffix = inputs.cacheKeySuffix.trim();
-    const sanitizedSuffix = suffix ? (0, cache_keys_js_1.sanitizeFragment)(suffix) : "";
-    if (suffix) {
-        cacheKey = `${cacheKey}-${sanitizedSuffix}`;
-    }
-    // ---- build cache ----
-    const githubSha = (env["GITHUB_SHA"] ?? "").trim() || "nosha";
-    let parentSha = (env["ACTION_PARENT_SHA"] ?? "").trim();
-    if (parentSha === githubSha) {
-        parentSha = "";
-    }
-    // v3 (#625): the soldr digest moved from the toolchain segment to the end.
-    const buildCachePrefix = `setup-soldr-buildcache-v3-${runnerOs}-${runnerArch}`;
-    const buildCacheToolchainPrefix = `${buildCachePrefix}-${buildCacheDigest}-`;
-    // Build-cache key (setup-soldr#237): platform + toolchain (digest) + per-job
-    // suffix + Cargo.lock — but NOT the commit SHA. Dropping the SHA is the fix:
-    // it made the key exact-miss on every commit, after which the fallback grabbed
-    // a *different* job's archive → 0 hits. We KEEP the per-job suffix (and scope
-    // the fallback to it, see the BuildCachePlan below) so each job restores its
-    // OWN store, warm across commits — sharing one store across jobs that compile
-    // different things (check vs doc vs test) was over-broad and still hit 0%.
-    // Assembled below once `cargoLockHash` is known.
-    // ---- target cache ----
-    makeDirs(targetCachePath);
-    const lockfilePath = (0, cache_keys_js_1.resolveLockfilePath)(workspace, targetCachePath, inputs.lockfile);
-    const cargoLockHash = lockfilePath
-        ? await (0, phase_timing_js_1.timeSubPhase)("resolve", "lock-hash", () => (0, cache_keys_js_1.shortFileHash)(lockfilePath, "no-lock"))
-        : "no-lock";
-    // setup-soldr#237: per-job, SHA-independent build-cache key. The per-job
-    // suffix keeps each job restoring its own store; dropping the SHA makes it
-    // warm across commits. The fallback (BuildCachePlan below) is scoped to this
-    // job prefix only, never another job's store.
-    const buildCacheJobPrefix = `${buildCacheToolchainPrefix}${sanitizedSuffix ? `${sanitizedSuffix}-` : ""}`;
-    const buildCacheKey = `${buildCacheJobPrefix}${cargoLockHash}-s${soldrDigest}`;
-    const buildCacheParentKey = "";
-    const legacyTargetCacheModeInput = inputs.targetCacheMode;
-    const legacyTargetCacheMode = (0, cache_keys_js_1.normalizeLegacyTargetCacheMode)(legacyTargetCacheModeInput, log);
-    const targetCacheProfile = (0, cache_keys_js_1.normalizeTargetCacheProfile)(inputs.targetCacheProfile);
-    // #418: thin-v3 may select a cook-partitioned durable slice only once Soldr
-    // can prove every Cargo fingerprint/build-script path's package owner. That
-    // closure is not available yet, so the action and Soldr deliberately agree
-    // on the safe zccache-all fallback. The policy+mode are part of the cache
-    // namespace; do not let a v1/v2 bundle restore into this contract.
-    const targetCachePolicyKey = targetCacheProfile === "thin-v3"
-        ? "thin-v3-lifetime-partition-v1-zccache-all-v1"
-        : targetCacheProfile;
-    // `cache: "false"` is the umbrella switch. It originally only gated the
-    // action-managed setup-cache (soldr binary + rustup state), but consumers
-    // reasonably expect it to mean "no caching at all" — so when the umbrella
-    // is off we force every per-layer flag off too AND tell soldr to skip its
-    // zccache build-cache wrapper. See zccache#307 / zackees/setup-soldr#118
-    // follow-up.
-    const cacheUmbrellaEnabled = !isFalsy(inputs.cache.trim() || "true");
-    const explicitTargetCacheInput = inputs.targetCache.trim();
-    const targetCacheInputRaw = explicitTargetCacheInput ||
-        (legacyTargetCacheMode && legacyTargetCacheMode !== "off" ? "true" : "false");
-    const targetCacheRequested = cacheUmbrellaEnabled &&
-        !isFalsy(targetCacheInputRaw) &&
-        legacyTargetCacheMode !== "off";
-    const explicitBuildCacheMode = inputs.buildCacheMode.trim();
-    let buildCacheMode = (0, cache_keys_js_1.normalizeBuildCacheMode)(inputs.buildCacheMode, legacyTargetCacheModeInput, !explicitBuildCacheMode && targetCacheRequested, log);
-    const buildCacheInputRaw = inputs.buildCache.trim() || "true";
-    // Restored dependency caches cannot be audited for yanked crates without
-    // a Cargo.lock. Do not restore or save those caches in that case.
-    const lockfileAvailable = cargoLockHash !== "no-lock";
-    const buildCacheEnabled = cacheUmbrellaEnabled && lockfileAvailable && !isFalsy(buildCacheInputRaw);
-    if (cacheUmbrellaEnabled && !lockfileAvailable && !isFalsy(buildCacheInputRaw)) {
-        log("build-cache: disabled because no Cargo.lock is available for dependency audit");
-    }
-    // soldr#2931 / setup-soldr#496: `ci-tests: true` carries a cache-ownership
-    // contract — a lane whose entire product is linked test binaries may not
-    // persist a bulk `target/` snapshot. Degrade the mode to 'thin' BEFORE
-    // anything downstream reads it, so the whole cascade (runtime mode, target
-    // cache key prefixes, target cache paths, soft budget, the env exports and
-    // the log summary) is consistently thin rather than a full-mode key pointing
-    // at a bounded bundle. See `detectCiTestsTargetTreeRefusal` for why this
-    // refusal is absolute instead of following the preset-vs-explicit rule.
-    const ciTestsTargetTreeRefusal = detectCiTestsTargetTreeRefusal({
-        ciTestsEnabled,
-        buildCacheEnabled,
-        targetCacheRequested,
-        buildCacheMode,
-    });
-    const ciTestsTargetTreeRefused = ciTestsTargetTreeRefusal !== null;
-    if (ciTestsTargetTreeRefusal) {
-        core.warning(ciTestsTargetTreeRefusal);
-        buildCacheMode = "thin";
-    }
-    const buildCacheRuntimeMode = buildCacheMode === "once" ? "full" : buildCacheMode;
-    let targetCacheEnabled = buildCacheEnabled && targetCacheRequested;
-    if (buildCacheMode === "thin" && cargoLockHash === "no-lock") {
-        log("build-cache-mode 'thin' requires Cargo.lock; target artifact cache disabled.");
-        targetCacheEnabled = false;
-    }
-    const [targetCacheBudgetBytes, targetCacheBudgetFiles] = (0, cache_keys_js_1.targetCacheSoftBudget)(targetCacheEnabled, buildCacheMode);
-    const targetShapeHash = (0, cache_keys_js_1.shortJsonHash)({
-        target_dir: targetCachePath,
-        target_dir_input: targetDirInput,
-        target_env: (0, cache_keys_js_1.targetEnvHash)(env),
-    });
-    const targetInputsHash = (0, cache_keys_js_1.shortJsonHash)({
-        cargo_config: cargoConfigHashValue,
-        cargo_lock: cargoLockHash,
-        manifest: wsManifestHash,
-        target_shape: targetShapeHash,
-        toolchain: digest,
-    });
-    const lockfileOnlyHash = (0, cache_keys_js_1.shortJsonHash)({
-        cargo_lock: cargoLockHash,
-        toolchain: digest,
-    });
-    const targetCacheBundlePath = thinTargetCacheBundlePath;
-    const targetTreeCacheEnabled = targetCacheEnabled && buildCacheMode === "full";
-    let targetCachePaths;
-    let targetCacheEffectiveMode;
-    let targetCachePrefix;
-    let targetCacheLockPrefix;
-    let targetCacheLockfilePrefix;
-    let targetCacheKey;
-    let targetCacheParentKey;
-    if (!targetCacheEnabled) {
-        targetCachePaths = "";
-        targetCacheEffectiveMode = "off";
-        targetCachePrefix = `setup-soldr-targetcache-off-v1-${runnerOs}-${runnerArch}`;
-        targetCacheLockPrefix = "";
-        targetCacheLockfilePrefix = "";
-        targetCacheKey = `${targetCachePrefix}-${targetInputsHash}`;
-        targetCacheParentKey = "";
-    }
-    else if (targetTreeCacheEnabled) {
-        targetCachePaths = [targetCachePath, targetCacheBundlePath].join("\n");
-        targetCacheEffectiveMode = buildCacheMode;
-        targetCachePrefix = `setup-soldr-targetcache-${buildCacheMode}-v2-${runnerOs}-${runnerArch}-${targetCachePolicyKey}`;
-        const sf = sanitizedSuffix ? `${sanitizedSuffix}-` : "";
-        targetCacheLockPrefix = `${targetCachePrefix}-${digest}-${cargoLockHash}-${targetShapeHash}-${sf}`;
-        targetCacheLockfilePrefix = `${targetCachePrefix}-${lockfileOnlyHash}-${sf}`;
-        targetCacheKey = `${targetCacheLockPrefix}${githubSha}`;
-        targetCacheParentKey = parentSha ? `${targetCacheLockPrefix}${parentSha}` : "";
-    }
-    else {
-        targetCachePaths = targetCacheBundlePath;
-        targetCacheEffectiveMode = buildCacheMode;
-        targetCachePrefix = `setup-soldr-targetcache-${buildCacheMode}-v2-${runnerOs}-${runnerArch}-${targetCachePolicyKey}`;
-        const sf = sanitizedSuffix ? `${sanitizedSuffix}-` : "";
-        targetCacheLockPrefix = `${targetCachePrefix}-${targetInputsHash}-${sf}`;
-        targetCacheLockfilePrefix = `${targetCachePrefix}-${lockfileOnlyHash}-${sf}`;
-        targetCacheKey = `${targetCacheLockPrefix}${githubSha}`;
-        targetCacheParentKey = parentSha ? `${targetCacheLockPrefix}${parentSha}` : "";
-    }
-    // setup-soldr#237: the build-cache key intentionally does NOT include
-    // `cache-key-suffix`. Per-job suffixes fragmented the cache and made the
-    // restore-key fallback land on another job's archive (→ ~0% hits). The
-    // suffix still scopes the action-managed setup-cache (`cacheKey` above) and
-    // the target-cache, just not the content-addressed zccache build-cache.
-    // ---- cargo registry cache ----
-    // #267: when prebuild-deps includes `soldr-cook` AND the user (or a
-    // preset they're using) has NOT explicitly set cargo-registry-cache,
-    // default it to `true`. Cook restores `target/` build artifacts but
-    // does NOT restore `$CARGO_HOME/registry`, so cargo re-downloads every
-    // crate source on the next build — the "I set cook, why is it still
-    // downloading?" trap. Presets that explicitly set
-    // `cargoRegistryCache: "false"` (minimal, foundation) survive because
-    // `inputs.cargoRegistryCache` is non-empty after `fillFromPreset`
-    // runs; the `||` short-circuits before reaching the implicit default.
-    const cookPrebuildEnabled = inputs.prebuildDeps.trim().includes("soldr-cook");
-    const cargoRegistryDefault = cookPrebuildEnabled ? "true" : "false";
-    const cargoRegistryCacheRawInput = inputs.cargoRegistryCache.trim();
-    const cargoRegistryCachePaired = cookPrebuildEnabled && cargoRegistryCacheRawInput === "";
-    if (cargoRegistryCachePaired) {
-        log("setup-soldr: defaulting cargo-registry-cache=true because prebuild-deps=soldr-cook " +
-            "(see setup-soldr#267 — pairs to avoid re-downloading every crate source on next " +
-            "build). Set cargo-registry-cache=false explicitly to opt out.");
-    }
-    const cargoRegistryCacheRequested = isTruthy(cargoRegistryCacheRawInput || cargoRegistryDefault);
-    const cargoRegistryCachePath = path.join(cargoHome, "registry");
-    // setup-soldr#102: bundle additional `$CARGO_HOME` siblings into the same
-    // cargo-registry archive so we close the cache-retention gaps without
-    // introducing a new top-level cache layer or changing the cache key shape.
-    //   - `.global-cache` — cargo's RFC-3413 GC sqlite database. Without it the
-    //     per-job `cargo gc` sees fresh access times and conservatively keeps
-    //     everything. Shared read-only dep between setup-soldr (persists) and
-    //     soldr (reads via zackees/soldr#323). One-line leverage win.
-    //   - `git`           — `$CARGO_HOME/git/{db,checkouts}/`. `db/` holds the
-    //     bare mirrors of git-source crate deps and `checkouts/` holds the
-    //     per-commit working trees derived from `db/`; both are required for
-    //     cargo to build from a restored `db/`. Caching the parent `git/` dir
-    //     covers both subtrees and any future siblings cargo introduces.
-    // Siblings that don't exist on disk at save time (e.g. workspaces with no
-    // git-source deps) are silently skipped by compressCache — see #102.
-    const cargoRegistryCacheExtras = [".global-cache", "git"];
-    const cargoRegistryEncrypted = inputs.cacheEncryptKey.trim().length > 0;
-    const cargoRegistryViaSoldr = (0, soldr_load_shim_js_1.cargoRegistryViaSoldrEnvOn)();
-    const cargoRegistryRuntimeCompatible = semverAtLeast(soldrVersionResolved || soldrVersionRequested, soldr_load_shim_js_1.MIN_SOLDR_VERSION_FOR_SAVE_ROUNDTRIP);
-    const cargoRegistryFormat = (0, cargo_registry_archive_js_1.cargoRegistryArchiveFormat)({
-        encrypted: cargoRegistryEncrypted,
-        viaSoldr: cargoRegistryViaSoldr,
-        sourceRef: soldrRef.trim().length > 0,
-        runtimeCompatible: cargoRegistryRuntimeCompatible,
-    });
-    if (cargoRegistryEncrypted && cargoRegistryViaSoldr) {
-        core.notice("setup-soldr: cargo-registry Soldr v2 is disabled for encrypted cache entries; using encrypted legacy-v1 until encrypted Soldr restore is available.");
-    }
-    else if (cargoRegistryViaSoldr && !soldrRef && !cargoRegistryRuntimeCompatible) {
-        core.notice(`setup-soldr: cargo-registry Soldr v2 requires soldr >= ${soldr_load_shim_js_1.MIN_SOLDR_VERSION_FOR_SAVE_ROUNDTRIP}; using legacy-v1 for ${soldrVersionResolved || soldrVersionRequested || "unknown"}.`);
-    }
-    const cargoRegistryArchive = (0, cargo_registry_archive_js_1.planCargoRegistryArchive)({
-        format: cargoRegistryFormat,
-        cargoHome,
-        runnerTemp,
-    });
-    const cargoRegistryCachePrefix = `setup-soldr-cargoregistry-${cargoRegistryFormat === "soldr-v2" ? "v2" : "v1"}-${runnerOs}-${runnerArch}`;
-    // Production registry content is shared across jobs (#375). A pinned local
-    // source validation run may opt into an explicit generation namespace so its
-    // seed/warm proof cannot reuse an older registry archive.
-    const cargoRegistryValidationNamespace = soldrSourcePath && sanitizedSuffix ? `x${sanitizedSuffix}-` : "";
-    const cargoRegistryCacheRestorePrefix = `${cargoRegistryCachePrefix}-${cargoLockHash}-${cargoRegistryValidationNamespace}`;
-    // #371: drop git SHA from the exact key, same anti-pattern fix as
-    // #237 did for build-cache. With SHA, every commit produced a new
-    // exact-key entry that no future probe could ever hit (only same-
-    // commit retries). The restore-key prefix (sans SHA) already does
-    // the actual work via FALLBACK — observed in production. Dropping
-    // SHA lifts exact-key hit rate from ~0% toward ~100% per
-    // (lockHash, digest) generation, eliminates redundant ~56 MB
-    // saves per run, and reduces cache-budget churn.
-    //
-    // #375: also drop per-job suffix from cargo-registry. Unlike
-    // build-cache (#237 KEPT suffix because target/ content differs
-    // per job), cargo-registry content is just `$CARGO_HOME/registry/`
-    // — downloaded crate sources keyed on Cargo.lock, identical
-    // across (check, test, doc, msrv) matrix jobs. Per-job suffix
-    // means N redundant saves per CI cycle (~56 MB × N for zccache's
-    // 9-job matrix = ~500 MB wasted bandwidth). Sharing the key
-    // across jobs means: first job saves, rest exact-HIT.
-    const cargoRegistryCacheKey = `${cargoRegistryCacheRestorePrefix}${digest}`;
-    const cargoRegistryCacheEnabled = cacheUmbrellaEnabled && lockfileAvailable && cargoRegistryCacheRequested;
-    if (cargoRegistryCacheEnabled) {
-        makeDirs(cargoRegistryCachePath);
-        for (const archivePath of cargoRegistryArchive.restorePaths)
-            makeDirs(path.dirname(archivePath));
-    }
-    // ---- Dylint tool/driver cache (explicit opt-in, setup-soldr#221) ----
-    const dylintFoundationRequested = dylintModeEnabled
-        ? parseOptInBool("dylint-foundation-cache", inputs.dylintFoundationCache, true)
-        : parseOptInBool("dylint-cache", inputs.dylintCache, false);
-    const dylintOutputCacheEnabled = dylintModeEnabled &&
-        cacheUmbrellaEnabled &&
-        lockfileAvailable &&
-        parseOptInBool("dylint-output-cache", inputs.dylintOutputCache, true);
-    if (dylintOutputCacheEnabled && targetTreeCacheEnabled) {
-        throw new Error("dylint-output-cache cannot overlap build-cache-mode=full target caching; " +
-            "disable target-cache/full mode for Dylint jobs");
-    }
-    const dylintCacheEnabled = cacheUmbrellaEnabled && dylintFoundationRequested;
-    const dylintDriverPath = path.join(runnerTemp, "dylint-drivers");
-    const dylintHostTriple = rustHostTriple(ctx.runnerOs || env["ACTION_OS"] || process.platform, ctx.runnerArch || env["ACTION_ARCH"] || process.arch);
-    const nightlyIdentity = dylintModeEnabled
-        ? await (0, phase_timing_js_1.timeSubPhase)("resolve", "dylint-nightly-map", () => (deps?.resolveDylintNightly ?? dylint_nightly_js_1.resolveDylintNightly)(inputs.dylintToolchain.trim() || toolchain.channel, env))
-        : null;
-    const dylintToolchain = nightlyIdentity?.channel || inputs.dylintToolchain.trim() || toolchain.channel;
-    const dylintRustcRelease = nightlyIdentity?.rustcRelease || "unmapped";
-    const dylintRustcCommitHash = nightlyIdentity?.rustcCommitHash || "unmapped";
-    const dylintCacheIdentity = `${dylintToolchain}|${dylintRustcRelease}|${dylintRustcCommitHash}`;
-    const dylintRequiredComponents = ["rustc-dev", "rust-src", "llvm-tools-preview"];
-    // ci.yml#9: cross-platform Dylint targets, in addition to the host. Folded
-    // into the foundation/output cache identity below so each declared target
-    // set gets its own generation instead of colliding with host-only runs or
-    // with a different target combination.
-    const dylintCrossTargets = dylintModeEnabled ? (0, blessed_cross_prepare_js_1.parseDylintTargets)(inputs.dylintTargets) : [];
-    const dylintAllTargets = [...new Set([dylintHostTriple, ...dylintCrossTargets])].sort();
-    const dylintFoundationRevision = dylintCrossTargets.length > 0 ? "foundation-v3" : "foundation-v2";
-    const dylintRunScope = [
-        env["GITHUB_RUN_ID"],
-        env["GITHUB_RUN_ATTEMPT"],
-        env["GITHUB_JOB"],
-        env["GITHUB_ACTION"],
-    ]
-        .filter(Boolean)
-        .join("|") || `local-${process.pid}`;
-    const dylintSuccessMarker = path.join(runnerTemp, "dylint-foundation-success", (0, cache_keys_js_1.shortJsonHash)({
-        identity: dylintCacheIdentity,
-        components: dylintRequiredComponents,
-        revision: dylintFoundationRevision,
-        targets: dylintAllTargets,
-        runScope: dylintRunScope,
-    }), "success.txt");
-    const dylintDriverRev = inputs.dylintDriverRev.trim() || "none";
-    const cargoDylintVersion = inputs.cargoDylintVersion.trim() || "6.0.3";
-    const dylintLinkVersion = inputs.dylintLinkVersion.trim() || "6.0.3";
-    const customDylintPaths = splitPathInput(inputs.dylintCachePaths).map((p) => path.isAbsolute(expanduser(p, env)) ? resolveAbsolute(p, env) : path.resolve(workspace, p));
-    const dylintToolchainPath = path.join(rustupHome, "toolchains", `${dylintToolchain}-${dylintHostTriple}`);
-    const dylintUpdateHashPath = path.join(rustupHome, "update-hashes", `${dylintToolchain}-${dylintHostTriple}`);
-    const dylintCachePaths = customDylintPaths.length > 0
-        ? customDylintPaths
-        : [
-            ...defaultDylintCachePaths(cargoHome, dylintDriverPath),
-            ...(dylintModeEnabled ? [dylintToolchainPath, dylintUpdateHashPath] : []),
-        ];
-    const dylintCacheHash = dylintModeEnabled
-        ? (0, cache_keys_js_1.shortJsonHash)({
-            host_triple: dylintHostTriple,
-            cargo_dylint_version: cargoDylintVersion,
-            dylint_link_version: dylintLinkVersion,
-            dylint_toolchain: dylintToolchain,
-            dylint_rustc_release: dylintRustcRelease,
-            dylint_rustc_commit_hash: dylintRustcCommitHash,
-            dylint_driver_rev: dylintDriverRev,
-            required_components: dylintRequiredComponents,
-            foundation_revision: dylintFoundationRevision,
-            dylint_targets: dylintAllTargets,
-        })
-        : (0, cache_keys_js_1.shortJsonHash)({
-            host_triple: dylintHostTriple,
-            cargo_dylint_version: cargoDylintVersion,
-            dylint_link_version: dylintLinkVersion,
-            dylint_toolchain: dylintToolchain,
-            dylint_driver_rev: dylintDriverRev,
-            cargo_config: cargoConfigHashValue,
-            cargo_lock: cargoLockHash,
-            manifest: wsManifestHash,
-            setup_toolchain: digest,
-        });
-    const dylintCacheSchema = dylintModeEnabled ? "v2" : "v1";
-    let dylintCacheKey = `setup-soldr-dylint-${dylintCacheSchema}-${runnerOs}-${runnerArch}-${(0, cache_keys_js_1.sanitizeFragment)(dylintHostTriple)}-${dylintCacheHash}`;
-    if (suffix) {
-        dylintCacheKey = `${dylintCacheKey}-${sanitizedSuffix}`;
-    }
-    // setup-soldr#538: cargo-dylint checks (and writes its check-shaped target
-    // state) against the host-qualified rustup toolchain name -- the same
-    // qualification `crates/soldr-cli/src/dylint_toolchain.rs`'s
-    // `qualify_toolchain_name` applies before Soldr's Dylint plan reaches
-    // `apply_to_command`/`write_success_marker` (see `dylintSuccessMarker`
-    // above). `dylintToolchain` here is always the short requested channel, so
-    // building these paths from it pointed at a directory cargo-dylint never
-    // writes (confirmed on zackees/template-python-rust-cmd run 36497556959:
-    // the real tree is `target/dylint/{libraries,target}/<dylintToolchain>-<dylintHostTriple>/...`),
-    // and `dylint-output-cache` always skipped its save with "no Dylint output
-    // paths exist". Match the actual on-disk qualified directory, the same way
-    // `dylintToolchainPath`/`dylintUpdateHashPath` above already do.
-    const dylintQualifiedToolchain = `${dylintToolchain}-${dylintHostTriple}`;
-    const dylintOutputPaths = [
-        path.join(targetCachePath, "dylint", "libraries", dylintQualifiedToolchain, "release"),
-        path.join(targetCachePath, "dylint", "target", dylintQualifiedToolchain),
-    ];
-    // setup-soldr#540, ci.yml#1: this key used to include `source_revision:
-    // githubSha`, so it was an exact-key miss on every new commit even when
-    // every real input (toolchain identity, driver revision, cargo config,
-    // workspace/lint-library manifests, target/flags shape, Cargo.lock) was
-    // unchanged. Measured on zackees/template-python-rust-cmd: a same-commit
-    // rerun of run 36501247176 hit both `dylint-cache` and
-    // `dylint-output-cache`, but a new-commit PR run (36501659725, 125s) still
-    // MISSED `dylint-output-cache` — the foundation `dylint-cache` (668 MB,
-    // keyed only on toolchain/driver identity, fixed by #539) already survived
-    // across commits; the output cache (~75 MB of compiled lint libraries +
-    // checked target state) did not.
-    //
-    // Fix (same shape as #237's build-cache and #371's cargo-registry key):
-    // drop the commit from the exact key entirely, so the key is a pure
-    // function of the inputs that actually change what a Dylint check produces
-    // and never changes on a no-op commit. Split the hash so restore-keys can
-    // drop ONLY the Cargo.lock component (`dylintOutputRestoreKeys`, wired to
-    // `actions/cache`'s `restore-keys` prefix match) — a dependency bump still
-    // restores the newest prior generation instead of cooking fully cold, but
-    // never crosses a toolchain or lint-library/manifest boundary, and the
-    // exact key (with `cargo_lock` back in) still gets a fresh entry per
-    // lockfile generation so a save only happens on a genuine exact-key miss:
-    // one generation per lockfile, never one per commit (setup-soldr#533).
-    //
-    // This is correct, not just faster, because cargo's own fingerprinting
-    // does the real invalidation work once the tree is restored: cargo
-    // rechecks any workspace unit whose source changed since the restored
-    // tree was built (restored files are strictly older than a freshly
-    // checked-out commit's sources), reuses on-disk check artifacts for units
-    // it did not touch, and replays cached diagnostics for units it did
-    // recheck but found unchanged. A crate that hit a Dylint `deny` lint never
-    // produced a check-pass artifact to restore, so a prior failure can never
-    // be replayed as a pass by a warm cache.
-    const dylintOutputNonLockInputs = {
-        compiler_identity: dylintCacheIdentity,
-        driver_revision: dylintDriverRev,
-        cargo_config: cargoConfigHashValue,
-        manifests: wsManifestHash,
-        target_shape: targetShapeHash,
-        cache_suffix: sanitizedSuffix,
-        dylint_targets: dylintAllTargets,
-    };
-    const dylintOutputNonLockHash = (0, cache_keys_js_1.shortJsonHash)(dylintOutputNonLockInputs);
-    const dylintOutputKeyPrefix = `setup-soldr-dylint-output-v2-${runnerOs}-${runnerArch}-${dylintOutputNonLockHash}`;
-    // Prefix-only fallback: drops ONLY the Cargo.lock component. GitHub's
-    // restore-keys semantics are a prefix match against the most recently
-    // created matching entry, so this can only ever resolve to a previous
-    // generation that shares every other input.
-    const dylintOutputRestoreKeys = [`${dylintOutputKeyPrefix}-`];
-    const dylintOutputKey = `${dylintOutputKeyPrefix}-${cargoLockHash}`;
-    if (dylintCacheEnabled) {
-        makeDirs(dylintDriverPath);
-    }
-    // ---- effective cache-ownership policy (soldr#2931 / setup-soldr#496) ----
-    // A consumer asking "what does my lane actually persist?" had no answer
-    // short of reading the resolver. Assemble one honest, versioned signal from
-    // the layer decisions already made above, ordered by the stability gradient
-    // the policy defines: pinned downloads first, then tier-1 cook dependency
-    // compilation, then the tier-2 per-unit zccache store, then the bounded
-    // target bundle. `test_products` is a constant because tier 3 is a rule, not
-    // a setting — linked test products are never persisted at any layer, and
-    // zccache#1527 enforces the same exclusion at compiler admission.
-    const cachePolicyLayers = [];
-    if (cacheUmbrellaEnabled)
-        cachePolicyLayers.push("toolchain");
-    if (cargoRegistryCacheEnabled)
-        cachePolicyLayers.push("cargo-registry");
-    if (cacheUmbrellaEnabled && lockfileAvailable && cookPrebuildEnabled)
-        cachePolicyLayers.push("cook");
-    if (buildCacheEnabled)
-        cachePolicyLayers.push("zccache-unit");
-    if (targetCacheEnabled) {
-        cachePolicyLayers.push(targetTreeCacheEnabled ? "target-tree" : "target-bundle");
-    }
-    if (dylintCacheEnabled)
-        cachePolicyLayers.push("dylint-foundation");
-    if (dylintOutputCacheEnabled)
-        cachePolicyLayers.push("dylint-output");
-    const cachePolicyJson = JSON.stringify({
-        schema: 1,
-        layers: cachePolicyLayers,
-        // The bulk `target/` snapshot — the only layer that can carry linked test
-        // products into a cache entry, which is why it is called out separately.
-        target_tree_snapshot: targetTreeCacheEnabled,
-        test_products: "never",
-        ci_tests: ciTestsEnabled,
-        ci_tests_target_tree_refused: ciTestsTargetTreeRefused,
-    });
-    // ---- env exports ----
-    const cacheShutdownOnIdleSeconds = (0, input_parsers_js_1.parseCacheShutdownOnIdleSeconds)(inputs.cacheShutdownOnIdle);
-    const rustBacktraceValue = (0, input_parsers_js_1.parseRustBacktrace)(inputs.rustBacktrace);
-    const envExports = {};
-    const setEnv = (name, value) => {
-        if (GITHUB_ENV_DENY_LIST.has(name))
-            return;
-        envExports[name] = value;
-    };
-    if (ciTestsEnabled) {
-        // This profile prepares CI prerequisites; callers retain ownership of
-        // their explicit test command. Explicit scheduler limits always win.
-        //
-        // soldr#3138: `CARGO_BUILD_JOBS` and `SOLDR_JOBS` deliberately have NO
-        // default here. They used to default to "1", which pinned the shared
-        // compile-concurrency ceiling that soldr's Cargo producer queue *and*
-        // the embedded zccache admission gate both size themselves from -- so a
-        // whole job ran one compiler child at a time.
-        //
-        // That cap predates the mechanism that replaced it. Since zccache
-        // 1.13.11 the embedded service grants amalgamation crates and measured
-        // heavy links *exclusive* admission (soldr's classifier lives in
-        // `crates/soldr-daemon/src/amalgamation.rs`), so the one enormous unit
-        // compiles alone while ordinary units still run N-wide. Capping the
-        // shared ceiling at 1 does not add protection on top of that -- it only
-        // serializes every small unit too, and the amalgamation was already
-        // being handled.
-        //
-        // This is soldr's own documented `ci-test` contract, verbatim: "Unset
-        // CARGO_BUILD_JOBS and SOLDR_JOBS remain unset, explicit values are
-        // preserved byte-for-byte, and only NEXTEST_TEST_THREADS defaults to
-        // one." Left unset, soldr resolves a topology-aware default
-        // (`logical - 1`, additionally capped at `physical + 2` under SMT --
-        // `soldr-core/src/core/jobs.rs`) instead of 1.
-        //
-        // soldr's own gate lane already proved this: it carried five separate
-        // `unset CARGO_BUILD_JOBS SOLDR_JOBS` statements whose only job was to
-        // undo this export at each step boundary, because a GITHUB_ENV write
-        // applies to every subsequent step. Not exporting a default is what
-        // those five statements were reaching for.
-        //
-        // An explicit value from the caller is still re-exported unchanged, so
-        // a lane that genuinely needs a cap (a true-bootstrap step running with
-        // RUSTC_WRAPPER="", where the admission gate cannot engage) sets it
-        // itself and keeps it.
-        const explicitCargoBuildJobs = env["CARGO_BUILD_JOBS"]?.trim();
-        if (explicitCargoBuildJobs) {
-            setEnv("CARGO_BUILD_JOBS", explicitCargoBuildJobs);
-        }
-        const explicitSoldrJobs = env["SOLDR_JOBS"]?.trim();
-        if (explicitSoldrJobs) {
-            setEnv("SOLDR_JOBS", explicitSoldrJobs);
-        }
-        // NEXTEST_TEST_THREADS keeps its default of one: that half of the
-        // contract is intentional, and test-process concurrency is a different
-        // resource from compiler admission.
-        setEnv("NEXTEST_TEST_THREADS", env["NEXTEST_TEST_THREADS"]?.trim() || "1");
-        setEnv("SETUP_SOLDR_CI_TESTS", "true");
-    }
-    setEnv("SOLDR_CACHE_DIR", soldrRoot);
-    setEnv("CARGO_HOME", cargoHome);
-    setEnv("RUSTUP_HOME", rustupHome);
-    setEnv("ZCCACHE_CACHE_DIR", zccacheCacheDir);
-    // soldr#2931 / setup-soldr#496: `ZCCACHE_CACHE_TEST_BINS` is DELIBERATELY
-    // absent from this block and must stay absent. zccache#1527 refuses `--test`
-    // harness link products at cache admission by default; that variable is the
-    // opt-in that turns the exclusion back off. setup-soldr never sets it — not
-    // even to "0" — so zccache's own default stands and there is no setup-soldr
-    // value for a consumer to have to override. If it is truthy in the job
-    // environment we warn rather than silently inherit it.
-    const zccacheTestBinOptIn = detectZccacheTestBinOptIn(env);
-    if (zccacheTestBinOptIn)
-        core.warning(zccacheTestBinOptIn);
-    // Machine-readable statement of what this lane persists; mirrored 1:1 into
-    // the `cache-policy-json` output by applyResolveResult().
-    setEnv("SETUP_SOLDR_CACHE_POLICY_JSON", cachePolicyJson);
-    // soldr#807: warn when SOLDR_ZCCACHE_PRIVATE is truthy because the
-    // explicit ZCCACHE_CACHE_DIR above will silently win and the opt-in
-    // private-session path under <cwd>/.zccache won't be used.
-    const zccachePrivateOverlap = detectZccachePrivateOverlap(env);
-    if (zccachePrivateOverlap)
-        core.warning(zccachePrivateOverlap);
-    setEnv("SETUP_SOLDR_BUILD_CACHE_MODE", buildCacheEnabled ? buildCacheMode : "off");
-    setEnv("SOLDR_BUILD_CACHE_MODE", buildCacheEnabled ? buildCacheRuntimeMode : "off");
-    setEnv("SOLDR_TARGET_CACHE_MODE", targetCacheEnabled ? buildCacheRuntimeMode : "off");
-    setEnv("SOLDR_TARGET_CACHE_DIR", targetCachePath);
-    setEnv("SOLDR_TARGET_CACHE_BUNDLE_DIR", targetCacheBundlePath);
-    setEnv("SOLDR_TARGET_CACHE_PROFILE", targetCacheProfile);
-    const stripDebug = (0, cache_keys_js_1.normalizeTargetCacheBool)("target-cache-strip-debuginfo", inputs.targetCacheStripDebuginfo);
-    if (stripDebug !== null) {
-        setEnv("SOLDR_TARGET_CACHE_STRIP_DEBUGINFO", stripDebug);
-    }
-    const includeIncremental = (0, cache_keys_js_1.normalizeTargetCacheBool)("target-cache-include-incremental", inputs.targetCacheIncludeIncremental);
-    if (includeIncremental !== null) {
-        setEnv("SOLDR_TARGET_CACHE_INCLUDE_INCREMENTAL", includeIncremental);
-    }
-    const includeBuildScripts = (0, cache_keys_js_1.normalizeTargetCacheBool)("target-cache-include-build-script-binaries", inputs.targetCacheIncludeBuildScriptBinaries);
-    if (includeBuildScripts !== null) {
-        setEnv("SOLDR_TARGET_CACHE_INCLUDE_BUILD_SCRIPT_BINARIES", includeBuildScripts);
-    }
-    const targetCacheCompress = (0, cache_keys_js_1.normalizeTargetCacheCompress)(inputs.targetCacheCompress);
-    // Empty input -> runner profile default (GitHub 3, local/ACT 1).
-    const targetCacheCompressLevel = (0, cache_keys_js_1.normalizeTargetCacheCompressLevel)((0, local_profile_js_1.resolveCacheProfileInput)("target-cache-compress-level", inputs.targetCacheCompressLevel, (0, local_profile_js_1.isLocalRunner)(env)));
-    setEnv("SOLDR_TARGET_CACHE_COMPRESS", targetCacheCompress);
-    setEnv("SOLDR_TARGET_CACHE_COMPRESS_LEVEL", targetCacheCompressLevel);
-    if (cargoRegistryCacheEnabled) {
-        setEnv("SOLDR_SKIP_CARGO_REGISTRY_SAVE", "1");
-    }
-    if (dylintCacheEnabled) {
-        setEnv("DYLINT_DRIVER_PATH", dylintDriverPath);
-        setEnv("SETUP_SOLDR_DYLINT_CACHE_KEY", dylintCacheKey);
-        setEnv("SETUP_SOLDR_DYLINT_CACHE_PATHS", dylintCachePaths.join(path.delimiter));
-    }
-    if (dylintModeEnabled && nightlyIdentity) {
-        // These are configuration hints, not the active nested-Dylint scope.
-        // Soldr copies them to SOLDR_DYLINT_* only while launching cargo-dylint,
-        // so an ordinary stable `soldr cargo build` later in the job is unchanged.
-        setEnv("SOLDR_DYLINT_CONFIGURED_TOOLCHAIN", nightlyIdentity.channel);
-        setEnv("SOLDR_DYLINT_CONFIGURED_RUSTC_RELEASE", nightlyIdentity.rustcRelease);
-        setEnv("SOLDR_DYLINT_CONFIGURED_RUSTC_COMMIT_HASH", nightlyIdentity.rustcCommitHash);
-        setEnv("SOLDR_DYLINT_SUCCESS_MARKER", dylintSuccessMarker);
-    }
-    setEnv("SOLDR_TARGET_CACHE_BACKEND", "local");
-    setEnv("SETUP_SOLDR_TOOLCHAIN_CHANNEL", toolchain.channel);
-    setEnv("SETUP_SOLDR_TOOLCHAIN_CACHE_CHANNEL", toolchain.cacheChannel);
-    setEnv("SETUP_SOLDR_TOOLCHAIN_PROFILE", toolchain.profile);
-    setEnv("SETUP_SOLDR_TOOLCHAIN_COMPONENTS", JSON.stringify(toolchain.components));
-    setEnv("SETUP_SOLDR_TOOLCHAIN_TARGETS", JSON.stringify(toolchain.targets));
-    setEnv("SETUP_SOLDR_LOG_START_EPOCH", logStart);
-    setEnv("SETUP_SOLDR_TIMESTAMPS", timestamps);
-    setEnv("SETUP_SOLDR_TIMESTAMP_FORMAT", timestampFormat);
-    if (cacheEncryptKeyRaw) {
-        // #387 Feature 1: propagate to GITHUB_ENV so the post-step (which loads
-        // a fresh process) and any subsequent setup-soldr-using steps see the
-        // same key. The key has already been core.setSecret-marked above so
-        // GitHub Actions auto-redacts it from logs.
-        setEnv("SETUP_SOLDR_CACHE_ENCRYPT_KEY", cacheEncryptKeyRaw);
-        setEnv("SETUP_SOLDR_CACHE_ENCRYPT_ON_FAILURE", cacheEncryptOnFailure);
-    }
-    if (!FALSY_VALUES.has(timestamps.toLowerCase()) && env["NO_COLOR"] === undefined) {
-        if (!env["CARGO_TERM_COLOR"])
-            setEnv("CARGO_TERM_COLOR", "always");
-        if (!env["CLICOLOR_FORCE"])
-            setEnv("CLICOLOR_FORCE", "1");
-        if (!env["FORCE_COLOR"])
-            setEnv("FORCE_COLOR", "1");
-    }
-    if (inputs.trustMode.trim()) {
-        setEnv("SOLDR_TRUST_MODE", inputs.trustMode.trim());
-    }
-    const linkerRaw = inputs.linker.trim();
-    if (linkerRaw === "") {
-        const preset = (0, input_parsers_js_1.detectUserLinkerEnv)(env);
-        if (preset.length > 0) {
-            logger.info(`setup-soldr: deferring to user-set ${preset.join(", ")}; skipping default SOLDR_LINKER=fast injection. See https://github.com/zackees/setup-soldr/issues/108`);
-        }
-        else {
-            setEnv("SOLDR_LINKER", "fast");
-            logger.notice("setup-soldr: defaulting SOLDR_LINKER=fast (mold-if-on-PATH-else-rust-lld on Linux, rust-lld on macOS/Windows) for faster CI links. Soldr's native default is no injection, which produces a smaller build-cache and a slower link. Set `linker: platform-default` to opt out and keep cargo/rust-toolchain.toml in charge, or set `linker: <value>` to silence this notice.");
-        }
-    }
-    else if (!ALLOWED_LINKER_VALUES.includes(linkerRaw)) {
-        throw new Error(`invalid 'linker' input: '${linkerRaw}'. Allowed: default | platform-default | ld | mold | rust-lld | fast`);
-    }
-    else if (linkerRaw !== "default" && linkerRaw !== "platform-default") {
-        setEnv("SOLDR_LINKER", linkerRaw);
-    }
-    const compilePriorityRaw = inputs.compilePriority.trim();
-    if (compilePriorityRaw !== "") {
-        setEnv("ZCCACHE_COMPILE_PRIORITY", compilePriorityRaw);
-    }
-    if (cacheShutdownOnIdleSeconds !== null) {
-        // Set both env vars. zccache reads its own, sccache reads the
-        // SCCACHE_-prefixed one; exporting both means a zccache fork that
-        // still honors only the sccache name keeps working, and a vanilla
-        // sccache invoked via this action would too.
-        const seconds = String(cacheShutdownOnIdleSeconds);
-        setEnv("ZCCACHE_IDLE_TIMEOUT", seconds);
-        setEnv("SCCACHE_IDLE_TIMEOUT", seconds);
-    }
-    if (rustBacktraceValue !== null) {
-        setEnv("RUST_BACKTRACE", rustBacktraceValue);
-    }
-    // Auto-export cc-rs cross-compile env for *-unknown-linux-musl triples
-    // when the matching `<triple>-gcc/g++/ar` binaries are on PATH. cc-rs
-    // strips the "-unknown-" segment when looking up cross compilers, so
-    // archives that ship binaries with the full triple are missed without
-    // these per-target overrides. See setup-soldr#... and the cc-rs docs.
-    const muslCcHits = (0, detect_musl_cc_js_1.detectMuslCcEnv)(env);
-    for (const hit of muslCcHits) {
-        const suffix = (0, detect_musl_cc_js_1.tripleToCcRsSuffix)(hit.triple);
-        for (const [name, value] of Object.entries(hit.exports)) {
-            setEnv(name, value);
-        }
-        logger.warning(`setup-soldr: auto-exporting cc-rs cross-compile env for ${hit.triple} ` +
-            `(CC_${suffix}=${hit.exports[`CC_${suffix}`]}, ` +
-            `CXX_${suffix}=${hit.exports[`CXX_${suffix}`]}, ` +
-            `AR_${suffix}=${hit.exports[`AR_${suffix}`]}) ` +
-            "because cc-rs strips \"-unknown-\" from the triple when probing for a " +
-            "cross compiler and would otherwise fall back to the host gcc. " +
-            `Resolved: cc=${hit.resolvedPaths.cc}, cxx=${hit.resolvedPaths.cxx}, ar=${hit.resolvedPaths.ar}. ` +
-            `Pre-set CC_${suffix} yourself to opt out.`);
-    }
-    // ---- path additions ----
-    const pathAdditions = [binDir, path.join(cargoHome, "bin")];
-    // ---- logging summary ----
-    log("setup-soldr cache plan");
-    log(`cache key=${cacheKey}`);
-    log(`cache restore-key=${cachePrefix}-`);
-    log(`build-cache key=${buildCacheKey}`);
-    log(`build-cache mode=${buildCacheMode}`);
-    log(`build-cache soldr-mode=${buildCacheRuntimeMode}`);
-    if (buildCacheParentKey) {
-        log(`build-cache restore-key-parent=${buildCacheParentKey}`);
-    }
-    log(`build-cache restore-key-toolchain=${buildCacheToolchainPrefix}`);
-    log(`build-cache restore-key-os-arch=${buildCachePrefix}-`);
-    log(`target-cache key=${targetCacheKey}`);
-    log(`target-cache enabled=${targetCacheEnabled ? "true" : "false"}`);
-    log(`target-cache mode=${targetCacheEffectiveMode}`);
-    log("target-cache backend=local");
-    if (targetCacheEnabled) {
-        log(`target-cache soft-budget-bytes=${targetCacheBudgetBytes}`);
-        log(`target-cache soft-budget-files=${targetCacheBudgetFiles}`);
-    }
-    // soldr#2931: state the cache-ownership policy in the same plan block that
-    // states the keys, so a red lane's log shows both what was persisted and why.
-    log(`cache-policy layers=${cachePolicyLayers.join("+") || "none"}`);
-    log(`cache-policy target-tree-snapshot=${targetTreeCacheEnabled ? "true" : "false"}`);
-    log("cache-policy test-products=never (soldr#2931 tier 3)");
-    if (ciTestsTargetTreeRefused) {
-        log("cache-policy ci-tests-target-tree=refused (build-cache-mode full -> thin)");
-    }
-    log(`soldr repo=${soldrRepo}`);
-    log(`soldr ref=${soldrRef || "release"}`);
-    if (soldrSourcePath) {
-        log(`soldr source-path=${soldrSourcePath} identity=${soldrSourceIdentity}`);
-    }
-    if (soldrVersionResolved) {
-        log(`soldr version=${soldrVersionResolved}`);
-    }
-    log(`toolchain channel=${toolchain.channel}`);
-    log(`toolchain cache-channel=${toolchain.cacheChannel}`);
-    log(`rustup strategy=${rustupStrategy}`);
-    log(`setup-cache layout=${setupCacheLayoutValue}`);
-    if (targetCacheParentKey) {
-        log(`target-cache restore-key-parent=${targetCacheParentKey}`);
-    }
-    log(`target-cache restore-key-lock=${targetCacheLockPrefix}`);
-    log(`target-cache restore-key-lockfile=${targetCacheLockfilePrefix}`);
-    log(`target-cache paths=${targetCachePaths}`);
-    log(`target-cache bundle-dir=${targetCacheBundlePath}`);
-    log(`target-cache lockfile=${(0, cache_keys_js_1.pathForOutput)(workspace, lockfilePath)}`);
-    log(`target-cache lockfile-hash=${cargoLockHash}`);
-    if (dylintCacheEnabled) {
-        log(`dylint-cache key=${dylintCacheKey}`);
-        log(`dylint-cache host-triple=${dylintHostTriple}`);
-        log(`dylint-cache toolchain=${dylintToolchain}`);
-        log(`dylint-cache cargo-dylint-version=${cargoDylintVersion}`);
-        log(`dylint-cache dylint-link-version=${dylintLinkVersion}`);
-        log(`dylint-cache driver-rev=${dylintDriverRev}`);
-        log(`dylint-cache driver-path=${dylintDriverPath}`);
-    }
-    if (dylintOutputCacheEnabled) {
-        log(`dylint-output-cache key=${dylintOutputKey}`);
-        log(`dylint-output-cache restore-key=${dylintOutputRestoreKeys[0]}`);
-    }
-    // ---- assemble plans ----
-    const setupCache = {
-        key: cacheKey,
-        restorePrefix: `${cachePrefix}-`,
-        paths: setupCachePathsList ? setupCachePathsList.split("\n") : [],
-        setupCachePath,
-        layout: setupCacheLayoutValue,
-    };
-    const buildCache = {
-        enabled: buildCacheEnabled,
-        key: buildCacheKey,
-        restoreKeyParent: buildCacheParentKey,
-        // setup-soldr#237: job-scoped fallback only — newest entry for THIS job at
-        // any Cargo.lock, never another job's store. The old bare toolchain/os-arch
-        // restore-keys matched any job and caused cross-job restores → 0 hits.
-        restoreKeyToolchain: buildCacheJobPrefix,
-        restoreKeyOsArch: "",
-        path: zccacheCacheDir,
-        mode: buildCacheMode,
-    };
-    const targetCache = {
-        enabled: targetCacheEnabled,
-        key: targetCacheKey,
-        restoreKeyParent: targetCacheParentKey,
-        restoreKeyLock: targetCacheLockPrefix,
-        restoreKeyLockfile: targetCacheLockfilePrefix,
-        paths: targetCachePaths,
-        bundlePath: targetCacheBundlePath,
-        targetPath: targetCachePath,
-        effectiveMode: targetCacheEffectiveMode,
-        profile: targetCacheProfile,
-        budgetBytes: targetCacheBudgetBytes,
-        budgetFiles: targetCacheBudgetFiles,
-        lockfilePath: (0, cache_keys_js_1.pathForOutput)(workspace, lockfilePath),
-        lockfileHash: cargoLockHash,
-    };
-    const cargoRegistryCachePlan = {
-        enabled: cargoRegistryCacheEnabled,
-        key: cargoRegistryCacheKey,
-        restorePrefix: cargoRegistryCacheRestorePrefix,
-        path: cargoRegistryCachePath,
-        extraBasenames: cargoRegistryCacheExtras,
-        archive: cargoRegistryArchive,
-    };
-    const dylintCachePlan = {
-        enabled: dylintCacheEnabled,
-        outputCacheEnabled: dylintOutputCacheEnabled,
-        outputKey: dylintOutputCacheEnabled ? dylintOutputKey : "",
-        outputRestoreKeys: dylintOutputCacheEnabled ? dylintOutputRestoreKeys : [],
-        outputPaths: dylintOutputCacheEnabled ? dylintOutputPaths : [],
-        key: dylintCacheEnabled ? dylintCacheKey : "",
-        paths: dylintCacheEnabled ? dylintCachePaths : [],
-        driverPath: dylintCacheEnabled ? dylintDriverPath : "",
-        hostTriple: dylintCacheEnabled ? dylintHostTriple : "",
-        toolchain: dylintModeEnabled || dylintCacheEnabled ? dylintToolchain : "",
-        rustcRelease: dylintModeEnabled ? dylintRustcRelease : "",
-        rustcCommitHash: dylintModeEnabled ? dylintRustcCommitHash : "",
-        cacheIdentity: dylintModeEnabled ? dylintCacheIdentity : "",
-        successMarker: dylintModeEnabled ? dylintSuccessMarker : "",
-        driverRev: dylintCacheEnabled ? dylintDriverRev : "",
-        cargoDylintVersion: dylintModeEnabled || dylintCacheEnabled ? cargoDylintVersion : "",
-        dylintLinkVersion: dylintModeEnabled || dylintCacheEnabled ? dylintLinkVersion : "",
-        crossTargets: dylintModeEnabled ? dylintCrossTargets : [],
-        allTargets: dylintModeEnabled ? dylintAllTargets : [],
-    };
-    const blessedPrepareCache = (0, blessed_cross_prepare_js_1.planBlessedPrepareCache)({
-        enabled,
-        cacheEnabled: cacheUmbrellaEnabled,
-        ref: soldrRef,
-        runnerTemp,
-        runnerOs,
-        runnerArch,
-        target: crossTarget,
-        soldrRepo,
-        soldrVersion: soldrSourceIdentity || soldrVersionResolved || soldrVersionRequested,
-        keySuffix: inputs.cacheKeySuffix,
-    });
-    for (const archivePath of blessedPrepareCache.archivePaths)
-        makeDirs(path.dirname(archivePath));
-    // Avoid unused warnings on alias helper.
-    void toolchain_js_1.rollingToolchainAlias;
-    void cache_keys_js_1.canonicalJsonStringify;
-    const compileCacheStats = (0, input_parsers_js_1.normalizeCompileCacheStats)(inputs.compileCacheStats);
-    const stats = (0, input_parsers_js_1.normalizeStatsMode)(inputs.stats);
-    const debugMode = isTruthy(inputs.debugMode.trim() || "false");
-    // ---- shims ----
-    const shimsRaw = inputs.shims.trim() || "false";
-    const shimsEnabled = !isFalsy(shimsRaw);
-    const shimsDir = path.join(cacheRoot, "shims");
-    return {
-        enabled,
-        workspace,
-        cacheRoot,
-        soldrRoot,
-        binDir,
-        cargoHome,
-        rustupHome,
-        soldrPath,
-        soldrBinCachePath,
-        toolchain,
-        rustupStrategy,
-        soldrRepo,
-        soldrRef,
-        soldrSourcePath,
-        soldrSourceIdentity,
-        soldrVersionRequested,
-        soldrVersionResolved,
-        setupCache,
-        buildCache,
-        targetCache,
-        cargoRegistryCache: cargoRegistryCachePlan,
-        dylintCache: dylintCachePlan,
-        blessedPrepareCache,
-        targetCacheCompress,
-        targetCacheCompressLevel,
-        envExports,
-        pathAdditions,
-        logStartEpoch: logStart,
-        timestamps,
-        timestampFormat,
-        shimsEnabled,
-        shimsDir,
-        compileCacheStats,
-        stats,
-        debugMode,
-        cacheShutdownOnIdleSeconds,
-        cachePresetEffective,
-    };
-}
-/**
- * Apply ResolveResult to the runner: write $GITHUB_ENV, $GITHUB_PATH, and
- * $GITHUB_OUTPUT keys.
- */
-async function applyResolveResult(result) {
-    for (const [name, value] of Object.entries(result.envExports)) {
-        if (GITHUB_ENV_DENY_LIST.has(name))
-            continue;
-        core.exportVariable(name, value);
-    }
-    for (const p of result.pathAdditions) {
-        core.addPath(p);
-    }
-    const outputs = (0, build_outputs_js_1.buildOutputs)(result);
-    for (const [key, value] of Object.entries(outputs)) {
-        core.setOutput(key, value);
-    }
-    // soldr#2931 / setup-soldr#496: additive `cache-policy-json` output. It is
-    // emitted here rather than from buildOutputs() because the value is already
-    // carried verbatim in envExports (later steps and Soldr itself read
-    // SETUP_SOLDR_CACHE_POLICY_JSON from $GITHUB_ENV), so mirroring it costs one
-    // line and needs no second source of truth. Never renames or removes an
-    // existing output. The empty-string fallback cannot be hit through
-    // resolveSetup(), which always sets the variable; it only keeps a
-    // hand-assembled ResolveResult in a test from emitting `undefined`.
-    core.setOutput("cache-policy-json", result.envExports["SETUP_SOLDR_CACHE_POLICY_JSON"] ?? "");
-}
-// `buildOutputs` and `pythonDefaultJson` are re-exported at the top of
-// this file from their dedicated submodules.
 
 
 /***/ }),
@@ -62513,9 +62513,9 @@ module.exports = decodeText
 // Licensed under the MIT License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BaseRequestPolicy = exports.getCachedDefaultHttpClient = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 tslib_1.__exportStar(__nccwpck_require__(396), exports);
-var cache_js_1 = __nccwpck_require__(278);
+var cache_js_1 = __nccwpck_require__(279);
 Object.defineProperty(exports, "getCachedDefaultHttpClient", ({ enumerable: true, get: function () { return cache_js_1.getCachedDefaultHttpClient; } }));
 tslib_1.__exportStar(__nccwpck_require__(91), exports);
 tslib_1.__exportStar(__nccwpck_require__(171), exports);
@@ -62527,7 +62527,7 @@ var RequestPolicy_js_1 = __nccwpck_require__(49);
 Object.defineProperty(exports, "BaseRequestPolicy", ({ enumerable: true, get: function () { return RequestPolicy_js_1.BaseRequestPolicy; } }));
 tslib_1.__exportStar(__nccwpck_require__(106), exports);
 tslib_1.__exportStar(__nccwpck_require__(338), exports);
-tslib_1.__exportStar(__nccwpck_require__(224), exports);
+tslib_1.__exportStar(__nccwpck_require__(223), exports);
 tslib_1.__exportStar(__nccwpck_require__(508), exports);
 tslib_1.__exportStar(__nccwpck_require__(181), exports);
 tslib_1.__exportStar(__nccwpck_require__(141), exports);
@@ -62620,7 +62620,7 @@ exports.saveFamily = saveFamily;
  * Zero runtime dependencies: node:crypto for SigV4, global fetch for I/O.
  */
 const crypto = __importStar(__nccwpck_require__(301));
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const node_stream_1 = __nccwpck_require__(470);
 const promises_1 = __nccwpck_require__(425);
@@ -63092,7 +63092,7 @@ async function saveFamily(client, opts) {
  * Changes may cause incorrect behavior and will be lost if the code is regenerated.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 tslib_1.__exportStar(__nccwpck_require__(250), exports);
 tslib_1.__exportStar(__nccwpck_require__(238), exports);
 tslib_1.__exportStar(__nccwpck_require__(50), exports);
@@ -63133,7 +63133,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getOctokitOptions = exports.GitHub = exports.defaults = exports.context = void 0;
-const Context = __importStar(__nccwpck_require__(234));
+const Context = __importStar(__nccwpck_require__(233));
 const Utils = __importStar(__nccwpck_require__(314));
 // octokit + plugins
 const core_1 = __nccwpck_require__(294);
@@ -63479,7 +63479,7 @@ var import_setClientRequestIdPolicy = __nccwpck_require__(166);
 var import_agentPolicy = __nccwpck_require__(251);
 var import_tlsPolicy = __nccwpck_require__(410);
 var import_tracingPolicy = __nccwpck_require__(369);
-var import_wrapAbortSignalLikePolicy = __nccwpck_require__(284);
+var import_wrapAbortSignalLikePolicy = __nccwpck_require__(285);
 function createPipelineFromOptions(options) {
   const pipeline = (0, import_pipeline.createEmptyPipeline)();
   if (import_core_util.isNodeLike) {
@@ -63527,7 +63527,7 @@ function createPipelineFromOptions(options) {
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PageBlobImpl = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
 const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
 const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
@@ -65453,10 +65453,10 @@ exports.targetDirHasCompiledArtifacts = targetDirHasCompiledArtifacts;
 exports.shouldEmitSharedTargetWarning = shouldEmitSharedTargetWarning;
 exports.tryDelegateToSoldrDoctorSharedTargetWarning = tryDelegateToSoldrDoctorSharedTargetWarning;
 exports.detectSharedTargetWarning = detectSharedTargetWarning;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const core = __importStar(__nccwpck_require__(504));
-const log_utils_js_1 = __nccwpck_require__(277);
+const log_utils_js_1 = __nccwpck_require__(278);
 const soldr_toolchain_client_js_1 = __nccwpck_require__(486);
 const WARNING_MESSAGE = "setup-soldr detected a pre-populated shared target directory; a " +
     "subsequent `soldr cargo build` using the same `--target-dir` may fail " +
@@ -65809,7 +65809,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.findInPath = exports.which = exports.mkdirP = exports.rmRF = exports.mv = exports.cp = void 0;
 const assert_1 = __nccwpck_require__(581);
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const ioUtil = __importStar(__nccwpck_require__(244));
 /**
  * Copies a file or folder.
@@ -66174,7 +66174,7 @@ exports.maskSecretUrls = maskSecretUrls;
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StorageClient = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 tslib_1.__exportStar(__nccwpck_require__(519), exports);
 var storageClient_js_1 = __nccwpck_require__(488);
 Object.defineProperty(exports, "StorageClient", ({ enumerable: true, get: function () { return storageClient_js_1.StorageClient; } }));
@@ -68627,7 +68627,7 @@ exports.BatchResponseParser = void 0;
 const core_rest_pipeline_1 = __nccwpck_require__(114);
 const core_http_compat_1 = __nccwpck_require__(80);
 const constants_js_1 = __nccwpck_require__(164);
-const BatchUtils_js_1 = __nccwpck_require__(283);
+const BatchUtils_js_1 = __nccwpck_require__(284);
 const log_js_1 = __nccwpck_require__(119);
 const HTTP_HEADER_DELIMITER = ": ";
 const SPACE_DELIMITER = " ";
@@ -68848,7 +68848,7 @@ exports.setupCacheLayout = setupCacheLayout;
 exports.crossToolCacheKeyFor = crossToolCacheKeyFor;
 exports.pathForOutput = pathForOutput;
 const node_crypto_1 = __nccwpck_require__(301);
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const TARGET_CACHE_PROFILES = ["thin-v1", "thin-v2", "thin-v3"];
 const TARGET_CACHE_BOOL_TRUE = new Set(["true", "1", "yes", "on"]);
@@ -71045,7 +71045,7 @@ exports.readJournal = readJournal;
 exports.summarize = summarize;
 exports.formatJournalSection = formatJournalSection;
 exports.formatRollupsSection = formatRollupsSection;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const diagnostics_js_1 = __nccwpck_require__(512);
 const SLOWEST_TOP_N = 20;
 /**
@@ -71637,7 +71637,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 /**
  * toPosixPath converts the given path to the posix form. On Windows, \\ will be
  * replaced with /.
@@ -72082,7 +72082,7 @@ var AvroReader_js_1 = __nccwpck_require__(461);
 Object.defineProperty(exports, "AvroReader", ({ enumerable: true, get: function () { return AvroReader_js_1.AvroReader; } }));
 var AvroReadable_js_1 = __nccwpck_require__(421);
 Object.defineProperty(exports, "AvroReadable", ({ enumerable: true, get: function () { return AvroReadable_js_1.AvroReadable; } }));
-var AvroReadableFromStream_js_1 = __nccwpck_require__(276);
+var AvroReadableFromStream_js_1 = __nccwpck_require__(277);
 Object.defineProperty(exports, "AvroReadableFromStream", ({ enumerable: true, get: function () { return AvroReadableFromStream_js_1.AvroReadableFromStream; } }));
 //# sourceMappingURL=index.js.map
 
@@ -73553,11 +73553,11 @@ exports.verifyProbeEnv = verifyProbeEnv;
 exports.verifyRestoredToolchain = verifyRestoredToolchain;
 const solo_poison_js_1 = __nccwpck_require__(534);
 const node_crypto_1 = __nccwpck_require__(301);
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const fsp = __importStar(__nccwpck_require__(121));
 const os = __importStar(__nccwpck_require__(414));
 const path = __importStar(__nccwpck_require__(560));
-const cache = __importStar(__nccwpck_require__(232));
+const cache = __importStar(__nccwpck_require__(231));
 const toolrunner_js_1 = __nccwpck_require__(140);
 const github = __importStar(__nccwpck_require__(94));
 const cache_compress_js_1 = __nccwpck_require__(62);
@@ -77048,7 +77048,7 @@ module.exports = stream
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BlockBlobImpl = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const coreClient = tslib_1.__importStar(__nccwpck_require__(480));
 const Mappers = tslib_1.__importStar(__nccwpck_require__(195));
 const Parameters = tslib_1.__importStar(__nccwpck_require__(72));
@@ -77603,7 +77603,7 @@ __export(userAgentPolicy_exports, {
   userAgentPolicyName: () => userAgentPolicyName
 });
 module.exports = __toCommonJS(userAgentPolicy_exports);
-var import_userAgent = __nccwpck_require__(281);
+var import_userAgent = __nccwpck_require__(282);
 const UserAgentHeaderName = (0, import_userAgent.getUserAgentHeaderName)();
 const userAgentPolicyName = "userAgentPolicy";
 function userAgentPolicy(options = {}) {
@@ -77698,7 +77698,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ensureShimsLegacy = ensureShimsLegacy;
 exports.tryDelegateToSoldrToolchainLink = tryDelegateToSoldrToolchainLink;
 exports.ensureShims = ensureShims;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const core = __importStar(__nccwpck_require__(504));
 const soldr_toolchain_client_js_1 = __nccwpck_require__(486);
@@ -78461,7 +78461,7 @@ const {
   kReceivedClose
 } = __nccwpck_require__(111)
 const { fireEvent, failWebsocketConnection } = __nccwpck_require__(61)
-const { CloseEvent } = __nccwpck_require__(272)
+const { CloseEvent } = __nccwpck_require__(273)
 const { makeRequest } = __nccwpck_require__(92)
 const { fetching } = __nccwpck_require__(492)
 const { Headers } = __nccwpck_require__(568)
@@ -79088,7 +79088,7 @@ exports.TracingContextImpl = TracingContextImpl;
 // Licensed under the MIT License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PooledBuffer = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const BuffersStream_js_1 = __nccwpck_require__(417);
 const node_buffer_1 = tslib_1.__importDefault(__nccwpck_require__(290));
 /**
@@ -79570,12 +79570,12 @@ const {
   kOptions,
   kFactory
 } = __nccwpck_require__(518)
-const MockClient = __nccwpck_require__(217)
+const MockClient = __nccwpck_require__(216)
 const MockPool = __nccwpck_require__(383)
 const { matchValue, buildMockOptions } = __nccwpck_require__(7)
 const { InvalidArgumentError, UndiciError } = __nccwpck_require__(537)
 const Dispatcher = __nccwpck_require__(525)
-const Pluralizer = __nccwpck_require__(279)
+const Pluralizer = __nccwpck_require__(280)
 const PendingInterceptorsFormatter = __nccwpck_require__(253)
 
 class FakeWeakRef {
@@ -80329,10 +80329,10 @@ exports.BOOTSTRAP_VERSION = void 0;
 exports.bootstrapAssetFor = bootstrapAssetFor;
 exports.verifyBootstrapDigest = verifyBootstrapDigest;
 exports.ensureBootstrap = ensureBootstrap;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const node_crypto_1 = __nccwpck_require__(301);
-const node_child_process_1 = __nccwpck_require__(215);
+const node_child_process_1 = __nccwpck_require__(214);
 const ensure_soldr_js_1 = __nccwpck_require__(88);
 /** Immutable official bootstrap used before any managed Rust command is available. */
 exports.BOOTSTRAP_VERSION = "0.9.41";
@@ -80561,7 +80561,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.prepareDylint = prepareDylint;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const exec = __importStar(__nccwpck_require__(18));
 function processEnvironment() {
@@ -81195,10 +81195,10 @@ exports.buildMiniCacheKey = buildMiniCacheKey;
 exports.restoreMiniCache = restoreMiniCache;
 exports.saveMiniCache = saveMiniCache;
 exports.isEligibleForMiniCache = isEligibleForMiniCache;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const fsp = __importStar(__nccwpck_require__(121));
 const path = __importStar(__nccwpck_require__(560));
-const cache = __importStar(__nccwpck_require__(232));
+const cache = __importStar(__nccwpck_require__(231));
 const cache_compress_js_1 = __nccwpck_require__(62);
 const save_policy_js_1 = __nccwpck_require__(101);
 const ensure_soldr_js_1 = __nccwpck_require__(88);
@@ -81483,7 +81483,7 @@ function exponentialRetryPolicy(options = {}) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.runPipe = runPipe;
-const node_child_process_1 = __nccwpck_require__(215);
+const node_child_process_1 = __nccwpck_require__(214);
 /**
  * Run two processes piped together: producer.stdout -> consumer.stdin.
  * Success is decided by the two exit codes alone.
@@ -81820,7 +81820,7 @@ function getCachedDefaultHttpClient() {
 /***/ 436:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-var register = __nccwpck_require__(275);
+var register = __nccwpck_require__(276);
 var addHook = __nccwpck_require__(530);
 var removeHook = __nccwpck_require__(240);
 
@@ -82669,7 +82669,7 @@ exports.BlobServiceClient = BlobServiceClient;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BlobBatchClient = void 0;
 const BatchResponseParser_js_1 = __nccwpck_require__(339);
-const BatchUtils_js_1 = __nccwpck_require__(283);
+const BatchUtils_js_1 = __nccwpck_require__(284);
 const BlobBatch_js_1 = __nccwpck_require__(367);
 const tracing_js_1 = __nccwpck_require__(33);
 const storage_common_1 = __nccwpck_require__(303);
@@ -83938,7 +83938,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.tripleToCcRsSuffix = tripleToCcRsSuffix;
 exports.detectMuslCcEnv = detectMuslCcEnv;
 exports.tryDelegateToSoldrDoctorMuslCc = tryDelegateToSoldrDoctorMuslCc;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const soldr_toolchain_client_js_1 = __nccwpck_require__(486);
 const MUSL_TRIPLE_RE = /^[a-z0-9_]+-unknown-linux-musl$/;
@@ -86494,7 +86494,7 @@ exports.DefaultGlobber = void 0;
 const core = __importStar(__nccwpck_require__(504));
 const fs = __importStar(__nccwpck_require__(587));
 const globOptionsHelper = __importStar(__nccwpck_require__(453));
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const patternHelper = __importStar(__nccwpck_require__(45));
 const internal_match_kind_1 = __nccwpck_require__(583);
 const internal_pattern_1 = __nccwpck_require__(553);
@@ -87654,7 +87654,7 @@ exports.createTar = exports.extractTar = exports.listTar = void 0;
 const exec_1 = __nccwpck_require__(18);
 const io = __importStar(__nccwpck_require__(324));
 const fs_1 = __nccwpck_require__(587);
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const utils = __importStar(__nccwpck_require__(83));
 const constants_1 = __nccwpck_require__(48);
 const IS_WINDOWS = process.platform === 'win32';
@@ -88845,7 +88845,7 @@ function wrapAbortSignalLike(abortSignalLike) {
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StorageClient = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const coreHttpCompat = tslib_1.__importStar(__nccwpck_require__(80));
 const index_js_1 = __nccwpck_require__(305);
 class StorageClient extends coreHttpCompat.ExtendedServiceClient {
@@ -88913,13 +88913,13 @@ exports.StorageClient = StorageClient;
 // Licensed under the MIT License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.logger = exports.RestError = exports.StorageBrowserPolicyFactory = exports.StorageBrowserPolicy = exports.StorageSharedKeyCredentialPolicy = exports.StorageSharedKeyCredential = exports.StorageRetryPolicyFactory = exports.StorageRetryPolicy = exports.StorageRetryPolicyType = exports.Credential = exports.CredentialPolicy = exports.BaseRequestPolicy = exports.AnonymousCredentialPolicy = exports.AnonymousCredential = exports.StorageOAuthScopes = exports.newPipeline = exports.isPipelineLike = exports.Pipeline = exports.getBlobServiceAccountAudience = exports.StorageBlobAudience = exports.PremiumPageBlobTier = exports.BlockBlobTier = exports.generateBlobSASQueryParameters = exports.generateAccountSASQueryParameters = void 0;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const core_rest_pipeline_1 = __nccwpck_require__(114);
 Object.defineProperty(exports, "RestError", ({ enumerable: true, get: function () { return core_rest_pipeline_1.RestError; } }));
 tslib_1.__exportStar(__nccwpck_require__(439), exports);
 tslib_1.__exportStar(__nccwpck_require__(200), exports);
 tslib_1.__exportStar(__nccwpck_require__(71), exports);
-tslib_1.__exportStar(__nccwpck_require__(222), exports);
+tslib_1.__exportStar(__nccwpck_require__(221), exports);
 tslib_1.__exportStar(__nccwpck_require__(63), exports);
 tslib_1.__exportStar(__nccwpck_require__(2), exports);
 tslib_1.__exportStar(__nccwpck_require__(411), exports);
@@ -89496,7 +89496,7 @@ const EE = __nccwpck_require__(517)
 const { Readable, pipeline } = __nccwpck_require__(147)
 const { addAbortListener, isErrored, isReadable, nodeMajor, nodeMinor } = __nccwpck_require__(77)
 const { dataURLProcessor, serializeAMimeType } = __nccwpck_require__(25)
-const { TransformStream } = __nccwpck_require__(282)
+const { TransformStream } = __nccwpck_require__(283)
 const { getGlobalDispatcher } = __nccwpck_require__(408)
 const { webidl } = __nccwpck_require__(499)
 const { STATUS_CODES } = __nccwpck_require__(362)
@@ -91240,7 +91240,7 @@ async function httpNetworkFetch (
   // cancelAlgorithm set to cancelAlgorithm, highWaterMark set to
   // highWaterMark, and sizeAlgorithm set to sizeAlgorithm.
   if (!ReadableStream) {
-    ReadableStream = (__nccwpck_require__(282).ReadableStream)
+    ReadableStream = (__nccwpck_require__(283).ReadableStream)
   }
 
   const stream = new ReadableStream(
@@ -93123,7 +93123,7 @@ exports.janitorPlan = janitorPlan;
  * `soldr-verdict-manifest-v1-<scope>-<run>-<attempt>`, restored by prefix.
  */
 const crypto = __importStar(__nccwpck_require__(301));
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 exports.VERDICT_PREFIX = "soldr-verdict-v1-";
 exports.MANIFEST_PREFIX = "soldr-verdict-manifest-v1-";
@@ -93920,7 +93920,7 @@ const command_1 = __nccwpck_require__(589);
 const file_command_1 = __nccwpck_require__(484);
 const utils_1 = __nccwpck_require__(555);
 const os = __importStar(__nccwpck_require__(105));
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const oidc_utils_1 = __nccwpck_require__(150);
 /**
  * The code to exit an action
@@ -94465,10 +94465,10 @@ exports.isGitRepo = isGitRepo;
 exports.listTrackedFiles = listTrackedFiles;
 exports.normalizeWorkspace = normalizeWorkspace;
 exports.normalizeSourceMtime = normalizeSourceMtime;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const exec = __importStar(__nccwpck_require__(18));
-const log_utils_js_1 = __nccwpck_require__(277);
+const log_utils_js_1 = __nccwpck_require__(278);
 const TRUTHY = new Set(["1", "true", "yes", "on"]);
 // Globs evaluated against the repo-relative POSIX path of each tracked file.
 const INCLUDE_GLOBS = [
@@ -96971,8 +96971,8 @@ exports.redactValue = redactValue;
 exports.captureProcessSnapshot = captureProcessSnapshot;
 exports.dumpDiagnostics = dumpDiagnostics;
 exports.loggingEnabled = loggingEnabled;
-const fs = __importStar(__nccwpck_require__(271));
-const node_child_process_1 = __nccwpck_require__(215);
+const fs = __importStar(__nccwpck_require__(272));
+const node_child_process_1 = __nccwpck_require__(214);
 const compile_journal_js_1 = __nccwpck_require__(360);
 const ENV_KEY_PREFIXES = [
     "INPUT_",
@@ -98941,7 +98941,7 @@ exports.ServiceType = ServiceType;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MapperTypeNames = void 0;
 exports.createSerializer = createSerializer;
-const tslib_1 = __nccwpck_require__(235);
+const tslib_1 = __nccwpck_require__(234);
 const base64 = tslib_1.__importStar(__nccwpck_require__(478));
 const interfaces_js_1 = __nccwpck_require__(112);
 const utils_js_1 = __nccwpck_require__(343);
@@ -101176,14 +101176,14 @@ exports.saveLayeredCookCache = saveLayeredCookCache;
 exports.parseCookFlags = parseCookFlags;
 exports.canonicalizeCookFlags = canonicalizeCookFlags;
 const node_crypto_1 = __nccwpck_require__(301);
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const fsp = __importStar(__nccwpck_require__(121));
 const path = __importStar(__nccwpck_require__(560));
 const core = __importStar(__nccwpck_require__(504));
 const toolrunner_js_1 = __nccwpck_require__(140);
-const cache = __importStar(__nccwpck_require__(232));
+const cache = __importStar(__nccwpck_require__(231));
 const cache_compress_js_1 = __nccwpck_require__(62);
-const log_utils_js_1 = __nccwpck_require__(277);
+const log_utils_js_1 = __nccwpck_require__(278);
 const two_phase_actions_cache_js_1 = __nccwpck_require__(247);
 const save_policy_js_1 = __nccwpck_require__(101);
 function layeredCookBaseReady(restore, loaded) {
@@ -102797,7 +102797,7 @@ function semverGte(value, minimum) {
  * returns (avoiding test-runner timeout from leaked descriptors).
  */
 async function detectSoldrManifest(archivePath) {
-    const { spawnSync } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 215, 23));
+    const { spawnSync } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 214, 23));
     // We invoke tar with `-tf <archive>` directly — bsdtar (Windows) and
     // GNU tar (Linux/macOS) both auto-detect zstd by magic byte on modern
     // versions. Bounded by `timeout: 5000ms`; if tar takes longer than
@@ -103195,7 +103195,7 @@ exports.CLEAN_SAVE_MARKER = void 0;
 exports.hasCleanSaveProof = hasCleanSaveProof;
 exports.planAncestorRestore = planAncestorRestore;
 exports.planLocalAncestorRestore = planLocalAncestorRestore;
-const node_child_process_1 = __nccwpck_require__(215);
+const node_child_process_1 = __nccwpck_require__(214);
 const ancestor_cache_git_js_1 = __nccwpck_require__(192);
 const github = __importStar(__nccwpck_require__(94));
 const ancestor_cache_trust_js_1 = __nccwpck_require__(444);
@@ -103730,7 +103730,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Pattern = void 0;
 const os = __importStar(__nccwpck_require__(105));
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const pathHelper = __importStar(__nccwpck_require__(241));
 const assert_1 = __importDefault(__nccwpck_require__(581));
 const minimatch_1 = __nccwpck_require__(139);
@@ -104310,9 +104310,9 @@ exports.verdictJanitor = verdictJanitor;
  * pieces live in `verdict-cache.ts`; this module wires them to the Actions
  * cache, soldr and the action's state.
  */
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const core = __importStar(__nccwpck_require__(504));
-const cache = __importStar(__nccwpck_require__(232));
+const cache = __importStar(__nccwpck_require__(231));
 const exec = __importStar(__nccwpck_require__(18));
 const github = __importStar(__nccwpck_require__(94));
 const verdict_cache_js_1 = __nccwpck_require__(501);
@@ -105139,7 +105139,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports._internal = void 0;
 exports.installPassthrough = installPassthrough;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const STUB_VERSION = "passthrough";
 function bashStub() {
@@ -105266,7 +105266,7 @@ Object.defineProperty(exports, "isNamedKeyCredential", ({ enumerable: true, get:
 var azureSASCredential_js_1 = __nccwpck_require__(35);
 Object.defineProperty(exports, "AzureSASCredential", ({ enumerable: true, get: function () { return azureSASCredential_js_1.AzureSASCredential; } }));
 Object.defineProperty(exports, "isSASCredential", ({ enumerable: true, get: function () { return azureSASCredential_js_1.isSASCredential; } }));
-var tokenCredential_js_1 = __nccwpck_require__(269);
+var tokenCredential_js_1 = __nccwpck_require__(270);
 Object.defineProperty(exports, "isTokenCredential", ({ enumerable: true, get: function () { return tokenCredential_js_1.isTokenCredential; } }));
 //# sourceMappingURL=index.js.map
 
@@ -106087,7 +106087,7 @@ const { getGlobalOrigin } = __nccwpck_require__(156)
 const { performance } = __nccwpck_require__(352)
 const { isBlobLike, toUSVString, ReadableStreamFrom } = __nccwpck_require__(77)
 const assert = __nccwpck_require__(581)
-const { isUint8Array } = __nccwpck_require__(216)
+const { isUint8Array } = __nccwpck_require__(215)
 
 let supportedHashes = []
 
@@ -107049,7 +107049,7 @@ let ReadableStream = globalThis.ReadableStream
 
 function isReadableStreamLike (stream) {
   if (!ReadableStream) {
-    ReadableStream = (__nccwpck_require__(282).ReadableStream)
+    ReadableStream = (__nccwpck_require__(283).ReadableStream)
   }
 
   return stream instanceof ReadableStream || (
@@ -107410,7 +107410,7 @@ const crypto = __importStar(__nccwpck_require__(320));
 const fs = __importStar(__nccwpck_require__(587));
 const mm = __importStar(__nccwpck_require__(364));
 const os = __importStar(__nccwpck_require__(105));
-const path = __importStar(__nccwpck_require__(270));
+const path = __importStar(__nccwpck_require__(271));
 const httpm = __importStar(__nccwpck_require__(313));
 const semver = __importStar(__nccwpck_require__(194));
 const stream = __importStar(__nccwpck_require__(147));
@@ -108144,7 +108144,7 @@ exports.adoptBundles = adoptBundles;
 exports.publishBundles = publishBundles;
 exports.adoptBundleToolCache = adoptBundleToolCache;
 exports.publishBundleToolCache = publishBundleToolCache;
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const tool_cache_store_js_1 = __nccwpck_require__(213);
 /** syslib is a store of its own (#553), linked wholesale. */
@@ -108542,7 +108542,7 @@ exports.publishRustupStore = publishRustupStore;
 exports.adoptRustupToolCache = adoptRustupToolCache;
 exports.publishRustupToolCache = publishRustupToolCache;
 const crypto = __importStar(__nccwpck_require__(301));
-const fs = __importStar(__nccwpck_require__(271));
+const fs = __importStar(__nccwpck_require__(272));
 const path = __importStar(__nccwpck_require__(560));
 const tool_cache_store_js_1 = __nccwpck_require__(213);
 const toolchain_js_1 = __nccwpck_require__(125);
@@ -109227,12 +109227,12 @@ const reflection_json_reader_1 = __nccwpck_require__(375);
 const reflection_json_writer_1 = __nccwpck_require__(103);
 const reflection_binary_reader_1 = __nccwpck_require__(447);
 const reflection_binary_writer_1 = __nccwpck_require__(201);
-const reflection_create_1 = __nccwpck_require__(223);
+const reflection_create_1 = __nccwpck_require__(222);
 const reflection_merge_partial_1 = __nccwpck_require__(153);
 const json_typings_1 = __nccwpck_require__(431);
 const json_format_contract_1 = __nccwpck_require__(263);
 const reflection_equals_1 = __nccwpck_require__(506);
-const binary_writer_1 = __nccwpck_require__(273);
+const binary_writer_1 = __nccwpck_require__(274);
 const binary_reader_1 = __nccwpck_require__(151);
 const baseDescriptors = Object.getOwnPropertyDescriptors(Object.getPrototypeOf({}));
 const messageTypeDescriptor = baseDescriptors[message_type_contract_1.MESSAGE_TYPE] = {};
@@ -110136,7 +110136,7 @@ exports.parseVersionJsonOutput = parseVersionJsonOutput;
 exports.verifyManagedToolVersions = verifyManagedToolVersions;
 exports.verifySoldr = verifySoldr;
 const toolrunner_js_1 = __nccwpck_require__(140);
-const log_utils_js_1 = __nccwpck_require__(277);
+const log_utils_js_1 = __nccwpck_require__(278);
 function versionTuple(value) {
     const cleaned = value.trim().replace(/^v/, "");
     const parts = cleaned.split(".");
@@ -110547,7 +110547,7 @@ function withCustomRequest(customRequest) {
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(214);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(268);
 /******/ 	module.exports = __webpack_exports__;
 /******/
 /******/ })()

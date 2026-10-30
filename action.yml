@@ -622,11 +622,11 @@ inputs:
   cargo-dylint-version:
     description: cargo-dylint version materialized by Soldr in Dylint mode. Included in the Dylint cache key.
     required: false
-    default: "6.0.3"
+    default: "6.2.0"
   dylint-link-version:
     description: dylint-link version materialized by Soldr in Dylint mode. Included in the Dylint cache key.
     required: false
-    default: "6.0.3"
+    default: "6.2.0"
   dylint-cache-paths:
     description: >
       Optional newline- or comma-separated paths to restore/save for
