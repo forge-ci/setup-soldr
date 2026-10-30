@@ -54892,10 +54892,22 @@ exports._internal = {
 // so the post step sees the job's status at the end of its steps. An empty
 // status (the default) keeps the old always-save behaviour, as does
 // `save-on-failure: true`.
+//
+// setup-soldr#626 splits the layers in two. Output layers (build-cache,
+// target-cache, the cook delta) hold what the failing build produced and are
+// refused on `failure` and `cancelled`, as above. Dependency layers (cook
+// base, cargo registry, toolchain) are finalized before the first workspace
+// compile, so a failing test or lint cannot corrupt them: a `failure` keeps
+// saving them, otherwise a lane that fails deterministically never warms.
+// A `cancelled` job may have been interrupted inside the dependency phase
+// itself, so it saves nothing: `save-policy.ts`'s shared gate applies the
+// dependency rule to every layer.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.FAILED_JOB_SKIP_STATUS = void 0;
 exports.decideBuildOutputSave = decideBuildOutputSave;
 exports.readBuildOutputSaveGate = readBuildOutputSaveGate;
+exports.decideLayerSave = decideLayerSave;
+exports.readDependencyLayerSaveGate = readDependencyLayerSaveGate;
 const raw_inputs_js_1 = __nccwpck_require__(52183);
 /** Save status recorded when a failed or cancelled job skips the save. */
 exports.FAILED_JOB_SKIP_STATUS = "failed-job-skip";
@@ -54919,6 +54931,22 @@ function decideBuildOutputSave(input) {
 function readBuildOutputSaveGate(env) {
     const raw = (0, raw_inputs_js_1.readRawInputs)(env);
     return decideBuildOutputSave({ jobStatus: raw.jobStatus, saveOnFailure: raw.saveOnFailure });
+}
+/** #626: the job-status decision for one class of layer. */
+function decideLayerSave(input, kind) {
+    const output = decideBuildOutputSave(input);
+    if (kind === "output" || output.save)
+        return output;
+    const status = input.jobStatus.trim().toLowerCase();
+    if (status === "failure") {
+        return { save: true, reason: "job status failure (dependency layer, finalized before the workspace build)" };
+    }
+    return output;
+}
+/** #626: the dependency-layer gate from the step's inputs. */
+function readDependencyLayerSaveGate(env) {
+    const raw = (0, raw_inputs_js_1.readRawInputs)(env);
+    return decideLayerSave({ jobStatus: raw.jobStatus, saveOnFailure: raw.saveOnFailure }, "dependency");
 }
 
 
@@ -55977,6 +56005,7 @@ const cache = __importStar(__nccwpck_require__(5116));
 // re-exported so existing callers keep importing it from here.
 const local_profile_js_1 = __nccwpck_require__(29720);
 Object.defineProperty(exports, "isLocalRunner", ({ enumerable: true, get: function () { return local_profile_js_1.isLocalRunner; } }));
+const failed_job_save_js_1 = __nccwpck_require__(48188);
 /** Status string layers report when the policy suppressed an upload. */
 exports.POLICY_SKIP_STATUS = "policy-skip";
 /**
@@ -56067,9 +56096,22 @@ function resetSavePolicyLogForTest() {
  * logs one line per layer: `<layer>: save skipped: <reason>`.
  */
 function allowCacheSave(layer, log = console.log) {
-    const decision = currentSaveDecision();
-    if (decision.save)
-        return true;
+    let decision = currentSaveDecision();
+    // #626: a cancelled job saves no layer at all (the dependency phase may
+    // have been interrupted). A failed job still passes here; output layers
+    // apply their own stricter #559 gate in the post step.
+    if (decision.save) {
+        let jobGate;
+        try {
+            jobGate = (0, failed_job_save_js_1.readDependencyLayerSaveGate)(process.env);
+        }
+        catch (err) {
+            jobGate = { save: false, reason: err instanceof Error ? err.message : String(err) };
+        }
+        if (jobGate.save)
+            return true;
+        decision = { save: false, mode: decision.mode, reason: jobGate.reason };
+    }
     if (!loggedSkips.has(layer)) {
         loggedSkips.add(layer);
         log(`${layer}: save skipped: ${decision.reason}`);
@@ -61751,6 +61793,12 @@ async function run() {
                 `ran=${cookRan} target=${cookTargetDir}`);
             if (!cookRan || cookSaveLayer === "none") {
                 log("cook-cache: layered cache warm or cook did not run successfully - skipping save");
+            }
+            else if (cookSaveLayer === "delta" && !buildOutputGate.save) {
+                // #626: the delta is captured from target/ after the workspace build,
+                // so it is a build output (#559). The base layer is dependency-only
+                // and still saves on a failed job.
+                log(`cook-cache-delta: skipping save — ${buildOutputGate.reason}`);
             }
             else if (!cookTargetDir || !fs.existsSync(cookTargetDir)) {
                 log(`cook-cache: target dir ${cookTargetDir} missing - skipping save`);
