@@ -18,6 +18,7 @@ import {
   deleteCorruptSoloCacheEntries,
   saveSoloCache,
   soloCacheEntryExistsForRef,
+  verifyProbeEnv,
   verifyRestoredToolchain,
   type RootMap,
 } from "../src/lib/solo-toolchain-cache.js";
@@ -438,4 +439,17 @@ test("restored release is checked through the verified Soldr bootstrap", async (
     if (old === undefined) delete process.env.RESTORE_PROBE_MARKER;
     else process.env.RESTORE_PROBE_MARKER = old;
   }
+});
+
+test("#622 probe env drops SOLDR_DYLINT_TOOLCHAIN so Dylint jobs verify the cached channel", () => {
+  const env = { PATH: "/bin", SOLDR_DYLINT_TOOLCHAIN: "nightly-2026-05-28", UNSET: undefined };
+  const unmanaged = verifyProbeEnv(env, null);
+  assert.deepEqual(unmanaged, { PATH: "/bin" });
+  const managed = verifyProbeEnv(env, "1.95.0");
+  assert.equal(managed["SOLDR_DYLINT_TOOLCHAIN"], undefined);
+  assert.equal(managed["RUSTUP_TOOLCHAIN"], "1.95.0");
+  assert.equal(managed["SOLDR_NO_GLOBAL_DELEGATION"], "1");
+  assert.equal(managed["SOLDR_BROKER_AUTOSPAWN"], "0");
+  assert.equal(managed["SOLDR_AS"], "");
+  assert.equal(env.SOLDR_DYLINT_TOOLCHAIN, "nightly-2026-05-28");
 });

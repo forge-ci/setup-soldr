@@ -57202,6 +57202,7 @@ exports.stageDiffForSave = stageDiffForSave;
 exports.applyStagedToLiveRoots = applyStagedToLiveRoots;
 exports.saveSoloCache = saveSoloCache;
 exports.restoreSoloCache = restoreSoloCache;
+exports.verifyProbeEnv = verifyProbeEnv;
 exports.verifyRestoredToolchain = verifyRestoredToolchain;
 const node_crypto_1 = __nccwpck_require__(77598);
 const fs = __importStar(__nccwpck_require__(73024));
@@ -57747,6 +57748,29 @@ async function restoreSoloCache(opts) {
     };
 }
 /**
+ * Environment for a restored-toolchain probe. `SOLDR_DYLINT_TOOLCHAIN`
+ * makes soldr's proxies rewrite every toolchain selection to the Dylint
+ * nightly, so a probe of the cached channel would observe the nightly
+ * instead and condemn a valid restore (#622). `managedChannel` adds the
+ * bootstrap-soldr pins.
+ */
+function verifyProbeEnv(env, managedChannel) {
+    const probe = {};
+    for (const [key, value] of Object.entries(env)) {
+        if (value !== undefined && key !== "SOLDR_DYLINT_TOOLCHAIN")
+            probe[key] = value;
+    }
+    if (managedChannel !== null) {
+        Object.assign(probe, {
+            RUSTUP_TOOLCHAIN: managedChannel,
+            SOLDR_NO_GLOBAL_DELEGATION: "1",
+            SOLDR_BROKER_AUTOSPAWN: "0",
+            SOLDR_AS: "",
+        });
+    }
+    return probe;
+}
+/**
  * Run `rustc --version` against the toolchain rustup picks by default
  * after a restore, and confirm the release matches the expected
  * `cacheChannel` from ToolchainSpec. Mismatch → caller should treat the
@@ -57772,7 +57796,7 @@ async function verifyRestoredToolchain(opts) {
         if (managed)
             toolArgs = ["--no-cache", ...toolArgs];
         const code = await new toolrunner_js_1.ToolRunner(tool, toolArgs, {
-            env: managed ? { ...process.env, RUSTUP_TOOLCHAIN: channel, SOLDR_NO_GLOBAL_DELEGATION: "1", SOLDR_BROKER_AUTOSPAWN: "0", SOLDR_AS: "" } : undefined,
+            env: verifyProbeEnv(process.env, managed ? channel : null),
             silent: true,
             ignoreReturnCode: true,
             listeners: {
