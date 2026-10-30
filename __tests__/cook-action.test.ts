@@ -82,9 +82,13 @@ test("deferred cook plan preserves target/profile-shaped flags for msvc cook", a
       "--package",
       "soldr-cli",
     ]);
-    assert.match(plan.baseKey, /^cook-base-v2-linux-x64-/);
+    assert.match(plan.baseKey, /^cook-base-v3-linux-x64-/);
     assert.match(plan.baseKey, /rustc1\.94\.1-/);
     assert.match(plan.baseKey, /soldr0\.8\.1$/);
+    // #625: a soldr release must restore the previous soldr's base layer.
+    assert.equal(plan.baseRestoreKeys.length, 1);
+    assert.match(plan.baseRestoreKeys[0] ?? "", /^cook-base-v3-linux-x64-.*-soldr$/);
+    assert.ok(plan.baseKey.startsWith(plan.baseRestoreKeys[0] ?? "missing-prefix"));
     assert.match(plan.deltaKey, /-g0123456789abcdef$/);
     assert.equal(plan.deltaRestoreKeys.length, 2);
     assert.match(plan.deltaRestoreKeys[0] ?? "", /-gfedcba9876543210$/);

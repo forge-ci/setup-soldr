@@ -73,6 +73,7 @@ import {
 } from "./lib/solo-toolchain-cache.js";
 import {
   buildCookBaseCacheKey,
+  buildCookBaseCacheRestorePrefix,
   buildCookCacheKey,
   buildCookDeltaCacheKey,
   buildCookDeltaCacheRestorePrefix,
@@ -1246,6 +1247,8 @@ export async function run(): Promise<void> {
       );
       cookLayeredRestorePromise = restoreLayeredCookCacheArchives({
         baseKey: cookBaseKey,
+        // #625: fall back to the previous soldr release's base layer.
+        baseRestoreKeys: [buildCookBaseCacheRestorePrefix(cookKeyParts)],
         deltaKey: cookDeltaKey,
         deltaRestoreKeys: cookDeltaRestoreKeys,
         baseArchivePath: cookBaseArchive,

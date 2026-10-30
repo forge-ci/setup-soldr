@@ -1005,8 +1005,33 @@ test("build_cache_key is per-job + SHA-independent (setup-soldr#237)", async () 
     !key.includes("0123456789abcdef"),
     `build_cache_key must not include the commit SHA, got ${key}`,
   );
-  // Shape: setup-soldr-buildcache-v2-<os>-<arch>-<digest>-<suffix>-<lockhash>.
-  assert.match(key, /^setup-soldr-buildcache-v2-.*-myjob-/);
+  // Shape: setup-soldr-buildcache-v3-<os>-<arch>-<digest>-<suffix>-<lockhash>-s<soldr>.
+  assert.match(key, /^setup-soldr-buildcache-v3-.*-myjob-[0-9a-f]+-s[0-9a-f]{16}$/);
+});
+
+test("#625 a soldr release keeps the build-cache restore fallback", async () => {
+  const { outputs: a } = await run({}, { INPUT_VERSION: "0.9.42", INPUT_CACHE_KEY_SUFFIX: "myjob" });
+  const { outputs: b } = await run({}, { INPUT_VERSION: "0.9.44", INPUT_CACHE_KEY_SUFFIX: "myjob" });
+  const keyA = a["build_cache_key"] ?? "";
+  const keyB = b["build_cache_key"] ?? "";
+  const fallback = b["build_cache_restore_key_toolchain"] ?? "";
+  // The exact key still records the soldr release that wrote the store...
+  assert.notEqual(keyA, keyB);
+  // ...but the job-scoped fallback does not, so 0.9.44 restores 0.9.42's store.
+  assert.equal(a["build_cache_restore_key_toolchain"], fallback);
+  assert.match(fallback, /-myjob-$/);
+  assert.ok(keyA.startsWith(fallback), `${keyA} must start with ${fallback}`);
+  assert.ok(keyB.startsWith(fallback), `${keyB} must start with ${fallback}`);
+  // The setup cache is unchanged (#625 scope): it still varies with soldr.
+  assert.notEqual(a["cache_key"], b["cache_key"]);
+});
+
+test("#625 the build-cache fallback still separates toolchains", async () => {
+  const { outputs: a } = await run({}, { INPUT_VERSION: "0.9.42", INPUT_CACHE_KEY_SUFFIX: "myjob", INPUT_TOOLCHAIN: "1.81.0" });
+  const { outputs: b } = await run({}, {
+    INPUT_VERSION: "0.9.42", INPUT_CACHE_KEY_SUFFIX: "myjob", INPUT_TOOLCHAIN: "1.80.0",
+  });
+  assert.notEqual(a["build_cache_restore_key_toolchain"], b["build_cache_restore_key_toolchain"]);
 });
 
 test("cargo_registry_cache_key drops cache-key-suffix (#375)", async () => {

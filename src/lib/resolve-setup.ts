@@ -793,6 +793,29 @@ export async function resolveSetup(
   const signatureString = pythonDefaultJson(toolchainSignature);
   const { createHash } = await import("node:crypto");
   const digest = createHash("sha256").update(signatureString, "utf8").digest("hex").slice(0, 16);
+  // setup-soldr#625: the build cache (zccache store) keys on a digest of the
+  // toolchain WITHOUT the soldr identity, and carries the soldr digest as the
+  // key's last segment instead. The exact key still records which soldr wrote
+  // the store, but the job-scoped restore fallback no longer changes on every
+  // soldr release, so a new release restores the previous store and rebuilds
+  // only the delta. rustc release, components, targets, profile, os and arch
+  // all stay in the fallback.
+  const {
+    soldr_repo: _soldrRepo,
+    soldr_ref: _soldrRef,
+    soldr_source_identity: _soldrSourceIdentity,
+    soldr_version: _soldrVersion,
+    ...soldrFreeSignature
+  } = toolchainSignature;
+  const buildCacheDigest = createHash("sha256")
+    .update(pythonDefaultJson(soldrFreeSignature), "utf8").digest("hex").slice(0, 16);
+  const soldrDigest = createHash("sha256")
+    .update(pythonDefaultJson({
+      soldr_repo: _soldrRepo,
+      soldr_ref: _soldrRef,
+      soldr_source_identity: _soldrSourceIdentity,
+      soldr_version: _soldrVersion,
+    }), "utf8").digest("hex").slice(0, 16);
 
   const runnerOs = sanitizeFragment(
     (env["ACTION_OS"]?.trim() || env["RUNNER_OS"]?.trim() || process.platform).toLowerCase(),
@@ -832,8 +855,9 @@ export async function resolveSetup(
   if (parentSha === githubSha) {
     parentSha = "";
   }
-  const buildCachePrefix = `setup-soldr-buildcache-v2-${runnerOs}-${runnerArch}`;
-  const buildCacheToolchainPrefix = `${buildCachePrefix}-${digest}-`;
+  // v3 (#625): the soldr digest moved from the toolchain segment to the end.
+  const buildCachePrefix = `setup-soldr-buildcache-v3-${runnerOs}-${runnerArch}`;
+  const buildCacheToolchainPrefix = `${buildCachePrefix}-${buildCacheDigest}-`;
   // Build-cache key (setup-soldr#237): platform + toolchain (digest) + per-job
   // suffix + Cargo.lock — but NOT the commit SHA. Dropping the SHA is the fix:
   // it made the key exact-miss on every commit, after which the fallback grabbed
@@ -855,7 +879,7 @@ export async function resolveSetup(
   // warm across commits. The fallback (BuildCachePlan below) is scoped to this
   // job prefix only, never another job's store.
   const buildCacheJobPrefix = `${buildCacheToolchainPrefix}${sanitizedSuffix ? `${sanitizedSuffix}-` : ""}`;
-  const buildCacheKey = `${buildCacheJobPrefix}${cargoLockHash}`;
+  const buildCacheKey = `${buildCacheJobPrefix}${cargoLockHash}-s${soldrDigest}`;
   const buildCacheParentKey = "";
 
   const legacyTargetCacheModeInput = inputs.targetCacheMode;

@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import {
   buildCookBaseCacheKey,
+  buildCookBaseCacheRestorePrefix,
   buildCookCacheKey,
   buildCookDeltaCacheKey,
   buildCookDeltaCacheRestorePrefix,
@@ -56,6 +57,8 @@ export interface DeferredCookEnabledPlan {
   legacyArchivePath: string;
   baseKey: string;
   deltaKey: string;
+  /** #625: soldr-free base fallback (previous soldr release's deps). */
+  baseRestoreKeys: string[];
   deltaRestoreKeys: string[];
   baseArchivePath: string;
   deltaArchivePath: string;
@@ -186,6 +189,7 @@ export async function buildDeferredCookPlan(
     legacyArchivePath: `${targetDir}.tar.zst`,
     baseKey,
     deltaKey,
+    baseRestoreKeys: [buildCookBaseCacheRestorePrefix(keyParts)],
     deltaRestoreKeys,
     baseArchivePath: `${targetDir}.soldr-base.tar.zst`,
     deltaArchivePath: `${targetDir}.soldr-delta.tar.zst`,
