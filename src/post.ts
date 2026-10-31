@@ -23,7 +23,7 @@ import {
   stageDiffForSave,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
-import { planPoisonedEntryRecovery } from "./lib/solo-poison.js";
+import { planPoisonedEntryRecovery, resolveArchivedRustc, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
 import type { SnapshotDiff } from "./lib/toolchain-snapshot.js";
 import { saveCookCache, saveLayeredCookCache } from "./lib/cook-cache.js";
 import { saveMiniCache } from "./lib/soldr-mini-cache.js";
@@ -2112,7 +2112,18 @@ export async function run(): Promise<void> {
       // #2342: the key still exists and cache keys are immutable, so no
       // replacement can be published. main already cold-installed a
       // verified toolchain; report the missing permission once and stop.
-      if (plan.message) core.error(plan.message);
+      if (plan.message) {
+        core.error(plan.message);
+        // #633: record the undeletable key so later runs stop restoring it.
+        const tombstonePath = soloTombstonePath(runnerTemp);
+        try {
+          fs.writeFileSync(tombstonePath, `${soloInvalidMatchedKey}\n`);
+          await gatedSaveCache("solo-toolchain-cache", [tombstonePath], soloTombstoneKey(soloInvalidMatchedKey), log);
+          log(`solo-toolchain-cache: tombstoned poisoned key=${soloInvalidMatchedKey}`);
+        } catch (err) {
+          log(`solo-toolchain-cache: tombstone save failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
     }
     const soloUndeletablePoison = soloRestoreInvalid && !repairDeletionComplete;
     // #313: pre-save lookupOnly probe. When several parallel jobs in
@@ -2229,9 +2240,19 @@ export async function run(): Promise<void> {
             cacheArchivePath: soloCacheArchivePath(runnerTemp),
             skipExistingProbe: soloRestoreInvalid,
             // #2342: never archive a toolchain under a key it contradicts.
+            // #634: run the archived toolchain's own rustc; a PATH proxy may
+            // be absent in the post step or resolve to a different toolchain.
             probeRustcVersion: async () => {
               const channel = core.getState("soloToolchainChannel") || "stable";
-              const out = spawnSync("rustup", ["run", channel, "rustc", "--version", "--verbose"], { encoding: "utf8" });
+              const rustc = await resolveArchivedRustc({
+                rustupHome: result.rustupHome,
+                channel,
+                exe: process.platform === "win32" ? ".exe" : "",
+              });
+              if (!rustc) {
+                return { code: -1, stdout: "", stderr: `no rustc under ${path.join(result.rustupHome, "toolchains")} for channel ${channel}` };
+              }
+              const out = spawnSync(rustc.command, rustc.args, { encoding: "utf8" });
               return { code: out.status ?? -1, stdout: out.stdout ?? "", stderr: out.stderr ?? String(out.error ?? "") };
             },
             lookupExactKey: soloRestoreInvalid && repairDeletionComplete

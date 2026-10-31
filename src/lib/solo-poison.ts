@@ -120,3 +120,53 @@ export async function coldInstallAfterFailedRepair(opts: {
     );
   }
 }
+
+/**
+ * #634: the rustc binary inside the toolchain directory that will be archived.
+ * Probing it directly needs no rustup on PATH and checks exactly what is saved.
+ * Returns null when no toolchain dir for `channel` holds a rustc.
+ */
+export async function resolveArchivedRustc(opts: {
+  rustupHome: string;
+  channel: string;
+  /** Executable suffix: ".exe" on Windows, "" elsewhere. */
+  exe: string;
+}): Promise<{ command: string; args: string[] } | null> {
+  const dir = path.join(opts.rustupHome, "toolchains");
+  const names = (await fsp.readdir(dir).catch(() => [] as string[]))
+    .filter((name) => name === opts.channel || name.startsWith(`${opts.channel}-`))
+    .sort();
+  for (const name of names) {
+    const rustc = path.join(dir, name, "bin", `rustc${opts.exe}`);
+    if (await fsp.access(rustc).then(() => true, () => false)) {
+      return { command: rustc, args: ["--version", "--verbose"] };
+    }
+  }
+  return null;
+}
+
+/**
+ * #633: marker entry recording that `key` is poisoned but could not be
+ * deleted. Its prefix differs from every solo-toolchain restore key, so a
+ * prefix match can never hand it back as a toolchain.
+ */
+export function soloTombstoneKey(key: string): string {
+  return `solo-tombstone-v1-${key}`;
+}
+
+/** Canonical path for the tombstone marker; save and lookup must agree (#316). */
+export function soloTombstonePath(runnerTemp: string): string {
+  return path.join(runnerTemp, "setup-soldr-solo-tombstone");
+}
+
+/**
+ * #633: once the exact key is tombstoned, restore and save the repaired key
+ * only. Fallbacks are dropped because they prefix-match the poisoned entry.
+ */
+export function planSoloRestoreKeys<T extends { exact: string; fallbacks: string[] }>(opts: {
+  keys: T;
+  tombstoned: boolean;
+}): { exact: string; fallbacks: string[] } {
+  if (!opts.tombstoned) return opts.keys;
+  return { exact: `${opts.keys.exact}-repaired`, fallbacks: [] };
+}
