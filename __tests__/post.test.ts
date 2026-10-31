@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -109,8 +109,18 @@ test("#538 dylintMarkerIdentityMatches rejects a genuinely different compiler id
   assert.equal(mod.dylintMarkerIdentityMatches("garbage", cacheIdentity, hostTriple), false);
 });
 
+const tmpDirs: string[] = [];
+
+after(() => {
+  for (const dir of tmpDirs.splice(0)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 function mkTmp(prefix: string): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tmpDirs.push(dir);
+  return dir;
 }
 
 test("#543 computeJobNewCompiles sums misses across every archived session, not just the newest", async () => {

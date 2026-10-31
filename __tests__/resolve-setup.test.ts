@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -20,8 +20,18 @@ import { createLogger } from "../src/lib/log-utils.js";
 import { supportsLayeredCookCache } from "../src/lib/cook-cache.js";
 import type { ActionContext, RawInputs, ResolveResult } from "../src/lib/types.js";
 
+const tmpDirs: string[] = [];
+
+after(() => {
+  for (const dir of tmpDirs.splice(0)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 function mkTmp(prefix: string): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tmpDirs.push(dir);
+  return dir;
 }
 
 function initGitSource(sourcePath: string): void {

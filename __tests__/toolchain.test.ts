@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -11,8 +11,18 @@ import {
 } from "../src/lib/toolchain.js";
 import type { ToolchainSpec } from "../src/lib/types.js";
 
+const tmpDirs: string[] = [];
+
+after(() => {
+  for (const dir of tmpDirs.splice(0)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 function mkTmp(prefix: string): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tmpDirs.push(dir);
+  return dir;
 }
 
 test("rollingToolchainAlias recognizes plain stable/beta/nightly", () => {
@@ -283,7 +293,7 @@ test("systemRustupSatisfiesRequest fails when component missing", async () => {
 });
 
 test("systemRustupSatisfiesRequest FS fast-path skips rustup spawn when channel absent on disk (#304)", async () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "fs-probe-"));
+  const root = mkTmp("fs-probe-");
   const rustupHome = path.join(root, "rustup");
   fs.mkdirSync(path.join(rustupHome, "toolchains", "nightly-x86_64-unknown-linux-gnu"), {
     recursive: true,
@@ -327,7 +337,7 @@ test("systemRustupSatisfiesRequest FS fast-path skips rustup spawn when channel 
 });
 
 test("systemRustupSatisfiesRequest FS fast-path matches channel from on-disk toolchain dir (#304)", async () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "fs-probe-"));
+  const root = mkTmp("fs-probe-");
   const rustupHome = path.join(root, "rustup");
   fs.mkdirSync(path.join(rustupHome, "toolchains", "1.94.1-x86_64-unknown-linux-gnu"), {
     recursive: true,
@@ -368,7 +378,7 @@ test("systemRustupSatisfiesRequest FS fast-path matches channel from on-disk too
 });
 
 test("system Rust release probe uses the selected Soldr and Rust homes", async () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "managed rust probe "));
+  const root = mkTmp("managed rust probe ");
   const rustupHome = path.join(root, "rustup");
   const cargoHome = path.join(root, "cargo");
   fs.mkdirSync(path.join(rustupHome, "toolchains", "stable-x86_64-unknown-linux-gnu"), { recursive: true });
