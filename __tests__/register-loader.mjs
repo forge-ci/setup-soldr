@@ -13,3 +13,22 @@ delete process.env["INPUT_SAVE-CACHE"];
 // GITHUB_REF and the event payload's repository.default_branch.
 delete process.env["GITHUB_REF"];
 delete process.env["GITHUB_EVENT_PATH"];
+
+// setup-soldr#647: give every test process its own temp root and remove it
+// on exit. Test files, the code under test (snapshot-*, ws, ...) and any
+// child processes all resolve os.tmpdir() through these variables, so no
+// temp dir outlives the run even when a test never cleans up after itself.
+// The runner process imports this too; its children nest inside its root.
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ss-"));
+for (const key of ["TMPDIR", "TMP", "TEMP"]) process.env[key] = tmpRoot;
+process.on("exit", () => {
+  try {
+    fs.rmSync(tmpRoot, { recursive: true, force: true, maxRetries: 3 });
+  } catch {
+    // Best effort: a locked file on Windows must not fail the run.
+  }
+});
