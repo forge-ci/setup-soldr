@@ -15,8 +15,12 @@ import {
   parseRustcVersionVerbose,
   planPoisonedEntryRecovery,
   releaseFromSoloKey,
+  compareSoloIdentity,
+  formatSoloIdentity,
+  parseSoloIdentity,
   planSoloRestoreKeys,
   resolveArchivedRustc,
+  soloIdentityKey,
   soloTombstoneKey,
 } from "../src/lib/solo-poison.js";
 
@@ -225,4 +229,32 @@ test("#633 a tombstoned exact key restores and saves only the repaired key", () 
     exact: `${POISONED_KEY}-repaired`,
     fallbacks: [],
   });
+});
+
+test("#636 identity key can never be restored as a toolchain", () => {
+  const keys = buildSoloCacheKeys({
+    runnerOs: "linux", runnerArch: "x64", libc: "glibc", rustcRelease: "1.95.0",
+    componentsHash: "none", targetsHash: "none", soldrVersion: "v0.9.44",
+  });
+  const id = soloIdentityKey(keys.exact);
+  assert.ok(id.includes(keys.exact));
+  for (const prefix of [keys.exact, ...keys.fallbacks]) assert.ok(!id.startsWith(prefix));
+  assert.notEqual(id, soloTombstoneKey(keys.exact));
+});
+
+test("#636 identity round trips and compares release and commit", () => {
+  const recorded = parseSoloIdentity(formatSoloIdentity({ release: "1.95.0", commitHash: "fedcba98" }));
+  assert.deepEqual(recorded, { release: "1.95.0", commitHash: "fedcba98" });
+  assert.equal(compareSoloIdentity(recorded, { release: "1.95.0", commitHash: "fedcba98" }), "match");
+  assert.equal(compareSoloIdentity(recorded, { release: "1.95.0", commitHash: "0123abcd" }), "mismatch");
+  assert.equal(compareSoloIdentity(recorded, { release: "1.98.0-nightly", commitHash: "fedcba98" }), "mismatch");
+  assert.equal(compareSoloIdentity(null, { release: "1.95.0", commitHash: "x" }), "unrecorded");
+  assert.equal(compareSoloIdentity(recorded, null), "mismatch");
+  assert.equal(parseSoloIdentity("not json"), null);
+});
+
+test("#636 save reports the identity it verified", async () => {
+  const { result } = await saveWithProbe(STABLE_VERBOSE);
+  assert.equal(result.status, "saved");
+  assert.deepEqual(result.identity, { release: "1.95.0", commitHash: "fedcba9876543210fedcba9876543210fedcba98" });
 });

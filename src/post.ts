@@ -23,7 +23,7 @@ import {
   stageDiffForSave,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
-import { planPoisonedEntryRecovery, resolveArchivedRustc, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
+import { formatSoloIdentity, planPoisonedEntryRecovery, resolveArchivedRustc, soloIdentityKey, soloIdentityPath, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
 import type { SnapshotDiff } from "./lib/toolchain-snapshot.js";
 import { saveCookCache, saveLayeredCookCache } from "./lib/cook-cache.js";
 import { saveMiniCache } from "./lib/soldr-mini-cache.js";
@@ -2282,6 +2282,16 @@ export async function run(): Promise<void> {
             durationMs: Date.now() - soloSaveStart,
             timestamp: new Date().toISOString(),
           });
+          // #636: record what was saved so a restore can check the commit too.
+          if (saveResult.status === "saved" && saveResult.identity) {
+            const identityPath = soloIdentityPath(runnerTemp);
+            try {
+              fs.writeFileSync(identityPath, formatSoloIdentity(saveResult.identity));
+              await gatedSaveCache("solo-toolchain-cache", [identityPath], soloIdentityKey(soloExactKey), log);
+            } catch (err) {
+              log(`solo-toolchain-cache: identity save failed: ${err instanceof Error ? err.message : String(err)}`);
+            }
+          }
           const repairRaceWonElsewhere = soloRestoreInvalid &&
             saveResult.status === "race-precheck-skipped" && repairDeletionComplete;
           if (saveResult.status === "policy-skip") {
