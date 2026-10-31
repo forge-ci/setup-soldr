@@ -15,7 +15,16 @@ selected and full coverage jobs must pass, and its logs must prove the runner
 downloaded and executed `zackees/setup-soldr@<that exact SHA>`. The workflow
 checks an exact-SHA successful `Setup Soldr Contract` run, then repeats release
 readiness and a local-action install smoke before a compare-and-swap push.
-Its default dry run reports evidence and refs without writing. Contract success
+Its default dry run reports evidence and refs without writing.
+
+The canary is a "not for merge" fbuild PR that repins every exact
+`setup-soldr@<sha>` (and `ci/render_workflows.py`) to the candidate. It must
+carry the `ci-full` label: without it fbuild's `ci-minimal` skips the
+`full / Full coverage` job that `scripts/verify-v0-promotion.py` requires,
+and promotion fails with "canary lacks successful selected and full coverage
+jobs". A canary that conflicts with fbuild `main` starts no pull-request
+workflows at all, so rebuild it on current `main`. Close the canary PR and
+delete its branch once `v0` has moved. Contract success
 alone never promotes `v0`; immutable version tags remain unchanged. Explicit
 `version` inputs remain exact and fail closed.
 
