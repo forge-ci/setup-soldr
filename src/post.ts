@@ -23,6 +23,7 @@ import {
   stageDiffForSave,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
+import { planPoisonedEntryRecovery } from "./lib/solo-poison.js";
 import type { SnapshotDiff } from "./lib/toolchain-snapshot.js";
 import { saveCookCache, saveLayeredCookCache } from "./lib/cook-cache.js";
 import { saveMiniCache } from "./lib/soldr-mini-cache.js";
@@ -2106,15 +2107,14 @@ export async function run(): Promise<void> {
         ref: soloCacheRef,
         log,
       });
-      repairDeletionComplete = deletion.failed === 0 && deletion.deleted === deletion.found;
-      if (deletion.failed > 0 || deletion.deleted < deletion.found) {
-        core.warning(
-          `solo-toolchain-cache: could not fully delete poisoned key=${soloInvalidMatchedKey}; ` +
-          `found=${deletion.found} deleted=${deletion.deleted} failed=${deletion.failed}. ` +
-          `The workflow token needs actions: write permission for automatic repair (#473).`,
-        );
-      }
+      const plan = planPoisonedEntryRecovery({ key: soloInvalidMatchedKey, deletion });
+      repairDeletionComplete = plan.publishReplacement;
+      // #2342: the key still exists and cache keys are immutable, so no
+      // replacement can be published. main already cold-installed a
+      // verified toolchain; report the missing permission once and stop.
+      if (plan.message) core.error(plan.message);
     }
+    const soloUndeletablePoison = soloRestoreInvalid && !repairDeletionComplete;
     // #313: pre-save lookupOnly probe. When several parallel jobs in
     // the same workflow all enable solo-toolchain-cache with the SAME
     // key (rustc × components × targets × soldr-version), each one
@@ -2166,6 +2166,8 @@ export async function run(): Promise<void> {
     }
     if (raceSkipped) {
       // probe found an existing entry; nothing more to do for this layer
+    } else if (soloUndeletablePoison) {
+      log(`solo-toolchain-cache: skipping save; poisoned key=${soloInvalidMatchedKey} could not be deleted (#2342)`);
     } else if (soloExactHit && soloIncrementalEmpty) {
       log("solo-toolchain-cache: exact hit and no install delta — skipping save");
     } else if (!soloSaveDiffPath || !fs.existsSync(soloSaveDiffPath)) {
@@ -2226,6 +2228,12 @@ export async function run(): Promise<void> {
             // hash agrees and restore can find the entry.
             cacheArchivePath: soloCacheArchivePath(runnerTemp),
             skipExistingProbe: soloRestoreInvalid,
+            // #2342: never archive a toolchain under a key it contradicts.
+            probeRustcVersion: async () => {
+              const channel = core.getState("soloToolchainChannel") || "stable";
+              const out = spawnSync("rustup", ["run", channel, "rustc", "--version", "--verbose"], { encoding: "utf8" });
+              return { code: out.status ?? -1, stdout: out.stdout ?? "", stderr: out.stderr ?? String(out.error ?? "") };
+            },
             lookupExactKey: soloRestoreInvalid && repairDeletionComplete
               ? async () => (await soloCacheEntryExistsForRef({
                 owner: soloRepoOwner ?? "",

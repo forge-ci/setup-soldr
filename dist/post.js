@@ -57741,6 +57741,137 @@ async function soldrToolchainDoctor(soldrPath, deps) {
 
 /***/ }),
 
+/***/ 36489:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// Poisoned solo-toolchain entries (talos-hq/clud#2342).
+//
+// A key promised `rustc1.95.0` while its archive shipped 1.98.0-nightly.
+// Restore detected it, but deletion needs `actions: write` and there was no
+// fallback, so every job failed. This module holds the pure decisions:
+// validate before save, cold-install after a failed repair, and the one
+// diagnostic for an entry the token cannot delete.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.releaseFromSoloKey = releaseFromSoloKey;
+exports.parseRustcVersionVerbose = parseRustcVersionVerbose;
+exports.toolchainMatchesKey = toolchainMatchesKey;
+exports.planPoisonedEntryRecovery = planPoisonedEntryRecovery;
+exports.coldInstallAfterFailedRepair = coldInstallAfterFailedRepair;
+const fsp = __importStar(__nccwpck_require__(51455));
+const path = __importStar(__nccwpck_require__(76760));
+/** Release segment of a solo key: `...-rustc<release>-c<hash>-t<hash>-soldr...`. */
+function releaseFromSoloKey(key) {
+    const match = key.match(/-rustc(.+?)-c[^-]*-t[^-]*-soldr/);
+    return match ? (match[1] ?? null) : null;
+}
+/** Parse `rustc --version --verbose` (or plain `--version`) output. */
+function parseRustcVersionVerbose(stdout) {
+    const text = stdout.trim();
+    const release = text.match(/^release:\s*(\S+)/m)?.[1] ?? text.match(/^rustc\s+(\S+)/)?.[1];
+    if (!release)
+        return null;
+    return { release, commitHash: text.match(/^commit-hash:\s*(\S+)/m)?.[1] ?? null };
+}
+/**
+ * Confirm the live toolchain matches the release named in `key` before it is
+ * archived under that key. Any failure to prove a match refuses the save.
+ */
+async function toolchainMatchesKey(opts) {
+    const expected = releaseFromSoloKey(opts.key);
+    let observed = null;
+    let detail = "";
+    try {
+        const out = await opts.probe();
+        if (out.code === 0)
+            observed = parseRustcVersionVerbose(out.stdout);
+        else
+            detail = ` exit=${out.code} ${out.stderr.trim()}`.trimEnd();
+    }
+    catch (err) {
+        detail = ` error=${err instanceof Error ? err.message : String(err)}`;
+    }
+    const match = expected !== null && observed !== null && observed.release === expected;
+    const summary = `key=${opts.key} expected=${expected ?? "unparseable"} observed=${observed?.release ?? "unknown"} ` +
+        `commit=${observed?.commitHash ?? "unknown"} match=${match}${detail}`;
+    opts.log(match
+        ? `solo-toolchain-cache: pre-save verify ${summary}`
+        : `solo-toolchain-cache: refusing save; toolchain does not match its key (#2342): ${summary}`);
+    return match;
+}
+function planPoisonedEntryRecovery(opts) {
+    const { found, deleted, failed } = opts.deletion;
+    if (failed === 0 && deleted === found)
+        return { publishReplacement: true, failJob: false, message: null };
+    return {
+        publishReplacement: false,
+        failJob: false,
+        message: `solo-toolchain-cache: poisoned cache entry key=${opts.key} cannot be deleted: the workflow token lacks ` +
+            `the actions: write permission (found=${found} deleted=${deleted} failed=${failed}). This job used a ` +
+            `fresh toolchain install instead; grant actions: write or delete that exact key to stop the repeat restore.`,
+    };
+}
+/**
+ * Discard every restored copy of `channel` under `$RUSTUP_HOME`, reinstall it
+ * from scratch and re-verify. Throws only if the fresh install is also wrong.
+ */
+async function coldInstallAfterFailedRepair(opts) {
+    const { rustupHome, channel, key } = opts;
+    opts.warn(`solo-toolchain-cache: restored entry key=${key} is still invalid after repair; discarding the cached ` +
+        `toolchain and falling back to a cold install of ${channel} (#2342).`);
+    const owned = (name) => name === channel || name.startsWith(`${channel}-`);
+    for (const sub of ["toolchains", "update-hashes"]) {
+        const dir = path.join(rustupHome, sub);
+        const names = await fsp.readdir(dir).catch(() => []);
+        for (const name of names.filter(owned)) {
+            await fsp.rm(path.join(dir, name), { recursive: true, force: true });
+        }
+    }
+    await opts.reinstall();
+    const verified = await opts.verify();
+    if (!verified.match) {
+        throw new Error(`solo-toolchain-cache: cold install of ${channel} did not produce the requested toolchain ` +
+            `(observed=${verified.observedRelease ?? "unknown"}); key=${key}`);
+    }
+}
+
+
+/***/ }),
+
 /***/ 67901:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -57805,6 +57936,7 @@ exports.saveSoloCache = saveSoloCache;
 exports.restoreSoloCache = restoreSoloCache;
 exports.verifyProbeEnv = verifyProbeEnv;
 exports.verifyRestoredToolchain = verifyRestoredToolchain;
+const solo_poison_js_1 = __nccwpck_require__(36489);
 const node_crypto_1 = __nccwpck_require__(77598);
 const fs = __importStar(__nccwpck_require__(73024));
 const fsp = __importStar(__nccwpck_require__(51455));
@@ -58152,6 +58284,9 @@ async function saveSoloCache(opts) {
     const { stagingDir, key, level, debug, log } = opts;
     if (!(0, save_policy_js_1.allowCacheSave)("solo-toolchain-cache", log))
         return { status: "policy-skip" };
+    if (opts.probeRustcVersion && !(await (0, solo_poison_js_1.toolchainMatchesKey)({ key, probe: opts.probeRustcVersion, log }))) {
+        return { status: "validation-refused", error: "toolchain release does not match the cache key (#2342)" };
+    }
     const cacheArchive = opts.cacheArchivePath ?? soloCacheArchivePath(path.dirname(stagingDir));
     if (!fs.existsSync(stagingDir)) {
         return { status: "failed", error: `staging dir missing: ${stagingDir}` };
@@ -60483,6 +60618,7 @@ const verdict_setup_js_1 = __nccwpck_require__(72510);
 const cache = __importStar(__nccwpck_require__(5116));
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const solo_toolchain_cache_js_1 = __nccwpck_require__(67901);
+const solo_poison_js_1 = __nccwpck_require__(36489);
 const cook_cache_js_1 = __nccwpck_require__(504);
 const soldr_mini_cache_js_1 = __nccwpck_require__(83756);
 // Static import — the dynamic `await import("./lib/soldr-load-shim.js")`
@@ -62217,13 +62353,15 @@ async function run() {
                 ref: soloCacheRef,
                 log,
             });
-            repairDeletionComplete = deletion.failed === 0 && deletion.deleted === deletion.found;
-            if (deletion.failed > 0 || deletion.deleted < deletion.found) {
-                core.warning(`solo-toolchain-cache: could not fully delete poisoned key=${soloInvalidMatchedKey}; ` +
-                    `found=${deletion.found} deleted=${deletion.deleted} failed=${deletion.failed}. ` +
-                    `The workflow token needs actions: write permission for automatic repair (#473).`);
-            }
+            const plan = (0, solo_poison_js_1.planPoisonedEntryRecovery)({ key: soloInvalidMatchedKey, deletion });
+            repairDeletionComplete = plan.publishReplacement;
+            // #2342: the key still exists and cache keys are immutable, so no
+            // replacement can be published. main already cold-installed a
+            // verified toolchain; report the missing permission once and stop.
+            if (plan.message)
+                core.error(plan.message);
         }
+        const soloUndeletablePoison = soloRestoreInvalid && !repairDeletionComplete;
         // #313: pre-save lookupOnly probe. When several parallel jobs in
         // the same workflow all enable solo-toolchain-cache with the SAME
         // key (rustc × components × targets × soldr-version), each one
@@ -62267,6 +62405,9 @@ async function run() {
         }
         if (raceSkipped) {
             // probe found an existing entry; nothing more to do for this layer
+        }
+        else if (soloUndeletablePoison) {
+            log(`solo-toolchain-cache: skipping save; poisoned key=${soloInvalidMatchedKey} could not be deleted (#2342)`);
         }
         else if (soloExactHit && soloIncrementalEmpty) {
             log("solo-toolchain-cache: exact hit and no install delta — skipping save");
@@ -62320,6 +62461,12 @@ async function run() {
                         // hash agrees and restore can find the entry.
                         cacheArchivePath: (0, solo_toolchain_cache_js_1.soloCacheArchivePath)(runnerTemp),
                         skipExistingProbe: soloRestoreInvalid,
+                        // #2342: never archive a toolchain under a key it contradicts.
+                        probeRustcVersion: async () => {
+                            const channel = core.getState("soloToolchainChannel") || "stable";
+                            const out = (0, node_child_process_1.spawnSync)("rustup", ["run", channel, "rustc", "--version", "--verbose"], { encoding: "utf8" });
+                            return { code: out.status ?? -1, stdout: out.stdout ?? "", stderr: out.stderr ?? String(out.error ?? "") };
+                        },
                         lookupExactKey: soloRestoreInvalid && repairDeletionComplete
                             ? async () => (await (0, solo_toolchain_cache_js_1.soloCacheEntryExistsForRef)({
                                 owner: soloRepoOwner ?? "",

@@ -12,6 +12,7 @@
 // short-circuits when the snapshot diff is empty — which is the
 // dominant case on hosted runners that already ship rustup + stable.
 
+import { toolchainMatchesKey, type RustcProbe } from "./solo-poison.js";
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
@@ -97,6 +98,8 @@ export interface SoloSaveResult {
     | "skipped-exact-hit"
     | "skipped-disabled"
     | "race-precheck-skipped"
+    /** #2342: the live rustc does not match the release named in the key. */
+    | "validation-refused"
     | "failed";
   cacheId?: number;
   archiveBytes?: number;
@@ -470,9 +473,17 @@ export async function saveSoloCache(opts: {
   lookupExactKey?: (paths: string[], key: string) => Promise<string | undefined>;
   /** Test seam for archive creation. */
   compress?: typeof compressCache;
+  /**
+   * #2342: `rustc --version --verbose` for the toolchain being archived.
+   * When set, a release that differs from the key refuses the save.
+   */
+  probeRustcVersion?: RustcProbe;
 }): Promise<SoloSaveResult> {
   const { stagingDir, key, level, debug, log } = opts;
   if (!allowCacheSave("solo-toolchain-cache", log)) return { status: "policy-skip" };
+  if (opts.probeRustcVersion && !(await toolchainMatchesKey({ key, probe: opts.probeRustcVersion, log }))) {
+    return { status: "validation-refused", error: "toolchain release does not match the cache key (#2342)" };
+  }
   const cacheArchive = opts.cacheArchivePath ?? soloCacheArchivePath(path.dirname(stagingDir));
   if (!fs.existsSync(stagingDir)) {
     return { status: "failed", error: `staging dir missing: ${stagingDir}` };
