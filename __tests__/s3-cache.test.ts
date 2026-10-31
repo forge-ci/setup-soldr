@@ -16,6 +16,7 @@ import {
   S3Client,
   allowS3Save,
   configFromEnv,
+  s3OffNotice,
   findRestoreObject,
   objectName,
   parseSize,
@@ -425,4 +426,26 @@ test("allowS3Save honours save-cache=false, save-cache-remote=false and a cancel
   assert.equal(allowS3Save({ ...base, "INPUT_SAVE-CACHE-REMOTE": "false" }).save, false);
   assert.equal(allowS3Save({ ...base, "INPUT_JOB-STATUS": "cancelled" }).save, false);
   assert.equal(allowS3Save({ ...base, "INPUT_SAVE-CACHE": "true" }).save, true);
+});
+
+test("s3OffNotice: local runners are off by design, GitHub wiring gaps warn", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "s3-off-"));
+  const event = (fork: boolean) => {
+    const p = path.join(dir, `event-${fork}.json`);
+    fs.writeFileSync(p, JSON.stringify({ pull_request: { head: { repo: { fork } } } }));
+    return p;
+  };
+  const keys = { SOLDR_S3_CACHE_ACCESS_KEY: "a", SOLDR_S3_CACHE_SECRET_KEY: "s" };
+  const base = { "INPUT_S3-BUCKET": "b", "INPUT_S3-ENDPOINT": "e" };
+  assert.equal(s3OffNotice({}), null);
+  assert.equal(s3OffNotice({ ...base, ...keys }), null);
+  // Local replay (bosn/act): off even with keys, and configFromEnv agrees.
+  assert.equal(configFromEnv({ ...base, ...keys, ACT: "true" }), null);
+  assert.equal(s3OffNotice({ ...base, ...keys, ACT: "true" })?.level, "info");
+  const wiring = s3OffNotice({ ...base, GITHUB_EVENT_PATH: event(false) });
+  assert.equal(wiring?.level, "warning");
+  assert.match(wiring?.message ?? "", /SOLDR_S3_CACHE_ACCESS_KEY, SOLDR_S3_CACHE_SECRET_KEY are empty.*secrets: inherit/);
+  assert.equal(s3OffNotice({ ...base, GITHUB_EVENT_PATH: event(true) })?.level, "info");
+  assert.equal(s3OffNotice({ ...base, GITHUB_ACTOR: "dependabot[bot]" })?.level, "info");
+  assert.match(s3OffNotice({ ...base, SOLDR_S3_CACHE_ACCESS_KEY: "a" })?.message ?? "", /SOLDR_S3_CACHE_SECRET_KEY is empty/);
 });
