@@ -499,8 +499,8 @@ test("dylint mode resolves newest nightly identity and keys the foundation cache
   assert.equal(result.dylintCache.toolchain, "nightly-2026-01-18");
   assert.equal(result.dylintCache.rustcRelease, "1.94.0-nightly");
   assert.equal(result.dylintCache.rustcCommitHash.length, 40);
-  assert.equal(result.dylintCache.cargoDylintVersion, "6.0.3");
-  assert.equal(result.dylintCache.dylintLinkVersion, "6.0.3");
+  assert.equal(result.dylintCache.cargoDylintVersion, "6.2.0");
+  assert.equal(result.dylintCache.dylintLinkVersion, "6.2.0");
   assert.equal(result.envExports["SOLDR_TOOLCHAIN_ORIGIN"], undefined);
   assert.match(result.dylintCache.key, /^setup-soldr-dylint-v2-/);
   assert.ok(result.dylintCache.paths.some((p) => p.includes("nightly-2026-01-18")));
@@ -542,8 +542,8 @@ test("dylint mode keeps preparation pins when caching is disabled", async () => 
   assert.equal(result.dylintCache.enabled, false);
   assert.equal(result.dylintCache.outputCacheEnabled, false);
   assert.notEqual(result.dylintCache.cacheIdentity, "");
-  assert.equal(result.dylintCache.cargoDylintVersion, "6.0.3");
-  assert.equal(result.dylintCache.dylintLinkVersion, "6.0.3");
+  assert.equal(result.dylintCache.cargoDylintVersion, "6.2.0");
+  assert.equal(result.dylintCache.dylintLinkVersion, "6.2.0");
 });
 
 // --- dylint-output-cache reused across commits (setup-soldr#540, ci.yml#1) ---

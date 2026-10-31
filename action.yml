@@ -26,7 +26,7 @@ inputs:
       bumped on every soldr release). Pass `latest` to resolve the newest
       release at run time instead.
     required: false
-    default: "0.9.45"
+    default: "0.9.47"
   repo:
     description: Internal override for the Soldr source repository used by integration branches.
     required: false
@@ -622,11 +622,11 @@ inputs:
   cargo-dylint-version:
     description: cargo-dylint version materialized by Soldr in Dylint mode. Included in the Dylint cache key.
     required: false
-    default: "6.0.3"
+    default: "6.2.0"
   dylint-link-version:
     description: dylint-link version materialized by Soldr in Dylint mode. Included in the Dylint cache key.
     required: false
-    default: "6.0.3"
+    default: "6.2.0"
   dylint-cache-paths:
     description: >
       Optional newline- or comma-separated paths to restore/save for

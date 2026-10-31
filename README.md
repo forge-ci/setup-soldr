@@ -2,7 +2,7 @@
 
 [![Setup Soldr Action](https://github.com/zackees/setup-soldr/actions/workflows/setup-soldr-action.yml/badge.svg)](https://github.com/zackees/setup-soldr/actions/workflows/setup-soldr-action.yml)
 
-Public GitHub Action for installing one released `soldr` binary, provisioning the resolved Rust toolchain, and restoring cacheable Soldr/zccache state without rehydrating large Cargo or toolchain homes by default. The default Soldr version is `0.9.45`.
+Public GitHub Action for installing one released `soldr` binary, provisioning the resolved Rust toolchain, and restoring cacheable Soldr/zccache state without rehydrating large Cargo or toolchain homes by default. The default Soldr version is `0.9.47`.
 
 This repository is intended to be generated from `zackees/soldr`. The source-of-truth contract and release process still live in `soldr` issue #137 and `docs/SETUP_SOLDR_PUBLIC_ACTION.md`.
 
@@ -242,8 +242,8 @@ release lane below when a job needs a strict build-and-upload contract.
 | `clippy` | boolean | `true` | `soldr cargo clippy --workspace --all-targets -- -D warnings`. |
 | `test` | boolean | `true` | `soldr cargo test --workspace`. |
 | `dylint` | boolean | `false` | `soldr cargo dylint --all --workspace`. setup-soldr first runs `soldr dylint prepare`, which materializes the pinned prebuilt tools, nightly components, and driver. Opt-in: needs a consumer-provided `dylint.toml`. |
-| `cargo-dylint-version` | string | `6.0.3` | Exact catalogued `cargo-dylint` version required from Soldr. |
-| `dylint-link-version` | string | `6.0.3` | Exact catalogued `dylint-link` version required from Soldr. |
+| `cargo-dylint-version` | string | `6.2.0` | Exact catalogued `cargo-dylint` version required from Soldr. |
+| `dylint-link-version` | string | `6.2.0` | Exact catalogued `dylint-link` version required from Soldr. |
 
 #### Default cross-compile consumer
 
@@ -488,8 +488,8 @@ preferred for new workflows.
 | `dylint-cache` | Compatibility opt-in for the original Dylint tool/driver cache when `dylint` mode is not enabled. |
 | `dylint-toolchain` | Nightly toolchain used by the Dylint driver, such as `nightly-2026-03-26`. Empty defaults to the resolved action toolchain. Included in the Dylint cache key. |
 | `dylint-driver-rev` | Git revision or version identity for the compatible Dylint driver source. Included in the Dylint cache key. |
-| `cargo-dylint-version` | `cargo-dylint` version materialized and verified by Soldr. Default `6.0.3`; included in the Dylint cache key. |
-| `dylint-link-version` | `dylint-link` version materialized and verified by Soldr. Default `6.0.3`; included in the Dylint cache key. |
+| `cargo-dylint-version` | `cargo-dylint` version materialized and verified by Soldr. Default `6.2.0`; included in the Dylint cache key. |
+| `dylint-link-version` | `dylint-link` version materialized and verified by Soldr. Default `6.2.0`; included in the Dylint cache key. |
 | `dylint-cache-paths` | Optional newline- or comma-separated path override for the Dylint cache. Empty uses `$CARGO_HOME/bin/cargo-dylint*`, `$CARGO_HOME/bin/dylint-link*`, `$CARGO_HOME/.crates.toml`, `$CARGO_HOME/.crates2.json`, and `$RUNNER_TEMP/dylint-drivers`. |
 | `verdicts` | Carry soldr's verdict ledger ([soldr#3894](https://github.com/zackees/soldr/issues/3894)) across runs. `auto` (default) restores the verdicts this job's previous trusted run predicts, publishes new ones under the `save-cache` policy (pull requests only read), and goes *lazy* — no toolchain install, no build-cache restores — when every check the job runs already passed with these inputs. `restore` does the same without lazy mode; `off` keeps verdicts machine-local. Needs a soldr with `soldr verdict`; older soldr is detected and the layer is skipped. |
 | `compile-cache-stats` | Controls compile-cache (zccache) diagnostic output. `none` suppresses all compile-cache info. `summarize` (default) renders a per-session totals table into `$GITHUB_STEP_SUMMARY` and emits scalar action outputs (hit rate, hits, misses, total). `detailed` adds per-extension and per-tool rollup tables and sets `compile-cache-rollups-json`. Requires soldr `>=0.7.22` for the typed `soldr cache report --json` payload; older releases fall back to a single-line note in the summary. |
@@ -674,7 +674,7 @@ run. Restoring output never skips the actual lint command.
 cache-only mode for workflows that manage their own Dylint installation. It
 does not prepare or install anything on a cold run. New workflows should use
 `dylint: true`, whose Soldr-owned prebuilt flow does not compile Dylint tools
-or the driver from source. The 6.0.3 defaults match Soldr 0.9.5. Set
+or the driver from source. The 6.2.0 defaults match Soldr 0.9.46. Set
 `dylint-driver-rev` only when a consumer builds a custom driver whose source
 revision is not already identified by the selected Dylint release/toolchain;
 that revision becomes part of the cache key.

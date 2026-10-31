@@ -40,7 +40,7 @@ jobs:
           set -euo pipefail
           version="${REQUESTED#v}"
           if [[ -z "$version" ]]; then
-            location="$(curl -fsSI https://github.com/zackees/soldr/releases/latest | tr -d '\r' | awk 'tolower($1)=="location:"{print $2}')"
+            location="$(curl -fsSI https://github.com/forge-ci/soldr/releases/latest | tr -d '\r' | awk 'tolower($1)=="location:"{print $2}')"
             version="${location##*/releases/tag/v}"
           fi
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "bad version '$version'"; exit 1; }

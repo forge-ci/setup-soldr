@@ -31,7 +31,7 @@ jobs:
         with:
           # This dated nightly has published Dylint drivers for both matrix
           # hosts, keeping the smoke focused on verified map resolution.
-          toolchain: nightly-2026-05-28
+          toolchain: nightly-2026-08-15
           cache: false
           dylint: true
           prebuild-deps: none
