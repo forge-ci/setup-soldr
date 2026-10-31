@@ -23,7 +23,7 @@ import {
   stageDiffForSave,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
-import { planPoisonedEntryRecovery } from "./lib/solo-poison.js";
+import { planPoisonedEntryRecovery, resolveArchivedRustc } from "./lib/solo-poison.js";
 import type { SnapshotDiff } from "./lib/toolchain-snapshot.js";
 import { saveCookCache, saveLayeredCookCache } from "./lib/cook-cache.js";
 import { saveMiniCache } from "./lib/soldr-mini-cache.js";
@@ -2229,9 +2229,19 @@ export async function run(): Promise<void> {
             cacheArchivePath: soloCacheArchivePath(runnerTemp),
             skipExistingProbe: soloRestoreInvalid,
             // #2342: never archive a toolchain under a key it contradicts.
+            // #634: run the archived toolchain's own rustc; a PATH proxy may
+            // be absent in the post step or resolve to a different toolchain.
             probeRustcVersion: async () => {
               const channel = core.getState("soloToolchainChannel") || "stable";
-              const out = spawnSync("rustup", ["run", channel, "rustc", "--version", "--verbose"], { encoding: "utf8" });
+              const rustc = await resolveArchivedRustc({
+                rustupHome: result.rustupHome,
+                channel,
+                exe: process.platform === "win32" ? ".exe" : "",
+              });
+              if (!rustc) {
+                return { code: -1, stdout: "", stderr: `no rustc under ${path.join(result.rustupHome, "toolchains")} for channel ${channel}` };
+              }
+              const out = spawnSync(rustc.command, rustc.args, { encoding: "utf8" });
               return { code: out.status ?? -1, stdout: out.stdout ?? "", stderr: out.stderr ?? String(out.error ?? "") };
             },
             lookupExactKey: soloRestoreInvalid && repairDeletionComplete

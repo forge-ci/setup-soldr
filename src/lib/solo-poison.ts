@@ -120,3 +120,27 @@ export async function coldInstallAfterFailedRepair(opts: {
     );
   }
 }
+
+/**
+ * #634: the rustc binary inside the toolchain directory that will be archived.
+ * Probing it directly needs no rustup on PATH and checks exactly what is saved.
+ * Returns null when no toolchain dir for `channel` holds a rustc.
+ */
+export async function resolveArchivedRustc(opts: {
+  rustupHome: string;
+  channel: string;
+  /** Executable suffix: ".exe" on Windows, "" elsewhere. */
+  exe: string;
+}): Promise<{ command: string; args: string[] } | null> {
+  const dir = path.join(opts.rustupHome, "toolchains");
+  const names = (await fsp.readdir(dir).catch(() => [] as string[]))
+    .filter((name) => name === opts.channel || name.startsWith(`${opts.channel}-`))
+    .sort();
+  for (const name of names) {
+    const rustc = path.join(dir, name, "bin", `rustc${opts.exe}`);
+    if (await fsp.access(rustc).then(() => true, () => false)) {
+      return { command: rustc, args: ["--version", "--verbose"] };
+    }
+  }
+  return null;
+}

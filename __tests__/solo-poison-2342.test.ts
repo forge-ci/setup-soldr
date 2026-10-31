@@ -15,6 +15,7 @@ import {
   parseRustcVersionVerbose,
   planPoisonedEntryRecovery,
   releaseFromSoloKey,
+  resolveArchivedRustc,
 } from "../src/lib/solo-poison.js";
 
 const POISONED_KEY = "solo-toolchain-v3-linux-x64-glibc-rustc1.95.0-cb6b9e404-tnone-soldrv0.9.44";
@@ -175,6 +176,29 @@ test("#2342 cold-install fallback fails precisely when the fresh toolchain is st
       }),
       /cold install of 1\.95\.0 .*observed=1\.98\.0-nightly/,
     );
+  } finally {
+    fs.rmSync(rustupHome, { recursive: true, force: true });
+  }
+});
+
+test("#634 save probe runs the archived toolchain's own rustc, not a PATH proxy", async () => {
+  const rustupHome = mkTmp("solo-634-");
+  try {
+    const bin = path.join(rustupHome, "toolchains", "1.95.0-x86_64-unknown-linux-gnu", "bin");
+    fs.mkdirSync(bin, { recursive: true });
+    fs.writeFileSync(path.join(bin, "rustc"), "");
+    fs.mkdirSync(path.join(rustupHome, "toolchains", "stable-x86_64-unknown-linux-gnu", "bin"), { recursive: true });
+    const probe = await resolveArchivedRustc({ rustupHome, channel: "1.95.0", exe: "" });
+    assert.deepEqual(probe, { command: path.join(bin, "rustc"), args: ["--version", "--verbose"] });
+  } finally {
+    fs.rmSync(rustupHome, { recursive: true, force: true });
+  }
+});
+
+test("#634 missing archived rustc yields null so the refusal names the cause", async () => {
+  const rustupHome = mkTmp("solo-634-missing-");
+  try {
+    assert.equal(await resolveArchivedRustc({ rustupHome, channel: "1.95.0", exe: "" }), null);
   } finally {
     fs.rmSync(rustupHome, { recursive: true, force: true });
   }
