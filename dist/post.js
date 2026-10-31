@@ -57796,6 +57796,12 @@ exports.resolveArchivedRustc = resolveArchivedRustc;
 exports.soloTombstoneKey = soloTombstoneKey;
 exports.soloTombstonePath = soloTombstonePath;
 exports.planSoloRestoreKeys = planSoloRestoreKeys;
+exports.soloIdentityKey = soloIdentityKey;
+exports.soloIdentityPath = soloIdentityPath;
+exports.formatSoloIdentity = formatSoloIdentity;
+exports.parseSoloIdentity = parseSoloIdentity;
+exports.compareSoloIdentity = compareSoloIdentity;
+exports.planSoloSave = planSoloSave;
 const fsp = __importStar(__nccwpck_require__(51455));
 const path = __importStar(__nccwpck_require__(76760));
 /** Release segment of a solo key: `...-rustc<release>-c<hash>-t<hash>-soldr...`. */
@@ -57813,7 +57819,8 @@ function parseRustcVersionVerbose(stdout) {
 }
 /**
  * Confirm the live toolchain matches the release named in `key` before it is
- * archived under that key. Any failure to prove a match refuses the save.
+ * archived under that key. Returns the observed identity on a match and null
+ * otherwise; any failure to prove a match refuses the save.
  */
 async function toolchainMatchesKey(opts) {
     const expected = releaseFromSoloKey(opts.key);
@@ -57835,7 +57842,7 @@ async function toolchainMatchesKey(opts) {
     opts.log(match
         ? `solo-toolchain-cache: pre-save verify ${summary}`
         : `solo-toolchain-cache: refusing save; toolchain does not match its key (#2342): ${summary}`);
-    return match;
+    return match ? observed : null;
 }
 function planPoisonedEntryRecovery(opts) {
     const { found, deleted, failed } = opts.deletion;
@@ -57910,6 +57917,63 @@ function planSoloRestoreKeys(opts) {
     if (!opts.tombstoned)
         return opts.keys;
     return { exact: `${opts.keys.exact}-repaired`, fallbacks: [] };
+}
+/** #636: companion entry recording the identity a solo key was saved with. */
+function soloIdentityKey(key) {
+    return `solo-identity-v1-${key}`;
+}
+/** Canonical path for the identity record; save and restore must agree (#316). */
+function soloIdentityPath(runnerTemp) {
+    return path.join(runnerTemp, "setup-soldr-solo-identity.json");
+}
+function formatSoloIdentity(identity) {
+    return `${JSON.stringify({ release: identity.release, commitHash: identity.commitHash })}\n`;
+}
+function parseSoloIdentity(text) {
+    try {
+        const value = JSON.parse(text);
+        if (typeof value.release !== "string" || !value.release)
+            return null;
+        return { release: value.release, commitHash: typeof value.commitHash === "string" ? value.commitHash : null };
+    }
+    catch {
+        return null;
+    }
+}
+/**
+ * #636: compare a restored toolchain with the identity recorded at save time.
+ * Entries saved before identities existed are "unrecorded" and judged by
+ * release alone, as before.
+ */
+function compareSoloIdentity(recorded, observed) {
+    if (!recorded)
+        return "unrecorded";
+    if (!observed || observed.release !== recorded.release)
+        return "mismatch";
+    if (recorded.commitHash && observed.commitHash && recorded.commitHash !== observed.commitHash)
+        return "mismatch";
+    return "match";
+}
+/** #638: the post step's solo-cache save decision, in branch order. */
+function planSoloSave(opts) {
+    if (opts.raceSkipped)
+        return { kind: "skip", reason: null, fail: null };
+    if (opts.undeletablePoison) {
+        return { kind: "skip", reason: "skipping save; the poisoned key could not be deleted (#2342)", fail: null };
+    }
+    if (opts.exactHit && opts.incrementalEmpty) {
+        return { kind: "skip", reason: "exact hit and no install delta — skipping save", fail: null };
+    }
+    if (!opts.manifestPresent) {
+        return {
+            kind: "skip",
+            reason: "no save-diff manifest available, skipping save",
+            fail: opts.restoreInvalid
+                ? "solo-toolchain-cache: repaired a poisoned restore but has no replacement manifest (#473)"
+                : null,
+        };
+    }
+    return { kind: "save" };
 }
 
 
@@ -58327,8 +58391,13 @@ async function saveSoloCache(opts) {
     const { stagingDir, key, level, debug, log } = opts;
     if (!(0, save_policy_js_1.allowCacheSave)("solo-toolchain-cache", log))
         return { status: "policy-skip" };
-    if (opts.probeRustcVersion && !(await (0, solo_poison_js_1.toolchainMatchesKey)({ key, probe: opts.probeRustcVersion, log }))) {
-        return { status: "validation-refused", error: "toolchain release does not match the cache key (#2342)" };
+    let identity;
+    if (opts.probeRustcVersion) {
+        const observed = await (0, solo_poison_js_1.toolchainMatchesKey)({ key, probe: opts.probeRustcVersion, log });
+        if (!observed) {
+            return { status: "validation-refused", error: "toolchain release does not match the cache key (#2342)" };
+        }
+        identity = observed;
     }
     const cacheArchive = opts.cacheArchivePath ?? soloCacheArchivePath(path.dirname(stagingDir));
     if (!fs.existsSync(stagingDir)) {
@@ -58437,6 +58506,7 @@ async function saveSoloCache(opts) {
         return {
             status: "saved",
             cacheId: id,
+            ...(identity ? { identity } : {}),
             archiveBytes,
             inflatedBytes,
             fileCount,
@@ -58587,10 +58657,11 @@ async function verifyRestoredToolchain(opts) {
     });
     let releaseMatch = true;
     let observedRelease = null;
+    let observedCommit = null;
     if (expectedRelease.trim()) {
         let version;
         try {
-            version = await runRustup(["run", channel, "rustc", "--version"]);
+            version = await runRustup(["run", channel, "rustc", "--version", "--verbose"]);
         }
         catch (err) {
             log(`solo-toolchain-cache: rustc --version threw: ${err instanceof Error ? err.message : String(err)}`);
@@ -58600,8 +58671,10 @@ async function verifyRestoredToolchain(opts) {
             log(`solo-toolchain-cache: rustc --version exited ${version.code}; cannot verify restore`);
             return { match: false, observedRelease: null };
         }
-        const match = version.stdout.trim().match(/^rustc\s+(\S+)/);
-        observedRelease = match ? (match[1] ?? null) : null;
+        // #636: --verbose adds the commit hash the restored identity is checked against.
+        const parsed = (0, solo_poison_js_1.parseRustcVersionVerbose)(version.stdout);
+        observedRelease = parsed?.release ?? null;
+        observedCommit = parsed?.commitHash ?? null;
         if (observedRelease === null) {
             log(`solo-toolchain-cache: rustc --version output not parseable: ${version.stdout.trim()}`);
             return { match: false, observedRelease: null };
@@ -58695,7 +58768,7 @@ async function verifyRestoredToolchain(opts) {
             }
         }
     }
-    return { match: releaseMatch && targetsMatch && componentsMatch, observedRelease };
+    return { match: releaseMatch && targetsMatch && componentsMatch, observedRelease, observedCommit };
 }
 
 
@@ -62457,20 +62530,19 @@ async function run() {
                 log(`solo-toolchain-cache: lookupOnly probe failed (will attempt save anyway): ${err instanceof Error ? err.message : String(err)}`);
             }
         }
-        if (raceSkipped) {
-            // probe found an existing entry; nothing more to do for this layer
-        }
-        else if (soloUndeletablePoison) {
-            log(`solo-toolchain-cache: skipping save; poisoned key=${soloInvalidMatchedKey} could not be deleted (#2342)`);
-        }
-        else if (soloExactHit && soloIncrementalEmpty) {
-            log("solo-toolchain-cache: exact hit and no install delta — skipping save");
-        }
-        else if (!soloSaveDiffPath || !fs.existsSync(soloSaveDiffPath)) {
-            log("solo-toolchain-cache: no save-diff manifest available, skipping save");
-            if (soloRestoreInvalid) {
-                core.setFailed("solo-toolchain-cache: repaired a poisoned restore but has no replacement manifest (#473)");
-            }
+        const soloSavePlan = (0, solo_poison_js_1.planSoloSave)({
+            raceSkipped,
+            undeletablePoison: soloUndeletablePoison,
+            exactHit: soloExactHit,
+            incrementalEmpty: soloIncrementalEmpty,
+            manifestPresent: Boolean(soloSaveDiffPath) && fs.existsSync(soloSaveDiffPath),
+            restoreInvalid: soloRestoreInvalid,
+        });
+        if (soloSavePlan.kind === "skip") {
+            if (soloSavePlan.reason)
+                log(`solo-toolchain-cache: ${soloSavePlan.reason} key=${soloInvalidMatchedKey || soloExactKey}`);
+            if (soloSavePlan.fail)
+                core.setFailed(soloSavePlan.fail);
         }
         else {
             try {
@@ -62558,6 +62630,17 @@ async function run() {
                         durationMs: Date.now() - soloSaveStart,
                         timestamp: new Date().toISOString(),
                     });
+                    // #636: record what was saved so a restore can check the commit too.
+                    if (saveResult.status === "saved" && saveResult.identity) {
+                        const identityPath = (0, solo_poison_js_1.soloIdentityPath)(runnerTemp);
+                        try {
+                            fs.writeFileSync(identityPath, (0, solo_poison_js_1.formatSoloIdentity)(saveResult.identity));
+                            await (0, save_policy_js_1.gatedSaveCache)("solo-toolchain-cache", [identityPath], (0, solo_poison_js_1.soloIdentityKey)(soloExactKey), log);
+                        }
+                        catch (err) {
+                            log(`solo-toolchain-cache: identity save failed: ${err instanceof Error ? err.message : String(err)}`);
+                        }
+                    }
                     const repairRaceWonElsewhere = soloRestoreInvalid &&
                         saveResult.status === "race-precheck-skipped" && repairDeletionComplete;
                     if (saveResult.status === "policy-skip") {
