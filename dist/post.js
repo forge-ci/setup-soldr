@@ -57792,6 +57792,10 @@ exports.parseRustcVersionVerbose = parseRustcVersionVerbose;
 exports.toolchainMatchesKey = toolchainMatchesKey;
 exports.planPoisonedEntryRecovery = planPoisonedEntryRecovery;
 exports.coldInstallAfterFailedRepair = coldInstallAfterFailedRepair;
+exports.resolveArchivedRustc = resolveArchivedRustc;
+exports.soloTombstoneKey = soloTombstoneKey;
+exports.soloTombstonePath = soloTombstonePath;
+exports.planSoloRestoreKeys = planSoloRestoreKeys;
 const fsp = __importStar(__nccwpck_require__(51455));
 const path = __importStar(__nccwpck_require__(76760));
 /** Release segment of a solo key: `...-rustc<release>-c<hash>-t<hash>-soldr...`. */
@@ -57867,6 +57871,45 @@ async function coldInstallAfterFailedRepair(opts) {
         throw new Error(`solo-toolchain-cache: cold install of ${channel} did not produce the requested toolchain ` +
             `(observed=${verified.observedRelease ?? "unknown"}); key=${key}`);
     }
+}
+/**
+ * #634: the rustc binary inside the toolchain directory that will be archived.
+ * Probing it directly needs no rustup on PATH and checks exactly what is saved.
+ * Returns null when no toolchain dir for `channel` holds a rustc.
+ */
+async function resolveArchivedRustc(opts) {
+    const dir = path.join(opts.rustupHome, "toolchains");
+    const names = (await fsp.readdir(dir).catch(() => []))
+        .filter((name) => name === opts.channel || name.startsWith(`${opts.channel}-`))
+        .sort();
+    for (const name of names) {
+        const rustc = path.join(dir, name, "bin", `rustc${opts.exe}`);
+        if (await fsp.access(rustc).then(() => true, () => false)) {
+            return { command: rustc, args: ["--version", "--verbose"] };
+        }
+    }
+    return null;
+}
+/**
+ * #633: marker entry recording that `key` is poisoned but could not be
+ * deleted. Its prefix differs from every solo-toolchain restore key, so a
+ * prefix match can never hand it back as a toolchain.
+ */
+function soloTombstoneKey(key) {
+    return `solo-tombstone-v1-${key}`;
+}
+/** Canonical path for the tombstone marker; save and lookup must agree (#316). */
+function soloTombstonePath(runnerTemp) {
+    return path.join(runnerTemp, "setup-soldr-solo-tombstone");
+}
+/**
+ * #633: once the exact key is tombstoned, restore and save the repaired key
+ * only. Fallbacks are dropped because they prefix-match the poisoned entry.
+ */
+function planSoloRestoreKeys(opts) {
+    if (!opts.tombstoned)
+        return opts.keys;
+    return { exact: `${opts.keys.exact}-repaired`, fallbacks: [] };
 }
 
 
@@ -62358,8 +62401,19 @@ async function run() {
             // #2342: the key still exists and cache keys are immutable, so no
             // replacement can be published. main already cold-installed a
             // verified toolchain; report the missing permission once and stop.
-            if (plan.message)
+            if (plan.message) {
                 core.error(plan.message);
+                // #633: record the undeletable key so later runs stop restoring it.
+                const tombstonePath = (0, solo_poison_js_1.soloTombstonePath)(runnerTemp);
+                try {
+                    fs.writeFileSync(tombstonePath, `${soloInvalidMatchedKey}\n`);
+                    await (0, save_policy_js_1.gatedSaveCache)("solo-toolchain-cache", [tombstonePath], (0, solo_poison_js_1.soloTombstoneKey)(soloInvalidMatchedKey), log);
+                    log(`solo-toolchain-cache: tombstoned poisoned key=${soloInvalidMatchedKey}`);
+                }
+                catch (err) {
+                    log(`solo-toolchain-cache: tombstone save failed: ${err instanceof Error ? err.message : String(err)}`);
+                }
+            }
         }
         const soloUndeletablePoison = soloRestoreInvalid && !repairDeletionComplete;
         // #313: pre-save lookupOnly probe. When several parallel jobs in
@@ -62462,9 +62516,19 @@ async function run() {
                         cacheArchivePath: (0, solo_toolchain_cache_js_1.soloCacheArchivePath)(runnerTemp),
                         skipExistingProbe: soloRestoreInvalid,
                         // #2342: never archive a toolchain under a key it contradicts.
+                        // #634: run the archived toolchain's own rustc; a PATH proxy may
+                        // be absent in the post step or resolve to a different toolchain.
                         probeRustcVersion: async () => {
                             const channel = core.getState("soloToolchainChannel") || "stable";
-                            const out = (0, node_child_process_1.spawnSync)("rustup", ["run", channel, "rustc", "--version", "--verbose"], { encoding: "utf8" });
+                            const rustc = await (0, solo_poison_js_1.resolveArchivedRustc)({
+                                rustupHome: result.rustupHome,
+                                channel,
+                                exe: process.platform === "win32" ? ".exe" : "",
+                            });
+                            if (!rustc) {
+                                return { code: -1, stdout: "", stderr: `no rustc under ${path.join(result.rustupHome, "toolchains")} for channel ${channel}` };
+                            }
+                            const out = (0, node_child_process_1.spawnSync)(rustc.command, rustc.args, { encoding: "utf8" });
                             return { code: out.status ?? -1, stdout: out.stdout ?? "", stderr: out.stderr ?? String(out.error ?? "") };
                         },
                         lookupExactKey: soloRestoreInvalid && repairDeletionComplete
