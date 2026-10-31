@@ -4,7 +4,7 @@
 // cache instead of re-installing them (rustup_install 14-17 s, and verify
 // 9-10 s spent re-fetching LLVM, in every job of every warm run).
 
-import { test } from "node:test";
+import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -25,8 +25,18 @@ import {
 
 const unixOnly = { skip: process.platform === "win32" };
 
+const tmpDirs: string[] = [];
+
+after(() => {
+  for (const dir of tmpDirs.splice(0)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 function mkTmp(prefix: string): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tmpDirs.push(dir);
+  return dir;
 }
 
 const linux = "linux" as NodeJS.Platform;
