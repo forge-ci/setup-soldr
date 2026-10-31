@@ -19,6 +19,7 @@ import {
   formatSoloIdentity,
   parseSoloIdentity,
   planSoloRestoreKeys,
+  planSoloSave,
   resolveArchivedRustc,
   soloIdentityKey,
   soloTombstoneKey,
@@ -257,4 +258,24 @@ test("#636 save reports the identity it verified", async () => {
   const { result } = await saveWithProbe(STABLE_VERBOSE);
   assert.equal(result.status, "saved");
   assert.deepEqual(result.identity, { release: "1.95.0", commitHash: "fedcba9876543210fedcba9876543210fedcba98" });
+});
+
+test("#638 post-step save decision covers every poisoned-restore branch", () => {
+  const base = {
+    raceSkipped: false, undeletablePoison: false, exactHit: false,
+    incrementalEmpty: false, manifestPresent: true, restoreInvalid: false,
+  };
+  assert.deepEqual(planSoloSave(base), { kind: "save" });
+  assert.deepEqual(planSoloSave({ ...base, raceSkipped: true }), { kind: "skip", reason: null, fail: null });
+  const undeletable = planSoloSave({ ...base, restoreInvalid: true, undeletablePoison: true, manifestPresent: false });
+  assert.equal(undeletable.kind, "skip");
+  assert.equal(undeletable.kind === "skip" && undeletable.fail, null, "an undeletable poisoned key never fails the job");
+  assert.deepEqual(planSoloSave({ ...base, exactHit: true, incrementalEmpty: true }), {
+    kind: "skip", reason: "exact hit and no install delta — skipping save", fail: null,
+  });
+  assert.deepEqual(planSoloSave({ ...base, manifestPresent: false }), {
+    kind: "skip", reason: "no save-diff manifest available, skipping save", fail: null,
+  });
+  const repairedNoManifest = planSoloSave({ ...base, manifestPresent: false, restoreInvalid: true });
+  assert.ok(repairedNoManifest.kind === "skip" && repairedNoManifest.fail?.includes("no replacement manifest"));
 });

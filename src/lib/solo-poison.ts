@@ -210,3 +210,36 @@ export function compareSoloIdentity(
   if (recorded.commitHash && observed.commitHash && recorded.commitHash !== observed.commitHash) return "mismatch";
   return "match";
 }
+
+export type SoloSavePlan =
+  | { kind: "save" }
+  /** `reason` is logged when set; `fail` fails the job when set. */
+  | { kind: "skip"; reason: string | null; fail: string | null };
+
+/** #638: the post step's solo-cache save decision, in branch order. */
+export function planSoloSave(opts: {
+  raceSkipped: boolean;
+  undeletablePoison: boolean;
+  exactHit: boolean;
+  incrementalEmpty: boolean;
+  manifestPresent: boolean;
+  restoreInvalid: boolean;
+}): SoloSavePlan {
+  if (opts.raceSkipped) return { kind: "skip", reason: null, fail: null };
+  if (opts.undeletablePoison) {
+    return { kind: "skip", reason: "skipping save; the poisoned key could not be deleted (#2342)", fail: null };
+  }
+  if (opts.exactHit && opts.incrementalEmpty) {
+    return { kind: "skip", reason: "exact hit and no install delta — skipping save", fail: null };
+  }
+  if (!opts.manifestPresent) {
+    return {
+      kind: "skip",
+      reason: "no save-diff manifest available, skipping save",
+      fail: opts.restoreInvalid
+        ? "solo-toolchain-cache: repaired a poisoned restore but has no replacement manifest (#473)"
+        : null,
+    };
+  }
+  return { kind: "save" };
+}
