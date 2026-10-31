@@ -61,10 +61,15 @@ test("the default Actions-cache wrapper round trips producer archives for v1 and
   skip: process.platform === "win32" ? "the Actions tar helper requires gzip on PATH" : false,
 }, async () => {
   const originalWorkspace = process.env.GITHUB_WORKSPACE;
+  const originalRunnerTemp = process.env.RUNNER_TEMP;
   const root = await fsp.mkdtemp(path.join(os.tmpdir(), "two-phase-cache-"));
   const workspace = path.join(root, "workspace");
   await fsp.mkdir(workspace);
   process.env.GITHUB_WORKSPACE = workspace;
+  // #637: without RUNNER_TEMP, @actions/cache falls back to /home/actions/temp,
+  // which only exists on hosted runners.
+  process.env.RUNNER_TEMP = path.join(root, "runner-temp");
+  await fsp.mkdir(process.env.RUNNER_TEMP);
   try {
     const reservations: Reservation[] = [
       { service: "v1", compressionMethod: CompressionMethod.Gzip, cacheId: 42 },
@@ -105,6 +110,8 @@ test("the default Actions-cache wrapper round trips producer archives for v1 and
   } finally {
     if (originalWorkspace === undefined) delete process.env.GITHUB_WORKSPACE;
     else process.env.GITHUB_WORKSPACE = originalWorkspace;
+    if (originalRunnerTemp === undefined) delete process.env.RUNNER_TEMP;
+    else process.env.RUNNER_TEMP = originalRunnerTemp;
     await fsp.rm(root, { recursive: true, force: true });
   }
 });
