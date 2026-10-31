@@ -23,7 +23,7 @@ import {
   stageDiffForSave,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
-import { planPoisonedEntryRecovery, resolveArchivedRustc } from "./lib/solo-poison.js";
+import { planPoisonedEntryRecovery, resolveArchivedRustc, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
 import type { SnapshotDiff } from "./lib/toolchain-snapshot.js";
 import { saveCookCache, saveLayeredCookCache } from "./lib/cook-cache.js";
 import { saveMiniCache } from "./lib/soldr-mini-cache.js";
@@ -2112,7 +2112,18 @@ export async function run(): Promise<void> {
       // #2342: the key still exists and cache keys are immutable, so no
       // replacement can be published. main already cold-installed a
       // verified toolchain; report the missing permission once and stop.
-      if (plan.message) core.error(plan.message);
+      if (plan.message) {
+        core.error(plan.message);
+        // #633: record the undeletable key so later runs stop restoring it.
+        const tombstonePath = soloTombstonePath(runnerTemp);
+        try {
+          fs.writeFileSync(tombstonePath, `${soloInvalidMatchedKey}\n`);
+          await gatedSaveCache("solo-toolchain-cache", [tombstonePath], soloTombstoneKey(soloInvalidMatchedKey), log);
+          log(`solo-toolchain-cache: tombstoned poisoned key=${soloInvalidMatchedKey}`);
+        } catch (err) {
+          log(`solo-toolchain-cache: tombstone save failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
     }
     const soloUndeletablePoison = soloRestoreInvalid && !repairDeletionComplete;
     // #313: pre-save lookupOnly probe. When several parallel jobs in

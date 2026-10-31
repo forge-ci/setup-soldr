@@ -77,7 +77,7 @@ import {
   verifyRestoredToolchain,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
-import { coldInstallAfterFailedRepair } from "./lib/solo-poison.js";
+import { coldInstallAfterFailedRepair, planSoloRestoreKeys, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
 import {
   buildCookBaseCacheKey,
   buildCookBaseCacheRestorePrefix,
@@ -1359,6 +1359,16 @@ export async function run(): Promise<void> {
       targetsHash: hashStringArray(result.toolchain.targets),
       soldrVersion: result.soldrVersionResolved.trim() || result.soldrVersionRequested.trim() || "unset",
     });
+    // #633: a poisoned key this job's token could not delete is tombstoned;
+    // skip it and use the repaired key instead of restoring it again.
+    const tombstoneKey = soloTombstoneKey(soloKeys.exact);
+    const tombstoned = await cache
+      .restoreCache([soloTombstonePath(ctx.runnerTemp)], tombstoneKey, [], { lookupOnly: true })
+      .then((hit) => hit === tombstoneKey, () => false);
+    if (tombstoned) {
+      core.warning(`solo-toolchain-cache: key=${soloKeys.exact} is tombstoned as poisoned; using ${soloKeys.exact}-repaired (#633)`);
+    }
+    soloKeys = { ...soloKeys, ...planSoloRestoreKeys({ keys: soloKeys, tombstoned }) };
     logger.log(`solo-toolchain-cache: key=${soloKeys.exact}`);
     const restoreT0 = Date.now();
     const stagingDir = path.join(ctx.runnerTemp, "setup-soldr-solo-cache");

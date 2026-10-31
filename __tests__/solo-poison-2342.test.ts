@@ -9,13 +9,15 @@ import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { saveSoloCache } from "../src/lib/solo-toolchain-cache.js";
+import { buildSoloCacheKeys, saveSoloCache } from "../src/lib/solo-toolchain-cache.js";
 import {
   coldInstallAfterFailedRepair,
   parseRustcVersionVerbose,
   planPoisonedEntryRecovery,
   releaseFromSoloKey,
+  planSoloRestoreKeys,
   resolveArchivedRustc,
+  soloTombstoneKey,
 } from "../src/lib/solo-poison.js";
 
 const POISONED_KEY = "solo-toolchain-v3-linux-x64-glibc-rustc1.95.0-cb6b9e404-tnone-soldrv0.9.44";
@@ -202,4 +204,25 @@ test("#634 missing archived rustc yields null so the refusal names the cause", a
   } finally {
     fs.rmSync(rustupHome, { recursive: true, force: true });
   }
+});
+
+test("#633 tombstone key can never be restored as a toolchain", () => {
+  const keys = buildSoloCacheKeys({
+    runnerOs: "linux", runnerArch: "x64", libc: "glibc", rustcRelease: "1.95.0",
+    componentsHash: "none", targetsHash: "none", soldrVersion: "v0.9.44",
+  });
+  const tomb = soloTombstoneKey(keys.exact);
+  assert.ok(tomb.includes(keys.exact), "tombstone names the poisoned key");
+  for (const prefix of [keys.exact, ...keys.fallbacks]) {
+    assert.ok(!tomb.startsWith(prefix), `restore prefix ${prefix} would match the tombstone`);
+  }
+});
+
+test("#633 a tombstoned exact key restores and saves only the repaired key", () => {
+  const keys = { exact: POISONED_KEY, fallbacks: ["a-", "b-"] };
+  assert.deepEqual(planSoloRestoreKeys({ keys, tombstoned: false }), keys);
+  assert.deepEqual(planSoloRestoreKeys({ keys, tombstoned: true }), {
+    exact: `${POISONED_KEY}-repaired`,
+    fallbacks: [],
+  });
 });
