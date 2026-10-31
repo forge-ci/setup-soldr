@@ -12,6 +12,7 @@ import * as core from "@actions/core";
 import {
   configFromEnv as s3ConfigFromEnv,
   credentialValues as s3CredentialValues,
+  s3OffNotice,
   l2RootFor as s3L2RootFor,
   restoreFamily as s3RestoreFamily,
 } from "./lib/s3-cache.js";
@@ -803,6 +804,9 @@ export async function run(): Promise<void> {
     // actions/cache lookup; a miss falls through to it unchanged.
     let restore: { hit: boolean; matchedKey: string } = { hit: false, matchedKey: "" };
     const s3 = s3ConfigFromEnv(process.env);
+    const s3Off = s3 ? null : s3OffNotice(process.env);
+    if (s3Off?.level === "warning") core.warning(s3Off.message);
+    else if (s3Off) logger.log(s3Off.message);
     if (s3) {
       for (const secret of s3CredentialValues(process.env)) core.setSecret(secret);
       const s3Restore = await s3RestoreFamily(s3.client(), {

@@ -55978,6 +55978,7 @@ exports.runJanitor = runJanitor;
 exports.seedL2 = seedL2;
 exports.savePhase = savePhase;
 exports.configFromEnv = configFromEnv;
+exports.s3OffNotice = s3OffNotice;
 exports.credentialValues = credentialValues;
 exports.allowS3Save = allowS3Save;
 exports.l2RootFor = l2RootFor;
@@ -56339,7 +56340,7 @@ function configFromEnv(env) {
     const endpoint = input(env, "s3-endpoint");
     const accessKey = (env[exports.ACCESS_KEY_ENV] ?? "").trim();
     const secretKey = (env[exports.SECRET_KEY_ENV] ?? "").trim();
-    if (!(bucket && endpoint && accessKey && secretKey))
+    if (!(bucket && endpoint && accessKey && secretKey) || (0, local_profile_js_1.isLocalRunner)(env))
         return null;
     let region = input(env, "s3-region");
     if (!region) {
@@ -56352,6 +56353,42 @@ function configFromEnv(env) {
         bucket, endpoint, region, limit,
         client: (transport) => new S3Client({ bucket, endpoint, region, accessKey, secretKey, transport }),
     };
+}
+/**
+ * Why S3 is off although the caller configured a bucket, or null. A local
+ * runner (bosn/act replay, `ACT=true`) never uses the shared bucket, by
+ * design, even when keys are present. On GitHub, missing keys are expected
+ * for fork and Dependabot pull requests (info); anywhere else they are a
+ * wiring bug, e.g. a reusable workflow called without `secrets: inherit`.
+ */
+function s3OffNotice(env) {
+    if (!(input(env, "s3-bucket") && input(env, "s3-endpoint")))
+        return null;
+    if ((0, local_profile_js_1.isLocalRunner)(env)) {
+        return { level: "info", message: "s3-cache: off on a local runner (ACT=true) by design; using the local cache" };
+    }
+    const missing = [exports.ACCESS_KEY_ENV, exports.SECRET_KEY_ENV].filter((k) => !(env[k] ?? "").trim());
+    if (!missing.length)
+        return null;
+    const message = `s3-cache: off: s3-bucket is set but ${missing.join(", ")} ${missing.length > 1 ? "are" : "is"} empty; using actions/cache`;
+    if (secretsWithheldByGitHub(env))
+        return { level: "info", message: `${message} (secrets are withheld from fork and Dependabot pull requests)` };
+    return { level: "warning", message: `${message}. Export both secrets as job env; a reusable workflow needs \`secrets: inherit\` from its caller` };
+}
+/** Fork or Dependabot pull request: GitHub withholds repository secrets. */
+function secretsWithheldByGitHub(env) {
+    if ((env["GITHUB_ACTOR"] ?? "") === "dependabot[bot]")
+        return true;
+    const eventPath = env["GITHUB_EVENT_PATH"];
+    if (!eventPath)
+        return false;
+    try {
+        const payload = JSON.parse(fs.readFileSync(eventPath, "utf8"));
+        return payload.pull_request?.head?.repo?.fork === true;
+    }
+    catch {
+        return false;
+    }
 }
 /** The credential values, for `core.setSecret` masking by the caller. */
 function credentialValues(env) {
@@ -56375,7 +56412,7 @@ function allowS3Save(env) {
     }
     if (mode === "false")
         return { save: false, reason: "save-cache=false" };
-    if (!(0, local_profile_js_1.isLocalRunner)(env) && remote === "false")
+    if (remote === "false")
         return { save: false, reason: "save-cache-remote=false" };
     try {
         const gate = (0, failed_job_save_js_1.readDependencyLayerSaveGate)(env);

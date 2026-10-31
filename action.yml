@@ -91,7 +91,8 @@ inputs:
       Optional S3-compatible bucket (e.g. a DigitalOcean Space) used as a
       remote build-cache tier in front of actions/cache. Off when empty, or
       when the SOLDR_S3_CACHE_ACCESS_KEY / SOLDR_S3_CACHE_SECRET_KEY env vars
-      (from workflow secrets) are absent. Objects are stored as
+      (from workflow secrets) are absent, and always off on a local runner
+      (bosn/act replay, ACT=true), which keeps its local cache. Objects are stored as
       <family>/<key>.tar.zst. Every run writes only its own key (pull
       requests included: the bucket is not ref-scoped); save-cache=false,
       save-cache-remote=false and a cancelled job still block uploads.
