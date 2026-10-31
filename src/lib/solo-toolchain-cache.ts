@@ -12,7 +12,7 @@
 // short-circuits when the snapshot diff is empty — which is the
 // dominant case on hosted runners that already ship rustup + stable.
 
-import { toolchainMatchesKey, type RustcProbe } from "./solo-poison.js";
+import { parseRustcVersionVerbose, toolchainMatchesKey, type RustcProbe, type RustcVersionInfo } from "./solo-poison.js";
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
@@ -107,6 +107,8 @@ export interface SoloSaveResult {
   fileCount?: number;
   archivePath?: string;
   error?: string;
+  /** #636: identity verified before a successful save. */
+  identity?: RustcVersionInfo;
 }
 
 export interface SoloCacheEntryRef {
@@ -481,8 +483,13 @@ export async function saveSoloCache(opts: {
 }): Promise<SoloSaveResult> {
   const { stagingDir, key, level, debug, log } = opts;
   if (!allowCacheSave("solo-toolchain-cache", log)) return { status: "policy-skip" };
-  if (opts.probeRustcVersion && !(await toolchainMatchesKey({ key, probe: opts.probeRustcVersion, log }))) {
-    return { status: "validation-refused", error: "toolchain release does not match the cache key (#2342)" };
+  let identity: RustcVersionInfo | undefined;
+  if (opts.probeRustcVersion) {
+    const observed = await toolchainMatchesKey({ key, probe: opts.probeRustcVersion, log });
+    if (!observed) {
+      return { status: "validation-refused", error: "toolchain release does not match the cache key (#2342)" };
+    }
+    identity = observed;
   }
   const cacheArchive = opts.cacheArchivePath ?? soloCacheArchivePath(path.dirname(stagingDir));
   if (!fs.existsSync(stagingDir)) {
@@ -589,6 +596,7 @@ export async function saveSoloCache(opts: {
     return {
       status: "saved",
       cacheId: id,
+      ...(identity ? { identity } : {}),
       archiveBytes,
       inflatedBytes,
       fileCount,
@@ -737,7 +745,7 @@ export async function verifyRestoredToolchain(opts: {
   runRustup?: (args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
   /** Test seam for file-based components such as rust-src. */
   pathExists?: (candidate: string) => Promise<boolean>;
-}): Promise<{ match: boolean; observedRelease: string | null }> {
+}): Promise<{ match: boolean; observedRelease: string | null; observedCommit?: string | null }> {
   const {
     expectedRelease,
     expectedTargets = [],
@@ -771,10 +779,11 @@ export async function verifyRestoredToolchain(opts: {
   });
   let releaseMatch = true;
   let observedRelease: string | null = null;
+  let observedCommit: string | null = null;
   if (expectedRelease.trim()) {
     let version: { code: number; stdout: string; stderr: string };
     try {
-      version = await runRustup(["run", channel, "rustc", "--version"]);
+      version = await runRustup(["run", channel, "rustc", "--version", "--verbose"]);
     } catch (err) {
       log(`solo-toolchain-cache: rustc --version threw: ${err instanceof Error ? err.message : String(err)}`);
       return { match: false, observedRelease: null };
@@ -783,8 +792,10 @@ export async function verifyRestoredToolchain(opts: {
       log(`solo-toolchain-cache: rustc --version exited ${version.code}; cannot verify restore`);
       return { match: false, observedRelease: null };
     }
-    const match = version.stdout.trim().match(/^rustc\s+(\S+)/);
-    observedRelease = match ? (match[1] ?? null) : null;
+    // #636: --verbose adds the commit hash the restored identity is checked against.
+    const parsed = parseRustcVersionVerbose(version.stdout);
+    observedRelease = parsed?.release ?? null;
+    observedCommit = parsed?.commitHash ?? null;
     if (observedRelease === null) {
       log(`solo-toolchain-cache: rustc --version output not parseable: ${version.stdout.trim()}`);
       return { match: false, observedRelease: null };
@@ -879,5 +890,5 @@ export async function verifyRestoredToolchain(opts: {
       }
     }
   }
-  return { match: releaseMatch && targetsMatch && componentsMatch, observedRelease };
+  return { match: releaseMatch && targetsMatch && componentsMatch, observedRelease, observedCommit };
 }

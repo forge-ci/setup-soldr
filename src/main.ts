@@ -77,7 +77,7 @@ import {
   verifyRestoredToolchain,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
-import { coldInstallAfterFailedRepair, planSoloRestoreKeys, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
+import { coldInstallAfterFailedRepair, compareSoloIdentity, parseSoloIdentity, planSoloRestoreKeys, soloIdentityKey, soloIdentityPath, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
 import {
   buildCookBaseCacheKey,
   buildCookBaseCacheRestorePrefix,
@@ -1403,6 +1403,19 @@ export async function run(): Promise<void> {
         log: (msg) => logger.log(msg),
       });
       verifiedMatch = verify.match;
+      if (verifiedMatch) {
+        // #636: entries saved with an identity must also match its commit.
+        const identityPath = soloIdentityPath(ctx.runnerTemp);
+        const identityKey = soloIdentityKey(restored.matchedKey);
+        const recorded = await cache
+          .restoreCache([identityPath], identityKey, [])
+          .then((hit) => (hit === identityKey ? parseSoloIdentity(fs.readFileSync(identityPath, "utf8")) : null), () => null);
+        const verdict = compareSoloIdentity(recorded, verify.observedRelease
+          ? { release: verify.observedRelease, commitHash: verify.observedCommit ?? null }
+          : null);
+        logger.log(`solo-toolchain-cache: identity ${verdict} recorded=${recorded?.commitHash ?? "none"} observed=${verify.observedCommit ?? "none"}`);
+        if (verdict === "mismatch") verifiedMatch = false;
+      }
     }
     soloRestoreInvalid = Boolean(restored.matchedKey) && (!restored.verified || !verifiedMatch);
     forceToolchainRepair = soloRestoreInvalid;

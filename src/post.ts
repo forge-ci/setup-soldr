@@ -23,7 +23,7 @@ import {
   stageDiffForSave,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
-import { planPoisonedEntryRecovery, resolveArchivedRustc, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
+import { formatSoloIdentity, planPoisonedEntryRecovery, planSoloSave, resolveArchivedRustc, soloIdentityKey, soloIdentityPath, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
 import type { SnapshotDiff } from "./lib/toolchain-snapshot.js";
 import { saveCookCache, saveLayeredCookCache } from "./lib/cook-cache.js";
 import { saveMiniCache } from "./lib/soldr-mini-cache.js";
@@ -2175,17 +2175,17 @@ export async function run(): Promise<void> {
         );
       }
     }
-    if (raceSkipped) {
-      // probe found an existing entry; nothing more to do for this layer
-    } else if (soloUndeletablePoison) {
-      log(`solo-toolchain-cache: skipping save; poisoned key=${soloInvalidMatchedKey} could not be deleted (#2342)`);
-    } else if (soloExactHit && soloIncrementalEmpty) {
-      log("solo-toolchain-cache: exact hit and no install delta — skipping save");
-    } else if (!soloSaveDiffPath || !fs.existsSync(soloSaveDiffPath)) {
-      log("solo-toolchain-cache: no save-diff manifest available, skipping save");
-      if (soloRestoreInvalid) {
-        core.setFailed("solo-toolchain-cache: repaired a poisoned restore but has no replacement manifest (#473)");
-      }
+    const soloSavePlan = planSoloSave({
+      raceSkipped,
+      undeletablePoison: soloUndeletablePoison,
+      exactHit: soloExactHit,
+      incrementalEmpty: soloIncrementalEmpty,
+      manifestPresent: Boolean(soloSaveDiffPath) && fs.existsSync(soloSaveDiffPath),
+      restoreInvalid: soloRestoreInvalid,
+    });
+    if (soloSavePlan.kind === "skip") {
+      if (soloSavePlan.reason) log(`solo-toolchain-cache: ${soloSavePlan.reason} key=${soloInvalidMatchedKey || soloExactKey}`);
+      if (soloSavePlan.fail) core.setFailed(soloSavePlan.fail);
     } else {
       try {
         const manifest = JSON.parse(fs.readFileSync(soloSaveDiffPath, "utf8")) as {
@@ -2282,6 +2282,16 @@ export async function run(): Promise<void> {
             durationMs: Date.now() - soloSaveStart,
             timestamp: new Date().toISOString(),
           });
+          // #636: record what was saved so a restore can check the commit too.
+          if (saveResult.status === "saved" && saveResult.identity) {
+            const identityPath = soloIdentityPath(runnerTemp);
+            try {
+              fs.writeFileSync(identityPath, formatSoloIdentity(saveResult.identity));
+              await gatedSaveCache("solo-toolchain-cache", [identityPath], soloIdentityKey(soloExactKey), log);
+            } catch (err) {
+              log(`solo-toolchain-cache: identity save failed: ${err instanceof Error ? err.message : String(err)}`);
+            }
+          }
           const repairRaceWonElsewhere = soloRestoreInvalid &&
             saveResult.status === "race-precheck-skipped" && repairDeletionComplete;
           if (saveResult.status === "policy-skip") {

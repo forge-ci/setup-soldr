@@ -92,7 +92,7 @@ test("#473 verification pins the requested channel and rejects missing component
     },
   });
   assert.equal(result.match, false);
-  assert.deepEqual(calls[0], ["run", "1.95.0", "rustc", "--version"]);
+  assert.deepEqual(calls[0], ["run", "1.95.0", "rustc", "--version", "--verbose"]);
   assert.deepEqual(calls[1], ["component", "list", "--toolchain", "1.95.0", "--installed"]);
 });
 
@@ -434,7 +434,7 @@ test("restored release is checked through the verified Soldr bootstrap", async (
       bootstrapSoldr: fake, log: () => {},
     });
     assert.equal(result.match, true);
-    assert.equal(fs.readFileSync(marker, "utf8").trim(), "--no-cache rustc --version|stable");
+    assert.equal(fs.readFileSync(marker, "utf8").trim(), "--no-cache rustc --version --verbose|stable");
   } finally {
     if (old === undefined) delete process.env.RESTORE_PROBE_MARKER;
     else process.env.RESTORE_PROBE_MARKER = old;
@@ -452,4 +452,21 @@ test("#622 probe env drops SOLDR_DYLINT_TOOLCHAIN so Dylint jobs verify the cach
   assert.equal(managed["SOLDR_BROKER_AUTOSPAWN"], "0");
   assert.equal(managed["SOLDR_AS"], "");
   assert.equal(env.SOLDR_DYLINT_TOOLCHAIN, "nightly-2026-05-28");
+});
+
+test("#636 verification reports the restored commit hash", async () => {
+  const result = await verifyRestoredToolchain({
+    expectedRelease: "1.95.0",
+    channel: "1.95.0",
+    rustupCommand: "rustup",
+    log: () => {},
+    runRustup: async () => ({
+      code: 0,
+      stdout: "rustc 1.95.0 (fedcba987 2026-08-01)\nbinary: rustc\ncommit-hash: fedcba98\nrelease: 1.95.0\n",
+      stderr: "",
+    }),
+  });
+  assert.equal(result.match, true);
+  assert.equal(result.observedRelease, "1.95.0");
+  assert.equal(result.observedCommit, "fedcba98");
 });
