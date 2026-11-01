@@ -15,6 +15,7 @@ import {
   hashStringArray,
   stageDiffForSave,
   applyStagedToLiveRoots,
+  soloExactHitAllowed,
   deleteCorruptSoloCacheEntries,
   saveSoloCache,
   soloCacheEntryExistsForRef,
@@ -528,4 +529,76 @@ test("#636 verification reports the restored commit hash", async () => {
   assert.equal(result.match, true);
   assert.equal(result.observedRelease, "1.95.0");
   assert.equal(result.observedCommit, "fedcba98");
+});
+
+// #610: cargo-bin lives in a user-owned CARGO_HOME; restore must never
+// replace or redirect existing entries there.
+function stageCargoBin(stagingDir: string, files: Record<string, string>): void {
+  for (const [rel, content] of Object.entries(files)) writeFile(path.join(stagingDir, "cargo-bin"), rel, content);
+}
+
+test("#610 restore preserves user-owned cargo-bin executables and reports the conflict", async () => {
+  const staging = mkTmp("solo-610-stage-");
+  const toolchains = mkTmp("solo-610-tc-");
+  const bin = mkTmp("solo-610-bin-");
+  try {
+    stageCargoBin(staging, { cargo: "cached-cargo", rustc: "cached-rustc", rustfmt: "cached-rustfmt" });
+    writeFile(path.join(staging, "rustup-toolchains"), "1.84.0/bin/rustc", "new-toolchain-rustc");
+    writeFile(toolchains, "1.84.0/bin/rustc", "stale-toolchain-rustc");
+    const sentinel = writeFile(bin, "cargo", "user-custom-cargo");
+    writeFile(bin, "rustfmt", "cached-rustfmt"); // identical: compatible
+    const applied = await applyStagedToLiveRoots(staging, { "rustup-toolchains": toolchains, "cargo-bin": bin });
+    assert.equal(fs.readFileSync(sentinel, "utf8"), "user-custom-cargo");
+    assert.equal(fs.readFileSync(path.join(bin, "rustc"), "utf8"), "cached-rustc", "missing proxy is restored");
+    assert.deepEqual(applied.preservedConflicts, [path.join(bin, "cargo")]);
+    // The setup-managed toolchain root keeps the overwrite fast path.
+    assert.equal(fs.readFileSync(path.join(toolchains, "1.84.0/bin/rustc"), "utf8"), "new-toolchain-rustc");
+  } finally {
+    rmDir(staging); rmDir(toolchains); rmDir(bin);
+  }
+});
+
+test("#610 nested directory symlinks in cargo-bin cannot redirect restored files", async () => {
+  const staging = mkTmp("solo-610-stage-");
+  const toolchains = mkTmp("solo-610-tc-");
+  const bin = mkTmp("solo-610-bin-");
+  const outside = mkTmp("solo-610-outside-");
+  try {
+    stageCargoBin(staging, { "nested/tool": "cached-tool" });
+    fs.symlinkSync(outside, path.join(bin, "nested"), process.platform === "win32" ? "junction" : "dir");
+    const applied = await applyStagedToLiveRoots(staging, { "rustup-toolchains": toolchains, "cargo-bin": bin });
+    assert.equal(fs.existsSync(path.join(outside, "tool")), false);
+    assert.deepEqual(applied.preservedConflicts, [path.join(bin, "nested")]);
+  } finally {
+    rmDir(staging); rmDir(toolchains); rmDir(bin); rmDir(outside);
+  }
+});
+
+test("#610 an existing symlinked proxy pointing elsewhere is preserved and flagged", async (t) => {
+  const staging = mkTmp("solo-610-stage-");
+  const toolchains = mkTmp("solo-610-tc-");
+  const bin = mkTmp("solo-610-bin-");
+  const outside = mkTmp("solo-610-outside-");
+  try {
+    stageCargoBin(staging, { rustc: "cached-rustc" });
+    const target = writeFile(outside, "rustc", "unrelated-rustc");
+    try {
+      fs.symlinkSync(target, path.join(bin, "rustc"), "file");
+    } catch {
+      t.skip("file symlinks need privilege on this host");
+      return;
+    }
+    const applied = await applyStagedToLiveRoots(staging, { "rustup-toolchains": toolchains, "cargo-bin": bin });
+    assert.equal(fs.readFileSync(target, "utf8"), "unrelated-rustc");
+    assert.equal(fs.lstatSync(path.join(bin, "rustc")).isSymbolicLink(), true);
+    assert.deepEqual(applied.preservedConflicts, [path.join(bin, "rustc")]);
+  } finally {
+    rmDir(staging); rmDir(toolchains); rmDir(bin); rmDir(outside);
+  }
+});
+
+test("#610 a preserved conflicting proxy can never yield a healthy exact hit", () => {
+  assert.equal(soloExactHitAllowed({ matchedKey: "k", exactKey: "k", preservedConflicts: [] }), true);
+  assert.equal(soloExactHitAllowed({ matchedKey: "k", exactKey: "k", preservedConflicts: ["/home/u/.cargo/bin/rustc"] }), false);
+  assert.equal(soloExactHitAllowed({ matchedKey: "k-old", exactKey: "k", preservedConflicts: [] }), false);
 });

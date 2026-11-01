@@ -357,8 +357,11 @@ export async function stageDiffForSave(
 /**
  * Inverse of stageDiffForSave: copy files from a (just-restored)
  * staging dir back onto the live $RUSTUP_HOME/$CARGO_HOME roots.
- * Existing destination files are overwritten because the cache key
- * pins the exact content the caller wants.
+ * The setup-managed toolchain root is overwritten because the cache key
+ * pins the exact content. `$CARGO_HOME/bin` may be user-owned (#610): an
+ * existing entry there is never replaced or followed. Identical entries are
+ * accepted; anything else is left untouched and listed in
+ * `preservedConflicts`, which disqualifies an exact hit.
  */
 export async function applyStagedToLiveRoots(
   stagingDir: string,
@@ -368,6 +371,7 @@ export async function applyStagedToLiveRoots(
   appliedSymlinks: number;
   hardlinkSuccesses: number;
   copyFallbacks: number;
+  preservedConflicts: string[];
 }> {
   let appliedFiles = 0;
   let appliedSymlinks = 0;
@@ -375,22 +379,44 @@ export async function applyStagedToLiveRoots(
   // observed solo_restore is 2-3× slower than Linux; if hardlinks
   // are falling back to copies on most files, that explains it.
   const counters = { hardlink: 0, copy: 0 };
+  const preservedConflicts: string[] = [];
   for (const tag of ROOT_TAGS) {
     const tagRoot = path.join(stagingDir, tag);
     if (!fs.existsSync(tagRoot)) continue;
     const liveRoot = rootMap[tag];
     await ensureDir(liveRoot);
-    await walkAndApply(tagRoot, tagRoot, liveRoot, (kind) => {
+    const onApply = (kind: "file" | "symlink"): void => {
       if (kind === "file") appliedFiles += 1;
       if (kind === "symlink") appliedSymlinks += 1;
-    }, counters);
+    };
+    if (tag === "cargo-bin") {
+      await walkAndApplyPreserving(tagRoot, liveRoot, onApply, counters, preservedConflicts);
+    } else {
+      await walkAndApply(tagRoot, tagRoot, liveRoot, onApply, counters);
+    }
   }
   return {
     appliedFiles,
     appliedSymlinks,
     hardlinkSuccesses: counters.hardlink,
     copyFallbacks: counters.copy,
+    preservedConflicts,
   };
+}
+
+/** #610: an exact key is a healthy hit only when every cached cargo-bin entry is in place. */
+export function soloExactHitAllowed(opts: { matchedKey: string; exactKey: string; preservedConflicts: string[] }): boolean {
+  return opts.matchedKey === opts.exactKey && opts.preservedConflicts.length === 0;
+}
+
+const errCode = (err: unknown): string | undefined => (err as NodeJS.ErrnoException).code;
+
+async function sameFileContent(a: string, b: string): Promise<boolean> {
+  const [sa, sb] = await Promise.all([fsp.lstat(a), fsp.lstat(b)]);
+  if (!sb.isFile() || sa.size !== sb.size) return false;
+  if (sa.ino !== 0 && sa.dev === sb.dev && sa.ino === sb.ino) return true;
+  const [ba, bb] = await Promise.all([fsp.readFile(a), fsp.readFile(b)]);
+  return ba.equals(bb);
 }
 
 async function walkAndApply(
@@ -446,6 +472,68 @@ async function walkAndApply(
         }
       }
       onApply("file");
+    }
+  }
+}
+
+/**
+ * #610: create-only apply for a user-owned root. Every write uses an
+ * exclusive create (link, COPYFILE_EXCL, symlink, non-recursive mkdir) so a
+ * concurrently created entry is detected instead of replaced, and existing
+ * directory symlinks/junctions are never descended into.
+ */
+async function walkAndApplyPreserving(
+  dir: string,
+  liveDir: string,
+  onApply: (kind: "file" | "symlink") => void,
+  counters: { hardlink: number; copy: number },
+  conflicts: string[],
+): Promise<void> {
+  const dirents = await fsp.readdir(dir, { withFileTypes: true });
+  for (const d of dirents) {
+    const abs = path.join(dir, d.name);
+    const liveAbs = path.join(liveDir, d.name);
+    if (d.isDirectory()) {
+      try {
+        await fsp.mkdir(liveAbs);
+      } catch (err) {
+        if (errCode(err) !== "EEXIST") throw err;
+        const st = await fsp.lstat(liveAbs);
+        if (!st.isDirectory() || st.isSymbolicLink()) {
+          conflicts.push(liveAbs);
+          continue;
+        }
+      }
+      await walkAndApplyPreserving(abs, liveAbs, onApply, counters, conflicts);
+    } else if (d.isSymbolicLink()) {
+      const target = await fsp.readlink(abs);
+      try {
+        await fsp.symlink(target, liveAbs);
+        onApply("symlink");
+      } catch (err) {
+        if (errCode(err) !== "EEXIST") throw err;
+        const existing = await fsp.readlink(liveAbs).catch(() => null);
+        if (existing !== target) conflicts.push(liveAbs);
+      }
+    } else if (d.isFile()) {
+      let created = false;
+      try {
+        await fsp.link(abs, liveAbs);
+        counters.hardlink += 1;
+        created = true;
+      } catch (err) {
+        if (errCode(err) !== "EEXIST") {
+          try {
+            await fsp.copyFile(abs, liveAbs, fs.constants.COPYFILE_EXCL);
+            counters.copy += 1;
+            created = true;
+          } catch (copyErr) {
+            if (errCode(copyErr) !== "EEXIST") throw copyErr;
+          }
+        }
+      }
+      if (created) onApply("file");
+      else if (!(await sameFileContent(abs, liveAbs))) conflicts.push(liveAbs);
     }
   }
 }
@@ -672,12 +760,22 @@ export async function restoreSoloCache(opts: {
   // decompressCache extracts to dirname(targetDir)/<basename>/, so the
   // actual staged content lands under stagingOut. Verify by listing.
   const innerDirs = await fsp.readdir(stagingOut).catch(() => [] as string[]);
+  let preservedConflicts: string[] = [];
   if (innerDirs.length === 0) {
     log("solo-toolchain-cache: restored archive was empty");
     return { hit: false, matchedKey: matched, restoredBytes: archiveBytes, archivePath, verified: false };
   }
   try {
     const applied = await applyStagedToLiveRoots(stagingOut, rootMap);
+    preservedConflicts = applied.preservedConflicts;
+    if (preservedConflicts.length > 0) {
+      log(
+        `solo-toolchain-cache: preserved ${preservedConflicts.length} pre-existing CARGO_HOME/bin ` +
+          `entr${preservedConflicts.length === 1 ? "y" : "ies"} that differ from the cache (${preservedConflicts.join(", ")}); ` +
+          "not reporting an exact hit, so the toolchain is provisioned and verified normally. " +
+          "Remove or rename these entries to use the cached proxies (#610).",
+      );
+    }
     log(
       `solo-toolchain-cache: restored matched=${matched} archive=${archiveBytes}B ` +
         `applied files=${applied.appliedFiles} symlinks=${applied.appliedSymlinks} ` +
@@ -689,7 +787,7 @@ export async function restoreSoloCache(opts: {
     return { hit: false, matchedKey: matched, restoredBytes: archiveBytes, archivePath, verified: false };
   }
   return {
-    hit: matched === keys.exact,
+    hit: soloExactHitAllowed({ matchedKey: matched, exactKey: keys.exact, preservedConflicts }),
     matchedKey: matched,
     restoredBytes: archiveBytes,
     archivePath,
