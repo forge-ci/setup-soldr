@@ -190,7 +190,8 @@ jobs:
             tests/test_rust_ci_workflow.py \
             tests/test_release_rollout_contract.py \
             tests/test_v0_promotion_evidence.py \
-            tests/test_release_lane_workflow.py
+            tests/test_release_lane_workflow.py \
+            tests/test_ci_summary.py
 
   release-readiness:
     name: Default Release Readiness
@@ -260,6 +261,29 @@ jobs:
           if ($doctorJson.zccache.backend -ne "embedded") {
             throw "expected embedded zccache; got $($doctorJson.zccache | ConvertTo-Json -Compress)"
           }
+
+  # The single required context. It decides from the run attempt's full job
+  # list (ci/ci_summary.py), not needs.*.result, and runs even when a needed
+  # job failed or was cancelled.
+  ci-summary:
+    name: CI summary
+    needs: [cancel-superseded, js-build, contract-tests, release-readiness, wheel-fallback-smoke]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          sparse-checkout: ci/ci_summary.py
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+      - name: Gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ci/ci_summary.py
 
   # GEN-022 (forge-ci/ci.yml#405): every merge-queue run ends with the ci-lint
   # cache janitor. It runs after every other job, even failed ones, so the
