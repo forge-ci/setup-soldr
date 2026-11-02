@@ -4,57 +4,9 @@ on:
   push:
     branches:
       - main
-    paths:
-      - README.md
-      - action.yml
-      - src/**
-      - dist/**
-      - _vender/soldr
-      - .gitmodules
-      - __tests__/**
-      - scripts/*bench*.mjs
-      - scripts/bench-workloads/**
-      - scripts/check-default-release-readiness.mjs
-      - scripts/write-release-metadata.mjs
-      - scripts/resolve-release-artifacts.py
-      - tests/**
-      - package.json
-      - package-lock.json
-      - tsconfig.json
-      - .github/workflows/setup-soldr-action.yml
-      - .github/workflows/bench-cache-modes.yml
-      - .github/workflows/rust-ci.yml
-      - .github/workflows/release-lane.yml
-      - .github/workflows/release-lane-smoke.yml
-      - .github/workflows/cook-rematerialization.yml
-      - .github/workflows/setup-soldr-contract.yml
-      - .github/workflows/update-v0-tag.yml
+  # The required `CI summary` context lives here, so no trigger may carry a
+  # `paths:` filter: a filtered PR never produces the check and wedges the queue.
   pull_request:
-    paths:
-      - README.md
-      - action.yml
-      - src/**
-      - dist/**
-      - _vender/soldr
-      - .gitmodules
-      - __tests__/**
-      - scripts/*bench*.mjs
-      - scripts/bench-workloads/**
-      - scripts/check-default-release-readiness.mjs
-      - scripts/write-release-metadata.mjs
-      - scripts/resolve-release-artifacts.py
-      - tests/**
-      - package.json
-      - package-lock.json
-      - tsconfig.json
-      - .github/workflows/setup-soldr-action.yml
-      - .github/workflows/bench-cache-modes.yml
-      - .github/workflows/rust-ci.yml
-      - .github/workflows/release-lane.yml
-      - .github/workflows/release-lane-smoke.yml
-      - .github/workflows/cook-rematerialization.yml
-      - .github/workflows/setup-soldr-contract.yml
-      - .github/workflows/update-v0-tag.yml
   # GEN-022 (forge-ci/ci.yml#405/#432): PRs merge through the main merge queue.
   # merge_group takes no `paths:` filter, so every queue entry runs this workflow.
   merge_group:
