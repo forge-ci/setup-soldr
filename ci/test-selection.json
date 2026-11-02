@@ -1,0 +1,273 @@
+{
+  "$comment": [
+    "Declared path -> suite map for TEST-004 (forge-ci/ci.yml#518). Read by ci/select-tests.mjs.",
+    "suites: every node --test file `npm test` runs (its `pretest` and `test` lists), in exactly one named suite; their union must equal those lists (checked).",
+    "unlisted: test files `npm test` does not name but runs because a listed test imports them (main.test.ts imports yank-audit.test.ts, log-utils.test.ts imports target-lifecycle.test.ts, soldr-load-shim.test.ts imports cargo-registry-archive.test.ts). Editing one selects the suites of the tests that import it.",
+    "always: a change here selects every suite (tooling/config that decides what the suites do).",
+    "ignore: paths that provably cannot change a node test result; they select nothing. Mirrors the gate's TEST_SAFE_EXCLUSIONS.",
+    "rules: glob -> suites, evaluated additively. A changed path that matches no rule, no `always` and no `ignore` selects every suite (fail closed).",
+    "A changed test file selects the suite that lists it plus the suites of every test that imports it; an added/renamed/deleted test file, or one in no suite and not unlisted, selects everything.",
+    "The selector then checks the declared result against the import graph of every test file and fails the run if a suite whose tests import the changed file was not selected (the under-selection guard).",
+    "The rules were derived from the measured import graph (node ci/select-tests.mjs graph) and are kept honest by `check`: a synthetic edit to every file any test reads must select that test's suite through these rules alone.",
+    "opaque: tests whose string literals are data, not file reads (the selector's own test names fixture paths); the literal-path heuristic skips them, their imports still count."
+  ],
+  "suites": {
+    "action": [
+      "__tests__/main.test.ts",
+      "__tests__/post.test.ts",
+      "__tests__/dry-run.test.ts",
+      "__tests__/cleanup.test.ts",
+      "__tests__/raw-inputs.test.ts",
+      "__tests__/diagnostics.test.ts",
+      "__tests__/log-utils.test.ts",
+      "__tests__/phase-timing.test.ts",
+      "__tests__/run-pipe.test.ts"
+    ],
+    "contract": [
+      "__tests__/dylint-contract.test.ts",
+      "__tests__/non-api-release.test.ts",
+      "__tests__/release-readiness.test.ts",
+      "__tests__/delete-run-scoped-caches.test.ts",
+      "__tests__/yank-audit.test.ts",
+      "__tests__/cook-delta-default.test.ts",
+      "__tests__/failed-job-save.test.ts",
+      "__tests__/save-policy.test.ts",
+      "__tests__/local-profile.test.ts"
+    ],
+    "cache": [
+      "__tests__/cache-keys.test.ts",
+      "__tests__/ancestor-cache.test.ts",
+      "__tests__/cache-compress.test.ts",
+      "__tests__/cache-encrypt.test.ts",
+      "__tests__/cache-eviction.test.ts",
+      "__tests__/zccache-seed.test.ts",
+      "__tests__/seed-isolated-cache.test.ts",
+      "__tests__/s3-cache.test.ts",
+      "__tests__/verdict-cache.test.ts",
+      "__tests__/shutdown-cache.test.ts",
+      "__tests__/compile-cache-stats.test.ts",
+      "__tests__/compile-journal.test.ts",
+      "__tests__/source-mtime-snapshot.test.ts",
+      "__tests__/normalize-source-mtime.test.ts",
+      "__tests__/detect-shared-target-warning.test.ts",
+      "__tests__/two-phase-actions-cache.test.ts"
+    ],
+    "cook": [
+      "__tests__/cook-rustc.test.ts",
+      "__tests__/cook-action.test.ts",
+      "__tests__/cook-cache.test.ts"
+    ],
+    "toolchain": [
+      "__tests__/toolchain.test.ts",
+      "__tests__/resolve-setup.test.ts",
+      "__tests__/ensure-rust-toolchain.test.ts",
+      "__tests__/ensure-shims.test.ts",
+      "__tests__/soldr-toolchain-client.test.ts",
+      "__tests__/ensure-soldr.test.ts",
+      "__tests__/bootstrap-soldr.test.ts",
+      "__tests__/verify-soldr.test.ts",
+      "__tests__/toolchain-snapshot.test.ts",
+      "__tests__/solo-toolchain-cache.test.ts",
+      "__tests__/solo-poison-2342.test.ts",
+      "__tests__/soldr-mini-cache.test.ts",
+      "__tests__/prepare-dylint.test.ts",
+      "__tests__/dylint-nightly.test.ts",
+      "__tests__/blessed-cross-prepare.test.ts",
+      "__tests__/tool-cache-store.test.ts",
+      "__tests__/syslib-tool-cache.test.ts",
+      "__tests__/shim-bypass-check.test.ts",
+      "__tests__/soldr-load-shim.test.ts",
+      "__tests__/install-passthrough.test.ts",
+      "__tests__/detect-musl-cc.test.ts"
+    ],
+    "tooling": [
+      "__tests__/bench-paths.test.ts",
+      "__tests__/bench-scripts.test.ts",
+      "__tests__/watchdog-self-test.test.ts",
+      "__tests__/tmp-cleanup.test.ts",
+      "__tests__/local-gate.test.ts",
+      "__tests__/select-tests.test.ts"
+    ]
+  },
+  "unlisted": [
+    "__tests__/cargo-registry-archive.test.ts",
+    "__tests__/target-lifecycle.test.ts"
+  ],
+  "always": [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    ".oxlintrc.json",
+    "action.yml",
+    "ci-attestations.yml",
+    "ci/**",
+    "__tests__/loader.mjs",
+    "__tests__/register-loader.mjs",
+    ".github/workflows/setup-soldr-contract.yml"
+  ],
+  "ignore": [
+    "docs/**",
+    "tests/**",
+    "*.md",
+    "**/*.png",
+    "LICENSE",
+    "ruff.toml",
+    "pytest.ini",
+    ".coderabbit.yaml",
+    ".github/ISSUE_TEMPLATE/**"
+  ],
+  "rules": [
+    {
+      "why": "Any src change can move what the action entry points wire together and what the contract tests read straight off disk (save-policy, cook-delta-default and failed-job-save scan src/ as text).",
+      "paths": [
+        "src/**"
+      ],
+      "suites": [
+        "action",
+        "contract"
+      ]
+    },
+    {
+      "why": "Shared core: imported (directly or through cook-cache/save-policy/solo-toolchain-cache) by tests in every product suite.",
+      "paths": [
+        "src/lib/types.ts",
+        "src/lib/log-utils.ts",
+        "src/lib/raw-inputs.ts",
+        "src/lib/run-pipe.ts",
+        "src/lib/cache-keys.ts",
+        "src/lib/cache-compress.ts",
+        "src/lib/cache-encrypt.ts",
+        "src/lib/cook-cache.ts",
+        "src/lib/save-policy.ts",
+        "src/lib/local-profile.ts",
+        "src/lib/failed-job-save.ts",
+        "src/lib/solo-*.ts",
+        "src/lib/toolchain-snapshot.ts",
+        "src/lib/two-phase-actions-cache.ts",
+        "src/lib/target-lifecycle.ts",
+        "src/lib/blessed-cross-prepare.ts"
+      ],
+      "suites": [
+        "cache",
+        "cook",
+        "toolchain"
+      ]
+    },
+    {
+      "why": "Cache layers: keys, eviction, ancestor/S3/verdict caches, zccache state, compile journal, mtime snapshots, stats.",
+      "paths": [
+        "src/lib/ancestor-cache*.ts",
+        "src/lib/cache-eviction.ts",
+        "src/lib/compile-*.ts",
+        "src/lib/diagnostics.ts",
+        "src/lib/normalize-source-mtime.ts",
+        "src/lib/source-mtime-snapshot.ts",
+        "src/lib/s3-cache.ts",
+        "src/lib/shutdown-cache.ts",
+        "src/lib/stats-collector.ts",
+        "src/lib/verdict-*.ts",
+        "src/lib/yank-audit.ts",
+        "src/lib/zccache-seed.ts",
+        "src/lib/seed-isolated-cache.ts",
+        "src/lib/detect-shared-target-warning.ts",
+        "src/lib/input-parsers.ts",
+        "src/post.ts"
+      ],
+      "suites": [
+        "cache"
+      ]
+    },
+    {
+      "why": "soldr install / tool caches: read by both the cache tests (through post.ts) and the toolchain tests.",
+      "paths": [
+        "src/lib/bundle-tool-cache.ts",
+        "src/lib/cargo-registry-archive.ts",
+        "src/lib/ensure-shims.ts",
+        "src/lib/ensure-soldr.ts",
+        "src/lib/github-api.ts",
+        "src/lib/release-readiness.ts",
+        "src/lib/soldr-*.ts",
+        "src/lib/tool-cache-store.ts",
+        "src/lib/verify-soldr.ts",
+        "src/lib/input-parsers.ts"
+      ],
+      "suites": [
+        "cache",
+        "toolchain"
+      ]
+    },
+    {
+      "why": "Toolchain provisioning, rustup, dylint, shims.",
+      "paths": [
+        "src/lib/default-soldr-version.ts",
+        "src/lib/dylint-nightly.ts",
+        "src/lib/fetch-release.ts",
+        "src/lib/toolchain.ts",
+        "src/lib/bootstrap-soldr.ts",
+        "src/lib/build-outputs.ts",
+        "src/lib/detect-musl-cc.ts",
+        "src/lib/ensure-rust-toolchain.ts",
+        "src/lib/install-passthrough.ts",
+        "src/lib/phase-timing.ts",
+        "src/lib/prepare-dylint.ts",
+        "src/lib/python-json.ts",
+        "src/lib/resolve-setup.ts",
+        "src/lib/rustup-tool-cache.ts",
+        "src/lib/shim-bypass-check.ts",
+        "src/lib/syslib-tool-cache.ts"
+      ],
+      "suites": [
+        "toolchain"
+      ]
+    },
+    {
+      "why": "soldr cook integration.",
+      "paths": [
+        "src/lib/cook-rustc.ts",
+        "src/lib/deferred-cook.ts"
+      ],
+      "suites": [
+        "cook"
+      ]
+    },
+    {
+      "why": "Files the contract tests read off disk.",
+      "paths": [
+        "cook/action.yml",
+        ".github/workflows/rust-ci.yml",
+        ".github/workflows/cook-downstream-rematerialization.yml",
+        "scripts/delete-run-scoped-caches.mjs",
+        "scripts/check-default-release-readiness.mjs"
+      ],
+      "suites": [
+        "contract"
+      ]
+    },
+    {
+      "why": "README.md is read by the mtime-snapshot cache tests as a fixture.",
+      "paths": [
+        "README.md"
+      ],
+      "suites": [
+        "cache"
+      ]
+    },
+    {
+      "why": "Benchmark helpers have their own tests.",
+      "paths": [
+        "scripts/bench-*.mjs",
+        "scripts/bench-*.d.mts",
+        "scripts/bench-workloads/**",
+        "scripts/collate-bench.mjs",
+        "scripts/expand-bench-matrix.mjs",
+        "scripts/render-bench-summary.mjs"
+      ],
+      "suites": [
+        "tooling"
+      ]
+    }
+  ],
+  "opaque": [
+    "__tests__/select-tests.test.ts"
+  ]
+}

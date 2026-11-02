@@ -39,6 +39,7 @@ From a clean, committed tree:
 ```
 npm run gate        # lint + typecheck + unit tests, then stamps HEAD
 npm run gate:fast   # skips the test lane; CI then runs it
+node ci/local_gate.mjs run --all   # every test suite, whatever changed
 ```
 
 The gate refuses to attest anything if the tree has uncommitted tracked
@@ -57,10 +58,10 @@ the base tree was already green.
 | --- | --- | --- |
 | `lint` | `oxlint --deny-warnings <changed files>` | only the changed `.ts`/`.mjs`/… under `src/`, `scripts/`, `ci/`, `__tests__/`. oxlint's enabled rules are file-local, so linting the changed files is equivalent to linting the tree whose other files the base already proved. |
 | `typecheck` | `npm run typecheck` (`tsc --noEmit`) | the whole project — `tsc` needs the whole program — when any `.ts` changed. This *is* the fast path (~4 s). |
-| `tests` | `npm test` | unless every changed path is prose, the pytest suite or its config. Skipped entirely by `--fast`. |
+| `tests` | `node ci/select-tests.mjs run` (or `npm test` when every suite is selected) | the suites `ci/test-selection.json` selects for the change (TEST-004, see [test-selection.md](test-selection.md)); nothing when every changed path is ignored. `--all` runs every suite; `--fast` skips the lane entirely. |
 
 A change to `package.json`, `package-lock.json`, `tsconfig.json`,
-`.oxlintrc.json`, `ci-attestations.yml` or `ci/local_gate.mjs` makes every lane
+`.oxlintrc.json`, `ci-attestations.yml`, `ci/local_gate.mjs`, `ci/select-tests.mjs` or `ci/test-selection.json` makes every lane
 run against everything: those files decide what the lanes do.
 
 `node ci/local_gate.mjs lanes` prints the gate/lane table and fails if
