@@ -84,6 +84,16 @@ jobs:
       # leave every `skip_*` output false and the steps run exactly as before.
       - id: gate
         name: Verify local-gate attestation
+        # Everything the decision reads comes in through `env:`, never through
+        # `${{ }}` inside the script: the event payload is attacker-controlled
+        # on a fork PR, and an expression spliced into shell text is how that
+        # becomes code execution.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          THIS_REPO: ${{ github.repository }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          REPORTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           deny() {
@@ -94,19 +104,19 @@ jobs:
           }
           # Pushes to main and merge-queue entries are the post-merge catch and
           # the merge boundary: they never skip.
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
-            deny "event is ${{ github.event_name }}, not pull_request"
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            deny "event is $EVENT_NAME, not pull_request"
           fi
           # GATE-008's head-level policy. The stamp is tamper-evident, not a
           # signature: anyone holding the script can mint a record. So only a
           # head pushed to this repository by someone with write access may
           # authorize a skip; a fork or an outside contributor runs everything.
-          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+          if [ "$HEAD_REPO" != "$THIS_REPO" ]; then
             deny "the head is on a fork"
           fi
-          case "${{ github.event.pull_request.author_association }}" in
+          case "$AUTHOR_ASSOCIATION" in
             OWNER|MEMBER|COLLABORATOR) ;;
-            *) deny "author association is ${{ github.event.pull_request.author_association }}, not a repository writer" ;;
+            *) deny "author association is $AUTHOR_ASSOCIATION, not a repository writer" ;;
           esac
           head="$(git rev-parse --verify --quiet 'HEAD^2' || true)"
           base="$(git rev-parse --verify --quiet 'HEAD^1' || true)"
@@ -115,8 +125,8 @@ jobs:
           fi
           # The parent must be the head GitHub reported, or we are verifying
           # the wrong commit.
-          if [ "$head" != "${{ github.event.pull_request.head.sha }}" ]; then
-            deny "HEAD^2 ($head) is not the reported PR head (${{ github.event.pull_request.head.sha }})"
+          if [ "$head" != "$REPORTED_HEAD" ]; then
+            deny "HEAD^2 ($head) is not the reported PR head ($REPORTED_HEAD)"
           fi
           # `fetch-depth: 2` must have brought both parents' objects along, or
           # there is nothing to read the attestation out of.
