@@ -175,7 +175,7 @@ function parseDefinition(text, source = DEFINITION_FILE) {
       continue;
     }
     if (section !== "gates") throw new GateError(`${source}:${i + 1}: indented line outside 'gates:'`);
-    const match = /^([a-z0-9][a-z0-9/_.-]*):\s*\{\s*lane:\s*([A-Za-z0-9_-]+)\s*\}$/.exec(body);
+    const match = /^([A-Za-z0-9][A-Za-z0-9/_.-]*):\s*\{\s*lane:\s*([A-Za-z0-9_-]+)\s*\}$/.exec(body);
     if (!match) throw new GateError(`${source}:${i + 1}: not '<gate path>: {lane: <lane>}': ${body}`);
     const [, gatePath, lane] = match;
     const why = validateGatePath(gatePath);
@@ -241,16 +241,23 @@ const LANES = [
   {
     id: "lint",
     title: "oxlint",
-    select(changed, { fullTree }) {
+    select(changed, { fullTree, root }) {
       if (fullTree) return { run: true, files: LINT_ROOTS.map((p) => p.replace(/\/$/, "")), why: "a mandatory input changed: linting every source dir" };
-      const files = changed.filter((f) => LINTABLE.test(f) && LINT_ROOTS.some((r) => f.startsWith(r)));
+      // A deleted file is a changed path but not a lintable one.
+      const files = changed.filter((f) => LINTABLE.test(f) && LINT_ROOTS.some((r) => f.startsWith(r))
+        && fs.existsSync(path.join(root, f)));
       if (files.length === 0) {
         return { run: false, files: [], why: "no lintable file changed; oxlint rules are file-local, so unchanged files stay proven by the base" };
       }
       return { run: true, files, why: `${files.length} changed source file(s)` };
     },
-    command(files) {
-      return ["npx", ["--no-install", "oxlint", "--deny-warnings", ...files]];
+    command(files, root) {
+      // Prefer the installed binary over `npx`: one fewer process, and no
+      // dependence on which `npx --no-install` spelling the local npm takes.
+      const local = path.join(root, "node_modules", ".bin", process.platform === "win32" ? "oxlint.cmd" : "oxlint");
+      const bin = fs.existsSync(local) ? local : "npx";
+      const prefix = bin === "npx" ? ["--no-install", "oxlint"] : [];
+      return [bin, [...prefix, "--deny-warnings", ...files]];
     },
   },
   {
@@ -427,7 +434,10 @@ function changedFiles(root) {
   if (base === null) {
     return { base: null, files: git(["ls-files"], { cwd: root }).split("\n").filter(Boolean), whole: true };
   }
-  const out = git(["diff", "--name-only", "--diff-filter=ACMRT", `${base}..HEAD`], { cwd: root });
+  // `D` is included on purpose: deleting a module changes nothing in the
+  // remaining files' text but can break `tsc` and the suite, and a lane that
+  // never ran must not be attested.
+  const out = git(["diff", "--name-only", "--diff-filter=ACMRTD", `${base}..HEAD`], { cwd: root });
   return { base, files: out.split("\n").filter(Boolean), whole: false };
 }
 
@@ -475,16 +485,16 @@ function cmdRun(argv) {
     const lane = laneById(laneId);
     if (fast && lane.skippedByFast) {
       console.log(`local gate: lane ${laneId} -- SKIPPED by --fast; its gate(s) will not be attested`);
-      results.push({ lane: laneId, passed: false, attest: false, secs: 0, why: "skipped by --fast" });
+      results.push({ lane: laneId, attest: false, secs: 0 });
       continue;
     }
-    const selection = lane.select(files, { fullTree });
+    const selection = lane.select(files, { fullTree, root });
     if (!selection.run) {
       console.log(`local gate: lane ${laneId} (${lane.title}) -- nothing to do: ${selection.why}`);
-      results.push({ lane: laneId, passed: true, attest: true, secs: 0, inputs: [], why: selection.why, ran: false });
+      results.push({ lane: laneId, attest: true, secs: 0, inputs: [], ran: false });
       continue;
     }
-    const [cmd, args] = lane.command(selection.files);
+    const [cmd, args] = lane.command(selection.files, root);
     console.log(`\nlocal gate: lane ${laneId} (${lane.title}) -- ${selection.why}`);
     console.log(`  $ ${cmd} ${args.join(" ")}`);
     const laneStart = Date.now();
@@ -497,7 +507,7 @@ function cmdRun(argv) {
       ]);
     }
     console.log(`local gate: lane ${laneId} passed in ${secs}s`);
-    results.push({ lane: laneId, passed: true, attest: true, secs, inputs: selection.files, why: selection.why, ran: true });
+    results.push({ lane: laneId, attest: true, secs, inputs: selection.files, ran: true });
   }
 
   const totalSecs = Math.round((Date.now() - started) / 1000);
