@@ -52,7 +52,6 @@ import {
   parseRustBacktrace,
 } from "./input-parsers.js";
 import {
-  fetchReleaseTagDefault,
   resolveSoldrReleaseVersion,
   type ResolveSetupDeps,
 } from "./fetch-release.js";
@@ -414,7 +413,7 @@ export function resolveLocalSourceIdentity(sourcePath: string): string {
     throw new Error(
       `source-path must be a Git checkout with a resolvable HEAD: ${sourcePath}: ${
         error instanceof Error ? error.message : String(error)
-      }`,
+      }`, { cause: error },
     );
   }
 
@@ -430,7 +429,7 @@ export function resolveLocalSourceVersion(sourcePath: string): string {
     throw new Error(
       `failed to parse local Soldr Cargo.toml at ${manifestPath}: ${
         error instanceof Error ? error.message : String(error)
-      }`,
+      }`, { cause: error },
     );
   }
   const root = parsed as Record<string, unknown>;
@@ -1540,19 +1539,19 @@ export async function resolveSetup(
   // these per-target overrides. See setup-soldr#... and the cc-rs docs.
   const muslCcHits = detectMuslCcEnv(env);
   for (const hit of muslCcHits) {
-    const suffix = tripleToCcRsSuffix(hit.triple);
+    const ccSuffix = tripleToCcRsSuffix(hit.triple);
     for (const [name, value] of Object.entries(hit.exports)) {
       setEnv(name, value);
     }
     logger.warning(
       `setup-soldr: auto-exporting cc-rs cross-compile env for ${hit.triple} ` +
-        `(CC_${suffix}=${hit.exports[`CC_${suffix}`]}, ` +
-        `CXX_${suffix}=${hit.exports[`CXX_${suffix}`]}, ` +
-        `AR_${suffix}=${hit.exports[`AR_${suffix}`]}) ` +
+        `(CC_${ccSuffix}=${hit.exports[`CC_${ccSuffix}`]}, ` +
+        `CXX_${ccSuffix}=${hit.exports[`CXX_${ccSuffix}`]}, ` +
+        `AR_${ccSuffix}=${hit.exports[`AR_${ccSuffix}`]}) ` +
         "because cc-rs strips \"-unknown-\" from the triple when probing for a " +
         "cross compiler and would otherwise fall back to the host gcc. " +
         `Resolved: cc=${hit.resolvedPaths.cc}, cxx=${hit.resolvedPaths.cxx}, ar=${hit.resolvedPaths.ar}. ` +
-        `Pre-set CC_${suffix} yourself to opt out.`,
+        `Pre-set CC_${ccSuffix} yourself to opt out.`,
     );
   }
 

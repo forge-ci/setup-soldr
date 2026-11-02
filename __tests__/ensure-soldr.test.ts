@@ -476,7 +476,7 @@ test("local source build invokes the verified bootstrap from a spaced path", { s
 printf '%s|%s|%s|%s|%s\\n' "$*" "$PWD" "$SOLDR_NO_GLOBAL_DELEGATION" "$SOLDR_RUSTC_WRAPPER" "$SOLDR_BROKER_AUTOSPAWN" > "$SOURCE_BUILD_MARKER"
 for last do :; done
 mkdir -p "$CARGO_TARGET_DIR/$last/debug"
-printf '#!/bin/sh\\necho '\''{"soldr_version":"0.0.1"}'\''\\n' > "$CARGO_TARGET_DIR/$last/debug/soldr"
+printf '#!/bin/sh\\necho '\\''{"soldr_version":"0.0.1"}'\\''\\n' > "$CARGO_TARGET_DIR/$last/debug/soldr"
 chmod +x "$CARGO_TARGET_DIR/$last/debug/soldr"
 `, { mode: 0o755 });
   const old = process.env.SOURCE_BUILD_MARKER;

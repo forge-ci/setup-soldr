@@ -54,7 +54,7 @@ function parseJson<T>(bytes: Buffer, label: string): T {
   try {
     return JSON.parse(bytes.toString("utf8")) as T;
   } catch (error) {
-    throw new Error(`${label} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`${label} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
   }
 }
 

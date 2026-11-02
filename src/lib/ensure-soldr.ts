@@ -193,7 +193,7 @@ async function fetchRelease(
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`failed to fetch exact soldr release ${version || "latest"} from ${repo}: ${detail}`);
+    throw new Error(`failed to fetch exact soldr release ${version || "latest"} from ${repo}: ${detail}`, { cause: error });
   }
 }
 
@@ -205,7 +205,7 @@ async function fetchPypiRelease(version: string): Promise<Record<string, unknown
     return await retryReleaseRequest(() => fetchJson(url, ""));
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`failed to fetch soldr ${normalized} wheel metadata from PyPI: ${detail}`);
+    throw new Error(`failed to fetch soldr ${normalized} wheel metadata from PyPI: ${detail}`, { cause: error });
   }
 }
 
@@ -536,7 +536,7 @@ async function extractTarZst(archivePath: string, outDir: string): Promise<void>
     throw new Error(
       `failed to decompress ${path.basename(archivePath)} with embedded zstd: ${
         err instanceof Error ? err.message : String(err)
-      }`,
+      }`, { cause: err },
     );
   }
   extractTarBuffer(decompressed, outDir);

@@ -1,0 +1,74 @@
+{
+  // oxlint (https://oxc.rs/docs/guide/usage/linter) is this repository's
+  // linter for TypeScript and .mjs sources. Run it with `npm run lint`.
+  //
+  // Policy: `correctness` and `suspicious` are errors. Categories are never
+  // switched off wholesale — every exception below is a single rule with a
+  // written reason, so the next reader can tell "we decided" from "it was
+  // noisy".
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise", "node"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "env": {
+    "es2022": true,
+    "node": true
+  },
+  // Generated output: ncc bundles (committed on purpose, see
+  // setup-soldr-contract.yml's dist verification step) and vendored trees.
+  "ignorePatterns": [
+    "dist/**",
+    "dist-*/**",
+    "cook/dist/**",
+    "cleanup/dist/**",
+    "node_modules/**",
+    "_vender/**",
+    "target/**"
+  ],
+  "rules": {
+    // `tsconfig.json` pins `lib: ["ES2022"]`. The fix these two rules ask
+    // for (`Array#toSorted` / `Array#toReversed`) is ES2023, so taking it
+    // breaks `npm run typecheck` ("Property 'toSorted' does not exist ...
+    // Try changing the 'lib' compiler option to 'es2023'"). Raising `lib`
+    // is a separate decision from adopting a linter; until it is made,
+    // these rules cannot be satisfied.
+    "unicorn/no-array-sort": "off",
+    "unicorn/no-array-reverse": "off",
+    // `_internal` (test seams, e.g. src/lib/zccache-seed.ts) and
+    // `__benchCmd` (benchmark instrumentation marker) are this repository's
+    // existing naming convention for "not part of the public surface".
+    // Renaming them would churn their callers and their tests for no
+    // behavioural gain.
+    "no-underscore-dangle": "off",
+    // Helper closures are deliberately declared at their point of use —
+    // inside the `test()` body or the branch that needs them — so that a
+    // reader sees the helper next to its only caller. The rule's stated
+    // benefit ("avoid recreating it on every call") is irrelevant for an
+    // action process that runs each path a handful of times per job.
+    "unicorn/consistent-function-scoping": "off"
+  },
+  "overrides": [
+    {
+      // The tests import modules purely for their registration side effects
+      // (`__tests__/register-loader.mjs`, module-level patching), which is
+      // exactly what `import/no-unassigned-import` forbids.
+      "files": ["__tests__/**"],
+      "rules": {
+        "import/no-unassigned-import": "off"
+      }
+    },
+    {
+      // scripts/bench-*.mjs are single-file benchmark harnesses written as
+      // one long `main()` with per-scenario blocks that intentionally reuse
+      // short names (`out`, `ratio`, `snapshots`) inside their own block.
+      // `no-shadow` stays on for src/ and __tests__/, where shadowing is a
+      // real hazard.
+      "files": ["scripts/bench-*.mjs"],
+      "rules": {
+        "no-shadow": "off"
+      }
+    }
+  ]
+}

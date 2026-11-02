@@ -1395,10 +1395,6 @@ export async function run(): Promise<void> {
     let verifiedMatch = true;
     if (restored.verified && restored.matchedKey) {
       const expected = result.toolchain.cacheChannel.trim();
-      // The rustup home is set up so `rustc` will resolve through the
-      // restored toolchain dir. Use `rustc` from PATH (rustup shim) or
-      // the cargo bin one.
-      const rustcCmd = process.platform === "win32" ? "rustc.exe" : "rustc";
       const verify = await verifyRestoredToolchain({
         expectedRelease: expected,
         expectedTargets: result.toolchain.targets,
@@ -1418,11 +1414,11 @@ export async function run(): Promise<void> {
         const recorded = await cache
           .restoreCache([identityPath], identityKey, [])
           .then((hit) => (hit === identityKey ? parseSoloIdentity(fs.readFileSync(identityPath, "utf8")) : null), () => null);
-        const verdict = compareSoloIdentity(recorded, verify.observedRelease
+        const identityVerdict = compareSoloIdentity(recorded, verify.observedRelease
           ? { release: verify.observedRelease, commitHash: verify.observedCommit ?? null }
           : null);
-        logger.log(`solo-toolchain-cache: identity ${verdict} recorded=${recorded?.commitHash ?? "none"} observed=${verify.observedCommit ?? "none"}`);
-        if (verdict === "mismatch") verifiedMatch = false;
+        logger.log(`solo-toolchain-cache: identity ${identityVerdict} recorded=${recorded?.commitHash ?? "none"} observed=${verify.observedCommit ?? "none"}`);
+        if (identityVerdict === "mismatch") verifiedMatch = false;
       }
     }
     soloRestoreInvalid = Boolean(restored.matchedKey) && (!restored.verified || !verifiedMatch);
@@ -1766,7 +1762,7 @@ export async function run(): Promise<void> {
           markRegistryMiss();
         } else if (encryptionFailure) {
           throw new Error(
-            `cargo-registry archive extraction failed for ${registryDownload.hit ? "exact-hit" : "fallback-hit"} ${matched}: ${err instanceof Error ? err.message : String(err)}`,
+            `cargo-registry archive extraction failed for ${registryDownload.hit ? "exact-hit" : "fallback-hit"} ${matched}: ${err instanceof Error ? err.message : String(err)}`, { cause: err },
           );
         } else {
           logger.warning(

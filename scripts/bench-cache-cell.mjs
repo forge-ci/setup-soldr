@@ -652,7 +652,12 @@ function run(cmd, argv, opts = {}) {
     // exit). Once timed out, this promise simply never settles — onCellTimeout
     // owns process termination.
     child.on("error", (err) => { untrackChild(child); if (timedOut) return; reject(err); });
-    child.on("exit", (code) => { untrackChild(child); if (timedOut) return; code === 0 ? resolve() : reject(new Error(`${cmd} exited ${code}`)); });
+    child.on("exit", (code) => {
+      untrackChild(child);
+      if (timedOut) return;
+      if (code === 0) resolve();
+      else reject(new Error(`${cmd} exited ${code}`));
+    });
   });
 }
 

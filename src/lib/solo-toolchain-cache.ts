@@ -19,12 +19,11 @@ import * as fsp from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as cache from "@actions/cache";
-import * as exec from "@actions/exec";
 import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as github from "@actions/github";
 import { compressCache, decompressCache, detectCompressMagic } from "./cache-compress.js";
 import { allowCacheSave, gatedSaveCache } from "./save-policy.js";
-import type { SnapshotDiff, SnapshotEntry } from "./toolchain-snapshot.js";
+import type { SnapshotDiff } from "./toolchain-snapshot.js";
 
 /**
  * The two live roots whose deltas this cache layer tracks. The string keys
@@ -253,7 +252,7 @@ export function detectLibc(): string {
  * across platforms.
  */
 export function hashStringArray(items: string[]): string {
-  const sorted = [...items.map((s) => s.trim().toLowerCase())].filter((s) => s.length > 0).sort();
+  const sorted = items.map((s) => s.trim().toLowerCase()).filter((s) => s.length > 0).sort();
   if (sorted.length === 0) return "none";
   const h = createHash("sha256");
   for (const s of sorted) {
