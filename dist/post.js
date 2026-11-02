@@ -53802,9 +53802,10 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports._internal = void 0;
+exports._internal = exports.DOWNLOAD_ATTEMPTS = void 0;
 exports.installedSoldrReleaseIsUsable = installedSoldrReleaseIsUsable;
 exports.extractBinary = extractBinary;
+exports.isRetryableDownloadError = isRetryableDownloadError;
 exports.downloadWithHeaders = downloadWithHeaders;
 exports.ensureSoldr = ensureSoldr;
 const fs = __importStar(__nccwpck_require__(73024));
@@ -54598,17 +54599,58 @@ async function buildFromLocalSource(opts) {
     }
     return destination;
 }
-async function downloadWithHeaders(url, dest, headers) {
-    // tc.downloadTool supports auth/headers via separate args; rather than rely
-    // on that, do a manual fetch+pipe to keep behavior parity with the Python
-    // implementation. We stream to disk to avoid loading large archives in RAM.
-    const response = await fetch(url, { headers });
-    if (!response.ok || !response.body) {
-        throw new Error(`download failed for ${url}: HTTP ${response.status}`);
+exports.DOWNLOAD_ATTEMPTS = 4;
+const DOWNLOAD_RETRY_DELAY_MS = 2000;
+// Transient = HTTP 5xx, HTTP 429, or a network-level failure (fetch threw or
+// the body stream broke). Other 4xx (404, 403, ...) are permanent and fail fast.
+function isRetryableDownloadError(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.startsWith("download failed for "))
+        return false;
+    if (message.includes(": network error: "))
+        return true;
+    const status = message.match(/HTTP\s+(\d{3})\b/)?.[1];
+    if (!status)
+        return false;
+    const code = Number(status);
+    return code === 429 || code >= 500;
+}
+async function downloadOnce(url, dest, headers) {
+    // Never leave (or reuse) a stale/partial file from a previous attempt.
+    fs.rmSync(dest, { force: true });
+    let buffer;
+    try {
+        const response = await fetch(url, { headers });
+        if (!response.ok || !response.body) {
+            throw new Error(`download failed for ${url}: HTTP ${response.status}`);
+        }
+        buffer = Buffer.from(await response.arrayBuffer());
     }
-    const buffer = Buffer.from(await response.arrayBuffer());
+    catch (error) {
+        if (error instanceof Error && error.message.startsWith("download failed for "))
+            throw error;
+        const detail = error instanceof Error ? error.message : String(error);
+        throw new Error(`download failed for ${url}: network error: ${detail}`);
+    }
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, buffer);
+}
+async function downloadWithHeaders(url, dest, headers, retry = {}) {
+    // Manual fetch (not tc.downloadTool) for header parity with the Python
+    // implementation. Transient GitHub CDN failures are retried with a bounded
+    // delay; integrity (SHA-256 / trust mode) is checked by callers afterwards
+    // against the final, fully re-downloaded file.
+    const attempts = retry.attempts ?? exports.DOWNLOAD_ATTEMPTS;
+    await (0, release_readiness_js_1.retryReleaseRequest)(() => downloadOnce(url, dest, headers), {
+        attempts,
+        delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
+        sleep: retry.sleep,
+        isRetryable: isRetryableDownloadError,
+        onRetry: (attempt, error) => {
+            const detail = error instanceof Error ? error.message : String(error);
+            core.warning(`download attempt ${attempt}/${attempts} failed (${detail}); retrying`);
+        },
+    });
 }
 function fileSha256(filePath) {
     return (0, node_crypto_1.createHash)("sha256").update(fs.readFileSync(filePath)).digest("hex");
@@ -55827,6 +55869,7 @@ function isRetryableReleaseError(error) {
 async function retryReleaseRequest(request, options = {}) {
     const attempts = options.attempts ?? 3;
     const delayMs = options.delayMs ?? 500;
+    const isRetryable = options.isRetryable ?? isRetryableReleaseError;
     const sleep = options.sleep ?? ((delay) => new Promise((resolve) => setTimeout(resolve, delay)));
     let lastError;
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -55835,7 +55878,7 @@ async function retryReleaseRequest(request, options = {}) {
         }
         catch (error) {
             lastError = error;
-            if (attempt === attempts || !isRetryableReleaseError(error))
+            if (attempt === attempts || !isRetryable(error))
                 break;
             options.onRetry?.(attempt, error);
             await sleep(delayMs);

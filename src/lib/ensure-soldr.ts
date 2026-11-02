@@ -926,17 +926,61 @@ async function buildFromLocalSource(opts: {
   return destination;
 }
 
-export async function downloadWithHeaders(url: string, dest: string, headers: Record<string, string>): Promise<void> {
-  // tc.downloadTool supports auth/headers via separate args; rather than rely
-  // on that, do a manual fetch+pipe to keep behavior parity with the Python
-  // implementation. We stream to disk to avoid loading large archives in RAM.
-  const response = await fetch(url, { headers });
-  if (!response.ok || !response.body) {
-    throw new Error(`download failed for ${url}: HTTP ${response.status}`);
+export const DOWNLOAD_ATTEMPTS = 4;
+const DOWNLOAD_RETRY_DELAY_MS = 2000;
+
+// Transient = HTTP 5xx, HTTP 429, or a network-level failure (fetch threw or
+// the body stream broke). Other 4xx (404, 403, ...) are permanent and fail fast.
+export function isRetryableDownloadError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  if (!message.startsWith("download failed for ")) return false;
+  if (message.includes(": network error: ")) return true;
+  const status = message.match(/HTTP\s+(\d{3})\b/)?.[1];
+  if (!status) return false;
+  const code = Number(status);
+  return code === 429 || code >= 500;
+}
+
+async function downloadOnce(url: string, dest: string, headers: Record<string, string>): Promise<void> {
+  // Never leave (or reuse) a stale/partial file from a previous attempt.
+  fs.rmSync(dest, { force: true });
+  let buffer: Buffer;
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok || !response.body) {
+      throw new Error(`download failed for ${url}: HTTP ${response.status}`);
+    }
+    buffer = Buffer.from(await response.arrayBuffer());
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("download failed for ")) throw error;
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`download failed for ${url}: network error: ${detail}`);
   }
-  const buffer = Buffer.from(await response.arrayBuffer());
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.writeFileSync(dest, buffer);
+}
+
+export async function downloadWithHeaders(
+  url: string,
+  dest: string,
+  headers: Record<string, string>,
+  retry: { attempts?: number; delayMs?: number; sleep?: (delayMs: number) => Promise<void> } = {},
+): Promise<void> {
+  // Manual fetch (not tc.downloadTool) for header parity with the Python
+  // implementation. Transient GitHub CDN failures are retried with a bounded
+  // delay; integrity (SHA-256 / trust mode) is checked by callers afterwards
+  // against the final, fully re-downloaded file.
+  const attempts = retry.attempts ?? DOWNLOAD_ATTEMPTS;
+  await retryReleaseRequest(() => downloadOnce(url, dest, headers), {
+    attempts,
+    delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
+    sleep: retry.sleep,
+    isRetryable: isRetryableDownloadError,
+    onRetry: (attempt, error) => {
+      const detail = error instanceof Error ? error.message : String(error);
+      core.warning(`download attempt ${attempt}/${attempts} failed (${detail}); retrying`);
+    },
+  });
 }
 
 function fileSha256(filePath: string): string {
