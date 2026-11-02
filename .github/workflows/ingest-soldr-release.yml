@@ -66,18 +66,30 @@ jobs:
         run: |
           set -euo pipefail
           branch="chore/default-soldr-${VERSION}"
+          title="chore: default soldr ${VERSION}"
           if git ls-remote --exit-code origin "refs/heads/${branch}" >/dev/null; then
-            echo "PR branch ${branch} already exists"
-            exit 0
+            open="$(gh pr list --head "${branch}" --state all --json number --jq 'length')"
+            if [[ "${open}" != "0" ]]; then
+              echo "PR for ${branch} already exists"
+              exit 0
+            fi
+            echo "branch ${branch} exists without a PR; retrying PR creation"
+          else
+            npm ci
+            npm run build
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git switch -c "${branch}"
+            git add -A src/lib/default-soldr-version.ts action.yml README.md tests/test_action_target_cache_wiring.py dist
+            git commit -m "${title}"
+            git push origin "${branch}"
           fi
-          npm ci
-          npm run build
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "${branch}"
-          git add -A src/lib/default-soldr-version.ts action.yml README.md tests/test_action_target_cache_wiring.py dist
-          git commit -m "chore: default soldr ${VERSION}"
-          git push origin "${branch}"
-          gh pr create --base main --head "${branch}" \
-            --title "chore: default soldr ${VERSION}" \
-            --body "Automated by ingest-soldr-release.yml: moves the vendor-locked default soldr to ${VERSION} and rebuilds dist/. After merge, promote v0 through update-v0-tag.yml."
+          if ! out="$(gh pr create --base main --head "${branch}" --title "${title}" \
+            --body "Automated by ingest-soldr-release.yml: moves the vendor-locked default soldr to ${VERSION} and rebuilds dist/. After merge, promote v0 through update-v0-tag.yml." 2>&1)"; then
+            echo "${out}"
+            if grep -q "not permitted to create or approve pull requests" <<<"${out}"; then
+              echo "::error title=GITHUB_TOKEN cannot create PRs::Branch ${branch} was pushed but PR creation was refused. Enable 'Allow GitHub Actions to create and approve pull requests' (can_approve_pull_request_reviews=true) at Settings > Actions > General for the forge-ci org AND this repo. The next scheduled run will retry PR creation for the existing branch."
+            fi
+            exit 1
+          fi
+          echo "${out}"
