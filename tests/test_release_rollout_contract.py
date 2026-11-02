@@ -13,9 +13,15 @@ def test_rollout_contract_workflow_covers_main_pr_and_manual_runs() -> None:
     assert "workflow_dispatch:" in workflow
     assert "push:" in workflow
     assert "pull_request:" in workflow
-    assert "- .github/workflows/setup-soldr-action.yml" in workflow
-    assert "- .github/workflows/rust-ci.yml" in workflow
-    assert "- .github/workflows/setup-soldr-contract.yml" in workflow
+    assert "merge_group:" in workflow
+    # The required `CI summary` lives here: a path filter would leave PRs on
+    # unlisted paths without the check and wedge the merge queue.
+    import yaml
+
+    triggers = yaml.safe_load(workflow)[True]  # PyYAML reads `on:` as True
+    for event, spec in triggers.items():
+        assert not (spec or {}).get("paths"), event
+        assert not (spec or {}).get("paths-ignore"), event
 
 
 def test_rollout_contract_workflow_builds_and_tests_the_js_action() -> None:
