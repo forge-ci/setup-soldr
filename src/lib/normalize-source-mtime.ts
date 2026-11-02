@@ -10,7 +10,6 @@ import * as path from "node:path";
 import * as exec from "@actions/exec";
 import { createLogger } from "./log-utils.js";
 
-const TRUTHY = new Set(["1", "true", "yes", "on"]);
 
 // Globs evaluated against the repo-relative POSIX path of each tracked file.
 const INCLUDE_GLOBS: readonly string[] = [
@@ -27,10 +26,6 @@ const INCLUDE_GLOBS: readonly string[] = [
 ];
 
 const EXCLUDE_PREFIXES: readonly string[] = ["target/", ".git/", "node_modules/"];
-
-function isTruthy(value: string | null | undefined): boolean {
-  return TRUTHY.has(((value ?? "").trim().toLowerCase()));
-}
 
 function fnmatchToRegex(pattern: string): RegExp {
   // Translate a shell-style glob to a regex. Supports `*`, `**`, `?` and

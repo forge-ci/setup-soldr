@@ -165,7 +165,6 @@ function cookWarmZccacheRows(allRows, columns) {
     const layer = r[columns.layer];
     if (layer !== "cook" && layer !== "cook-production") continue;
     const hits = numAt(r, columns.zccacheHits);
-    const misses = numAt(r, columns.zccacheMisses);
     const compilations = numAt(r, columns.zccacheCompilations);
     const hitsCell = cellOf(r, columns.zccacheHits);
     const missesCell = cellOf(r, columns.zccacheMisses);
@@ -192,10 +191,10 @@ function cellOf(row, column) {
   return row[column] ?? "";
 }
 
-function pushNumber(out, raw) {
+function pushNumber(sink, raw) {
   if (raw === "" || raw === undefined) return;
   const n = Number(raw);
-  if (Number.isFinite(n)) out.push(n);
+  if (Number.isFinite(n)) sink.push(n);
 }
 
 function p50(values) {
