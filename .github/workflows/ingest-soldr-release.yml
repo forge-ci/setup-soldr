@@ -81,3 +81,4 @@ jobs:
           gh pr create --base main --head "${branch}" \
             --title "chore: default soldr ${VERSION}" \
             --body "Automated by ingest-soldr-release.yml: moves the vendor-locked default soldr to ${VERSION} and rebuilds dist/. After merge, promote v0 through update-v0-tag.yml."
+# scratch: gate-proof (not for merge)
