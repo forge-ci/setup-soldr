@@ -34,6 +34,8 @@ alone never promotes `v0`; immutable version tags remain unchanged. Explicit
 
 ## Test infrastructure
 
+Pull requests run only the test suites their change selects (TEST-004): the declared map is `ci/test-selection.json`, the selector `ci/select-tests.mjs` fails closed and refuses when the import graph contradicts the map, and `main` runs every suite on push and nightly. Run `npm run test:select-check` after changing the map or adding an import; see `docs/test-selection.md`. `npm test` still runs everything.
+
 `npm test` runs Node's built-in `node --test` runner with `--test-timeout=120000`, so every test is aborted with a stack trace if it exceeds two minutes. The cap exists to prevent the kind of hung-test scenario seen during the 2026-05-25 cargo-link-error debug session, where a stuck shell tied up CI minutes until manual intervention. Two minutes is generous for the existing fast unit suite while still catching deadlocks fast.
 
 To verify the watchdog itself, run the gated self-test in `__tests__/watchdog-self-test.test.ts`:

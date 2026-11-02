@@ -22,7 +22,10 @@
 // refused locally and the remote steps run as before.
 //
 // Commands:
-//   run [--fast]            run the lanes from a clean tree and stamp HEAD
+//   run [--fast] [--all]    run the lanes from a clean tree and stamp HEAD;
+//                           the tests lane runs only the suites
+//                           ci/select-tests.mjs selects (TEST-004), or every
+//                           suite with --all
 //   check-push              the pre-push hook's entry point (reads git's stdin)
 //   install-hook [--chain|--force]
 //                           write .git/hooks/pre-push
@@ -36,6 +39,7 @@ import { createHash } from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { plan as planTests } from "./select-tests.mjs";
 
 const TRAILER_KEY = "Local-Gate";
 const TRAILER_VERSION = "v1";
@@ -61,6 +65,8 @@ const MANDATORY_INPUTS = [
   ".oxlintrc.json",
   "ci-attestations.yml",
   "ci/local_gate.mjs",
+  "ci/select-tests.mjs",
+  "ci/test-selection.json",
   "package-lock.json",
   "package.json",
   "tsconfig.json",
@@ -74,22 +80,8 @@ const SURFACES = [
   ".github/workflows/setup-soldr-contract.yml",
 ];
 
-// Paths that provably cannot change what the node test suite does. Kept
-// deliberately short: the suite reads workflows, scripts and fixtures, so only
-// prose, the Python-side checks and their configs are safe to exclude. An
-// unlisted path always runs the lane.
-const TEST_SAFE_EXCLUSIONS = [
-  /^docs\//,
-  /^tests\//, // pytest suite, run by the Contract Tests job
-  /^ci\/[^/]+\.py$/,
-  /\.md$/,
-  /\.png$/,
-  /^LICENSE$/,
-  /^ruff\.toml$/,
-  /^pytest\.ini$/,
-  /^\.coderabbit\.yaml$/,
-  /^\.github\/ISSUE_TEMPLATE\//,
-];
+// Which node test suites a change needs is decided by ci/select-tests.mjs
+// from the declared map in ci/test-selection.json (TEST-004).
 
 class GateError extends Error {}
 
@@ -279,14 +271,33 @@ const LANES = [
     id: "tests",
     title: "node --test",
     skippedByFast: true,
-    select(changed, { fullTree }) {
-      if (fullTree) return { run: true, files: [], why: "a mandatory input changed" };
-      const relevant = changed.filter((f) => !TEST_SAFE_EXCLUSIONS.some((re) => re.test(f)));
-      if (relevant.length === 0) return { run: false, files: [], why: "every changed path is outside what the node suite reads" };
-      return { run: true, files: [], why: `${relevant.length} changed path(s) the suite may read` };
+    // TEST-004: the declared map in ci/test-selection.json picks the suites;
+    // ci/select-tests.mjs fails closed on any path it cannot resolve and
+    // refuses outright when the import graph says the map under-selected.
+    select(changed, { fullTree, root, base, all }) {
+      if (fullTree) return { run: true, files: ["suite:*"], suites: null, why: "a mandatory input changed: every suite" };
+      if (all) return { run: true, files: ["suite:*"], suites: null, why: "--all: every suite" };
+      let result;
+      try {
+        result = planTests(root, { base, head: "HEAD", files: [], all: false });
+      } catch (err) {
+        throw new GateError(`test selection failed: ${err.message}`);
+      }
+      if (result.misses.length > 0) {
+        throw new GateError([
+          "local gate: the test selector under-selected; the import graph needs suites the map did not pick:",
+          ...result.misses.map((m) => `  ${m.path} is read by ${m.test} (suite ${m.suite})`),
+          "Add a rule to ci/test-selection.json, or run the gate with --all.",
+        ].join("\n"));
+      }
+      const { all: everything, suites } = result.selection;
+      if (everything) return { run: true, files: ["suite:*"], suites: null, why: `every suite: ${everything}` };
+      if (suites.length === 0) return { run: false, files: [], why: "no suite is affected (every changed path is ignored by ci/test-selection.json)" };
+      return { run: true, files: suites.map((x) => `suite:${x}`), suites, why: `selected suites: ${suites.join(", ")}` };
     },
-    command() {
-      return ["npm", ["run", "--silent", "test"]];
+    command(files, _root, selection) {
+      if (!selection?.suites) return ["npm", ["run", "--silent", "test"]];
+      return [process.execPath, ["ci/select-tests.mjs", "run", ...(selection.base ? ["--base", selection.base] : [])]];
     },
   },
 ];
@@ -452,6 +463,7 @@ function runCommand(cmd, argv, root) {
 
 function cmdRun(argv) {
   const fast = argv.includes("--fast");
+  const runAll = argv.includes("--all");
   const root = repoRoot();
   const definition = loadDefinition(root);
 
@@ -491,13 +503,14 @@ function cmdRun(argv) {
       results.push({ lane: laneId, attest: false, secs: 0 });
       continue;
     }
-    const selection = lane.select(files, { fullTree, root });
+    const selection = lane.select(files, { fullTree, root, base, all: runAll });
+    selection.base = base;
     if (!selection.run) {
       console.log(`local gate: lane ${laneId} (${lane.title}) -- nothing to do: ${selection.why}`);
       results.push({ lane: laneId, attest: true, secs: 0, inputs: [], ran: false });
       continue;
     }
-    const [cmd, args] = lane.command(selection.files, root);
+    const [cmd, args] = lane.command(selection.files, root, selection);
     console.log(`\nlocal gate: lane ${laneId} (${lane.title}) -- ${selection.why}`);
     console.log(`  $ ${cmd} ${args.join(" ")}`);
     const laneStart = Date.now();
@@ -907,7 +920,7 @@ function main(argv) {
     default:
       fail([
         `local gate: unknown command '${command}'`,
-        "usage: node ci/local_gate.mjs [run [--fast] | check-push | install-hook [--chain|--force] | verify|--check [...] | lanes]",
+        "usage: node ci/local_gate.mjs [run [--fast] [--all] | check-push | install-hook [--chain|--force] | verify|--check [...] | lanes]",
       ]);
       return 2;
   }

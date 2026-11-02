@@ -70,6 +70,18 @@ function makeRepo(): Repo {
   fs.mkdirSync(path.join(root, "ci"));
   fs.mkdirSync(path.join(root, "src"));
   fs.copyFileSync(GATE, path.join(root, "ci", "local_gate.mjs"));
+  fs.copyFileSync(path.resolve("ci", "select-tests.mjs"), path.join(root, "ci", "select-tests.mjs"));
+  // A one-suite selection map: src/** selects `unit`, docs are ignored, and
+  // anything else fails closed to every suite (TEST-004).
+  fs.writeFileSync(path.join(root, "ci", "test-selection.json"), `${JSON.stringify({
+    suites: { unit: ["__tests__/a.test.ts"] },
+    always: ["package.json", "tsconfig.json", ".oxlintrc.json", "ci/**", "ci-attestations.yml"],
+    ignore: ["docs/**", "*.md"],
+    rules: [{ why: "fixture", paths: ["src/**"], suites: ["unit"] }],
+  }, null, 2)}\n`);
+  fs.mkdirSync(path.join(root, "__tests__"));
+  fs.writeFileSync(path.join(root, "__tests__", "register-loader.mjs"), "");
+  fs.writeFileSync(path.join(root, "__tests__", "a.test.ts"), 'import { test } from "node:test";\ntest("fixture", () => {});\n');
   fs.copyFileSync(DEFINITION, path.join(root, "ci-attestations.yml"));
   fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
     name: "gate-fixture",
@@ -339,4 +351,36 @@ test("an unparseable definition can authorize nothing", posixOnly, () => {
   const verified = repo.verify([]);
   assert.equal(verified.outputs["attested"], "false", verified.out);
   assert.equal(verified.outputs["state"], "no-definition");
+});
+
+test("the tests lane runs only the selected suites (TEST-004)", posixOnly, () => {
+  const repo = makeRepo();
+  commitChange(repo);
+  const run = repo.gate(["run"]);
+  assert.equal(run.status, 0, run.out);
+  assert.match(run.out, /lane tests \(node --test\) -- selected suites: unit/);
+  assert.match(run.out, /ci\/select-tests\.mjs run --base [0-9a-f]{40}/);
+});
+
+test("a docs-only change runs no suite; an unmapped path runs every suite", posixOnly, () => {
+  const docs = makeRepo();
+  commitChange(docs, path.join("docs", "note.md"), "prose\n");
+  const quiet = docs.gate(["run"]);
+  assert.equal(quiet.status, 0, quiet.out);
+  assert.match(quiet.out, /lane tests \(node --test\) -- nothing to do: no suite is affected/);
+
+  const odd = makeRepo();
+  commitChange(odd, path.join("brand-new", "thing.txt"), "x\n");
+  const loud = odd.gate(["run"]);
+  assert.equal(loud.status, 0, loud.out);
+  assert.match(loud.out, /lane tests \(node --test\) -- every suite: brand-new\/thing\.txt matches no rule/);
+  assert.match(loud.out, /\$ npm run --silent test/);
+});
+
+test("run --all runs every suite whatever changed", posixOnly, () => {
+  const repo = makeRepo();
+  commitChange(repo, path.join("docs", "note.md"), "prose\n");
+  const run = repo.gate(["run", "--all"]);
+  assert.equal(run.status, 0, run.out);
+  assert.match(run.out, /lane tests \(node --test\) -- --all: every suite/);
 });

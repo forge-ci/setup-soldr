@@ -11,6 +11,11 @@ on:
   # merge_group takes no `paths:` filter, so every queue entry runs this workflow.
   merge_group:
   workflow_dispatch:
+  # TEST-004 (forge-ci/ci.yml#518): PRs run only the node test suites their
+  # change selects, so main runs every suite nightly as well as on every push.
+  # A failure here is reported, never cached over.
+  schedule:
+    - cron: "17 7 * * *"
 
 # One live run per workflow per ref: a new push to a branch or PR cancels the
 # superseded run instead of queuing behind it in the shared account-wide runner
@@ -144,9 +149,36 @@ jobs:
         if: ${{ steps.gate.outputs.skip_typecheck != 'true' }}
         run: npm run typecheck
 
+      - name: Select test suites
+        id: select
+        if: ${{ steps.gate.outputs.skip_tests != 'true' }}
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        # TEST-004: a pull_request runs only the suites ci/test-selection.json
+        # selects for HEAD^1...HEAD (the merge commit's base side vs the PR).
+        # Every other event -- push to main, merge queue, nightly schedule,
+        # manual dispatch -- runs every suite. The selector fails closed: an
+        # unresolvable path selects everything, and a map the import graph
+        # contradicts fails this step (exit 3).
+        run: |
+          node ci/select-tests.mjs check
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            node ci/select-tests.mjs plan --base HEAD^1 --head HEAD --github-output --summary
+          else
+            node ci/select-tests.mjs plan --all --github-output
+            printf '### Test selection (TEST-004)\n\nEvent is %s: **all suites** run.\n\n' "$EVENT_NAME" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Unit tests
         if: ${{ steps.gate.outputs.skip_tests != 'true' }}
-        run: npm test
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            node ci/select-tests.mjs run --base HEAD^1 --head HEAD
+          else
+            npm test
+          fi
 
       - name: Build dist bundles
         run: npm run build
