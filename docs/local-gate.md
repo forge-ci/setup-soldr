@@ -27,6 +27,11 @@ path git consults: it honours `core.hooksPath`, and in a linked worktree it is
 the *shared* hooks directory. Installing from inside a worktree therefore gates
 every worktree of that clone, including the primary one.
 
+With `--chain`, the generated hook spools git's ref lines to a temporary file
+and feeds both hooks from it. git writes them exactly once, so a chained hook
+that reads stdin would otherwise leave `check-push` with nothing to check and
+the gate would pass vacuously.
+
 ## Use it
 
 From a clean, committed tree:

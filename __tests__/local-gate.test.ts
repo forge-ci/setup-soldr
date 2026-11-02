@@ -312,6 +312,25 @@ test("install-hook is idempotent and never clobbers a foreign hook", posixOnly, 
     "#!/bin/sh\necho mine\n");
 });
 
+test("a chained hook that reads stdin does not disable the gate", posixOnly, () => {
+  const repo = makeRepo();
+  commitChange(repo);
+  const hooks = path.join(repo.root, ".git", "hooks");
+  const hook = path.join(hooks, "pre-push");
+  // git writes the ref lines once. A chained hook that drains them would leave
+  // `check-push` with nothing to check, and it would pass vacuously.
+  fs.writeFileSync(hook, '#!/bin/sh\nwhile read -r line; do echo "theirs: $line"; done\n');
+  fs.chmodSync(hook, 0o755);
+  assert.equal(repo.gate(["install-hook", "--chain"]).status, 0);
+
+  const refs = `refs/heads/main ${repo.git("rev-parse", "HEAD").trim()} refs/heads/main ${"0".repeat(40)}\n`;
+  const run = spawnSync(hook, [], { cwd: repo.root, env: repo.env, input: refs, encoding: "utf8" });
+  const out = `${run.stdout}${run.stderr}`;
+  assert.match(out, /theirs: refs\/heads\/main/, "the chained hook must still see the ref lines");
+  assert.equal(run.status, 1, out);
+  assert.match(out, /no Local-Gate trailer/, "and so must the gate");
+});
+
 test("an unparseable definition can authorize nothing", posixOnly, () => {
   const repo = makeRepo();
   commitChange(repo);
