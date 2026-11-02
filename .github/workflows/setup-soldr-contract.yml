@@ -53,6 +53,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # The local gate's attestation lives in the PR head's commit
+          # message, and on a `pull_request` event the checked-out commit is
+          # GitHub's merge commit: `HEAD^1` is the base, `HEAD^2` is the head.
+          # Depth 2 is the cheapest checkout that can read both.
+          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -65,10 +71,60 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # ci/local_gate.mjs, run from a pre-push hook, proves lint, typecheck
+      # and the node suite on the developer's host and stamps the commit with
+      # the fleet's tree-bound `Local-Gate:` trailer plus one
+      # `Ci-Attestation:` record per proven gate (forge-ci/ci.yml GATE-008 /
+      # GATE-010). This step re-verifies those records against the head's own
+      # tree and parents and decides which steps below are already proven.
+      #
+      # Fail-closed, every time: a non-`pull_request` event, a head that is
+      # not the merge commit's second parent, a change to a gate surface, a
+      # missing or stale or mis-stamped record, or an unreadable git state all
+      # leave every `skip_*` output false and the steps run exactly as before.
+      - id: gate
+        name: Verify local-gate attestation
+        run: |
+          set -euo pipefail
+          deny() {
+            printf 'attested=false\nstate=%s\nskip_lint=false\nskip_typecheck=false\nskip_tests=false\n' "$1" >> "$GITHUB_OUTPUT"
+            printf '### Local gate attestation\n\nNot consulted (%s); every step runs as before.\n\n' "$1" >> "$GITHUB_STEP_SUMMARY"
+            echo "local gate: $1; running every step."
+            exit 0
+          }
+          # Pushes to main and merge-queue entries are the post-merge catch and
+          # the merge boundary: they never skip.
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            deny "event is ${{ github.event_name }}, not pull_request"
+          fi
+          head="$(git rev-parse --verify --quiet 'HEAD^2' || true)"
+          base="$(git rev-parse --verify --quiet 'HEAD^1' || true)"
+          if [ -z "$head" ] || [ -z "$base" ]; then
+            deny "the checkout is not a two-parent merge commit"
+          fi
+          # The parent must be the head GitHub reported, or we are verifying
+          # the wrong commit.
+          if [ "$head" != "${{ github.event.pull_request.head.sha }}" ]; then
+            deny "HEAD^2 ($head) is not the reported PR head (${{ github.event.pull_request.head.sha }})"
+          fi
+          # `fetch-depth: 2` must have brought both parents' objects along, or
+          # there is nothing to read the attestation out of.
+          git --no-pager log -1 --format='local gate: head %h is readable (%s)' "$head" \
+            || deny "the PR head is not in this shallow checkout"
+          node ci/local_gate.mjs verify \
+            --commit "$head" --base "$base" \
+            --github-output --summary
+
+      - name: Lint
+        if: ${{ steps.gate.outputs.skip_lint != 'true' }}
+        run: npm run lint
+
       - name: Typecheck
+        if: ${{ steps.gate.outputs.skip_typecheck != 'true' }}
         run: npm run typecheck
 
       - name: Unit tests
+        if: ${{ steps.gate.outputs.skip_tests != 'true' }}
         run: npm test
 
       - name: Build dist bundles

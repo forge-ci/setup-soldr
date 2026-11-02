@@ -6,6 +6,10 @@ All changes land via a feature branch and PR — never commit directly to `main`
 
 Floating major tags (e.g. `v0`) are moved to point at the new `main` commit only after the PR is merged, then pushed.
 
+### Lint and the local gate
+
+`npm run lint` is [oxlint](https://oxc.rs/docs/guide/usage/linter) over `src/`, `scripts/`, `ci/` and `__tests__/`, configured in `.oxlintrc.json`: `correctness` and `suspicious` are errors, and every exception is a single rule carrying a written reason — never a whole category. Install the pre-push gate once per clone with `npm run gate:install-hook`; then `npm run gate` (or `npm run gate:fast`, which skips the test lane) proves lint, typecheck and the node suite locally from a clean committed tree and stamps HEAD with the fleet's tree-bound `Local-Gate:` trailer plus one `Ci-Attestation:` record per gate in `ci-attestations.yml`. `setup-soldr-contract.yml`'s `js-build` job re-verifies those records and skips only the steps they prove, failing closed on anything it cannot verify — including any PR that touches the gate's own surfaces. See [docs/local-gate.md](docs/local-gate.md).
+
 ### Default-release rollout gate
 
 The `v0` tag is moved only by manually dispatching

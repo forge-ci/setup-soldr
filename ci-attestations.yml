@@ -1,0 +1,30 @@
+# setup-soldr's gate definition.
+#
+# Shape and semantics come from forge-ci/ci.yml's GATE-010 (see that repo's
+# docs/ci-attestations.md). This file is restricted YAML — plain mappings,
+# flow `{..}`/`[..]` of scalars, and comments only — so both
+# `ci_lint.mini_yaml` and `ci/local_gate.mjs` parse it with nothing
+# installed.
+#
+# `ci/local_gate.mjs run` proves each gate locally and writes one
+# `Ci-Attestation:` trailer per proven gate onto HEAD, beside the fleet's
+# tree-bound `Local-Gate:` trailer. CI re-verifies and skips what was
+# proven; omission means "not run locally", so CI runs it.
+#
+# There is deliberately no `jobs:` mapping. The fleet's unit of skipping is
+# a whole remote job; setup-soldr's `js-build` job also builds and verifies
+# the committed `dist/` bundles, which the gate does not prove, so the job
+# can never be skipped whole. The workflow consumes per-gate validity and
+# skips individual steps instead:
+#
+#   general/all/lint           -> setup-soldr-contract.yml js-build "Lint"
+#   general/all/typecheck      -> setup-soldr-contract.yml js-build "Typecheck"
+#   general/linux-x86_64/test  -> setup-soldr-contract.yml js-build "Unit tests"
+#
+# The `general` ecosystem is the fleet's catch-all; the schema has no
+# JS/TS ecosystem (rust, python, cpp, general).
+version: 1
+gates:
+  general/all/lint: {lane: lint}
+  general/all/typecheck: {lane: typecheck}
+  general/linux-x86_64/test: {lane: tests}
