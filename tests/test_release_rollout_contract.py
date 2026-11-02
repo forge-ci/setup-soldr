@@ -20,8 +20,8 @@ def test_rollout_contract_workflow_covers_main_pr_and_manual_runs() -> None:
 
     triggers = yaml.safe_load(workflow)[True]  # PyYAML reads `on:` as True
     for event, spec in triggers.items():
-        assert not (spec or {}).get("paths"), event
-        assert not (spec or {}).get("paths-ignore"), event
+        assert not (spec if isinstance(spec, dict) else {}).get("paths"), event
+        assert not (spec if isinstance(spec, dict) else {}).get("paths-ignore"), event
 
 
 def test_rollout_contract_workflow_builds_and_tests_the_js_action() -> None:
