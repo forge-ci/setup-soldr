@@ -656,14 +656,7 @@ function readAllStdin() {
 // ── install-hook ────────────────────────────────────────────────────────────
 
 function hookScript(chained) {
-  const chain = chained
-    ? [
-      `if [ -x "$hooks_dir/${CHAINED_HOOK}" ]; then`,
-      `  "$hooks_dir/${CHAINED_HOOK}" "$@" || exit $?`,
-      "fi",
-    ]
-    : [];
-  return [
+  const head = [
     "#!/bin/sh",
     HOOK_MARKER,
     "set -e",
@@ -675,8 +668,23 @@ function hookScript(chained) {
     '  echo "  or re-run with --no-verify if you accept an unattested head (CI will then run every step)." >&2',
     "  exit 1",
     "fi",
-    ...chain,
-    'exec node "$root/ci/local_gate.mjs" check-push "$@"',
+  ];
+  if (!chained) {
+    return [...head, 'exec node "$root/ci/local_gate.mjs" check-push "$@"', ""].join("\n");
+  }
+  // Two hooks, one stdin. git writes the ref lines once, so a chained hook
+  // that reads them leaves `check-push` with nothing and the gate would pass
+  // vacuously. Spool them to a file and feed both from it. No `exec`, so the
+  // trap still runs.
+  return [
+    ...head,
+    'refs="$(mktemp)"',
+    'trap \'rm -f "$refs"\' EXIT',
+    'cat > "$refs"',
+    `if [ -x "$hooks_dir/${CHAINED_HOOK}" ]; then`,
+    `  "$hooks_dir/${CHAINED_HOOK}" "$@" < "$refs" || exit $?`,
+    "fi",
+    'node "$root/ci/local_gate.mjs" check-push "$@" < "$refs"',
     "",
   ].join("\n");
 }
