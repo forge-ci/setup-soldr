@@ -502,3 +502,67 @@ chmod +x "$CARGO_TARGET_DIR/$last/debug/soldr"
     else process.env.SOLDR_RUSTC_WRAPPER = oldWrapper;
   }
 });
+
+// Regression: zccache run 41494338436 aborted on a single transient
+// "download failed for .../soldr-v0.9.41-x86_64-unknown-linux-gnu.tar.zst: HTTP 500".
+async function withFetchSequence(
+  statuses: number[],
+  body: (dest: string, calls: { count: number }) => Promise<void>,
+): Promise<void> {
+  const original = globalThis.fetch;
+  const calls = { count: 0 };
+  globalThis.fetch = (async () => {
+    const status = statuses[Math.min(calls.count, statuses.length - 1)];
+    calls.count += 1;
+    return new Response(status === 200 ? "payload" : "error", { status });
+  }) as typeof fetch;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dl-retry-"));
+  try {
+    await body(path.join(dir, "asset.tar.zst"), calls);
+  } finally {
+    globalThis.fetch = original;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+const ASSET_URL =
+  "https://github.com/forge-ci/soldr/releases/download/v0.9.41/soldr-v0.9.41-x86_64-unknown-linux-gnu.tar.zst";
+const noSleep = { sleep: async () => {} };
+
+test("downloadWithHeaders retries a transient HTTP 500 and succeeds", async () => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([500, 200], async (dest, calls) => {
+    await downloadWithHeaders(ASSET_URL, dest, {}, noSleep);
+    assert.equal(calls.count, 2);
+    assert.equal(fs.readFileSync(dest, "utf8"), "payload");
+  });
+});
+
+test("downloadWithHeaders does not retry HTTP 404", async () => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([404, 200], async (dest, calls) => {
+    await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, noSleep), /HTTP 404/);
+    assert.equal(calls.count, 1);
+    assert.equal(fs.existsSync(dest), false);
+  });
+});
+
+test("downloadWithHeaders gives up after all attempts return HTTP 500", async () => {
+  const { downloadWithHeaders, DOWNLOAD_ATTEMPTS } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([500], async (dest, calls) => {
+    await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, noSleep), (error: Error) => {
+      assert.ok(error.message.includes(ASSET_URL), error.message);
+      assert.match(error.message, /HTTP 500/);
+      return true;
+    });
+    assert.equal(calls.count, DOWNLOAD_ATTEMPTS);
+    assert.equal(fs.existsSync(dest), false);
+  });
+});
+
+test("downloadWithHeaders retries HTTP 429 and network errors", async () => {
+  const { isRetryableDownloadError } = await import("../src/lib/ensure-soldr.js");
+  assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: HTTP 429`)), true);
+  assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: network error: fetch failed`)), true);
+  assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: HTTP 403`)), false);
+});

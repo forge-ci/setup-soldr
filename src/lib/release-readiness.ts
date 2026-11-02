@@ -113,11 +113,13 @@ export async function retryReleaseRequest<T>(
     attempts?: number;
     delayMs?: number;
     onRetry?: (attempt: number, error: unknown) => void;
+    isRetryable?: (error: unknown) => boolean;
     sleep?: (delayMs: number) => Promise<void>;
   } = {},
 ): Promise<T> {
   const attempts = options.attempts ?? 3;
   const delayMs = options.delayMs ?? 500;
+  const isRetryable = options.isRetryable ?? isRetryableReleaseError;
   const sleep = options.sleep ?? ((delay: number) => new Promise<void>((resolve) => setTimeout(resolve, delay)));
   let lastError: unknown;
 
@@ -126,7 +128,7 @@ export async function retryReleaseRequest<T>(
       return await request();
     } catch (error) {
       lastError = error;
-      if (attempt === attempts || !isRetryableReleaseError(error)) break;
+      if (attempt === attempts || !isRetryable(error)) break;
       options.onRetry?.(attempt, error);
       await sleep(delayMs);
     }
