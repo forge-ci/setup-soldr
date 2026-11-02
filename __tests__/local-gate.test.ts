@@ -20,7 +20,12 @@ const posixOnly = { skip: process.platform === "win32" ? "POSIX shell stubs" : f
 
 interface Repo {
   root: string;
+  // Every git and gate invocation runs with the same hermetic environment: no
+  // global or system config, and an explicit identity. A runner has neither,
+  // so without this a case that commits passes locally and fails in CI.
+  env: NodeJS.ProcessEnv;
   git: (...args: string[]) => string;
+  gitRaw: (args: string[], input?: string) => { status: number; out: string };
   gate: (args: string[], extraEnv?: Record<string, string>) => { status: number; out: string };
   verify: (args: string[]) => { status: number; out: string; outputs: Record<string, string> };
 }
@@ -35,6 +40,10 @@ function makeRepo(): Repo {
     GIT_AUTHOR_EMAIL: "gate@example.invalid",
     GIT_COMMITTER_NAME: "Gate Test",
     GIT_COMMITTER_EMAIL: "gate@example.invalid",
+  };
+  const gitRaw = (args: string[], input?: string) => {
+    const r = spawnSync("git", args, { cwd: root, env, encoding: "utf8", input });
+    return { status: r.status ?? 1, out: `${r.stdout}${r.stderr}` };
   };
   const git = (...args: string[]): string => {
     const r = spawnSync("git", args, { cwd: root, env, encoding: "utf8" });
@@ -84,7 +93,7 @@ function makeRepo(): Repo {
   git("commit", "-q", "--no-verify", "-m", "base");
   // Stand in for the fetched default branch the gate diffs against.
   git("update-ref", "refs/remotes/origin/main", "HEAD");
-  return { root, git, gate, verify };
+  return { root, env, git, gitRaw, gate, verify };
 }
 
 function commitChange(repo: Repo, file = path.join("src", "a.ts"), body = "export const a = 1;\n"): void {
@@ -177,9 +186,8 @@ test("editing a record distrusts the whole head", posixOnly, () => {
   assert.equal(repo.gate(["run"]).status, 0);
   const message = repo.git("log", "-1", "--format=%B", "HEAD")
     .replace(/("stamp":")[0-9a-f]{32}/, "$1" + "0".repeat(32));
-  const amend = spawnSync("git", ["commit", "--amend", "--no-verify", "--quiet", "-F", "-"],
-    { cwd: repo.root, input: message, encoding: "utf8", env: { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null" } });
-  assert.equal(amend.status, 0, amend.stderr);
+  const amend = repo.gitRaw(["commit", "--amend", "--no-verify", "--quiet", "-F", "-"], message);
+  assert.equal(amend.status, 0, amend.out);
 
   const verified = repo.verify([]);
   assert.equal(verified.outputs["attested"], "false", verified.out);
@@ -231,21 +239,23 @@ test("check-push refuses an unattested head and accepts an attested one", posixO
   commitChange(repo);
   const head = repo.git("rev-parse", "HEAD").trim();
   const line = (sha: string) => `refs/heads/main ${sha} refs/heads/main ${"0".repeat(40)}\n`;
-  const push = (sha: string) => spawnSync(process.execPath, [path.join(repo.root, "ci", "local_gate.mjs"), "check-push"],
-    { cwd: repo.root, input: line(sha), encoding: "utf8" });
+  const push = (stdin: string) => {
+    const r = spawnSync(process.execPath, [path.join(repo.root, "ci", "local_gate.mjs"), "check-push"],
+      { cwd: repo.root, env: repo.env, input: stdin, encoding: "utf8" });
+    return { status: r.status ?? 1, out: `${r.stdout}${r.stderr}` };
+  };
 
-  const refused = push(head);
-  assert.equal(refused.status, 1, refused.stdout);
-  assert.match(`${refused.stdout}${refused.stderr}`, /no Local-Gate trailer/);
+  const refused = push(line(head));
+  assert.equal(refused.status, 1, refused.out);
+  assert.match(refused.out, /no Local-Gate trailer/);
 
   assert.equal(repo.gate(["run"]).status, 0);
-  const accepted = push(repo.git("rev-parse", "HEAD").trim());
-  assert.equal(accepted.status, 0, `${accepted.stdout}${accepted.stderr}`);
+  const accepted = push(line(repo.git("rev-parse", "HEAD").trim()));
+  assert.equal(accepted.status, 0, accepted.out);
 
   // A deletion carries the zero sha and is not the gate's business.
-  const deletion = spawnSync(process.execPath, [path.join(repo.root, "ci", "local_gate.mjs"), "check-push"],
-    { cwd: repo.root, input: `refs/heads/gone ${"0".repeat(40)} refs/heads/gone ${head}\n`, encoding: "utf8" });
-  assert.equal(deletion.status, 0, deletion.stderr);
+  const deletion = push(`refs/heads/gone ${"0".repeat(40)} refs/heads/gone ${head}\n`);
+  assert.equal(deletion.status, 0, deletion.out);
 });
 
 test("touching a gate surface is never trusted", posixOnly, () => {
