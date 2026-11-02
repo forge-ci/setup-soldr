@@ -101,6 +101,7 @@ Fail-closed, with no exceptions:
 | Situation | Result |
 | --- | --- |
 | event is not `pull_request` (push to `main`, merge queue, dispatch) | every step runs — these are the post-merge catch and the merge boundary |
+| the head is on a fork, or the author is not `OWNER`/`MEMBER`/`COLLABORATOR` | every step runs. The stamp is tamper-evident, not a signature: anyone holding the script can mint a record, so only a writer's head on this repository may authorize a skip |
 | the checkout is not a two-parent merge commit, or `HEAD^2` is not the PR head GitHub reported | every step runs |
 | the PR touches a gate surface (`package.json`, `package-lock.json`, `tsconfig.json`, `.oxlintrc.json`, `ci-attestations.yml`, `ci/local_gate.mjs`, this workflow) | every step runs: only a remote run can validate a change to what the gate itself does |
 | `ci-attestations.yml` missing or unparseable **at the base** | every step runs. The definition is always read from the base, so a PR cannot widen what it may skip |

@@ -97,6 +97,17 @@ jobs:
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             deny "event is ${{ github.event_name }}, not pull_request"
           fi
+          # GATE-008's head-level policy. The stamp is tamper-evident, not a
+          # signature: anyone holding the script can mint a record. So only a
+          # head pushed to this repository by someone with write access may
+          # authorize a skip; a fork or an outside contributor runs everything.
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+            deny "the head is on a fork"
+          fi
+          case "${{ github.event.pull_request.author_association }}" in
+            OWNER|MEMBER|COLLABORATOR) ;;
+            *) deny "author association is ${{ github.event.pull_request.author_association }}, not a repository writer" ;;
+          esac
           head="$(git rev-parse --verify --quiet 'HEAD^2' || true)"
           base="$(git rev-parse --verify --quiet 'HEAD^1' || true)"
           if [ -z "$head" ] || [ -z "$base" ]; then

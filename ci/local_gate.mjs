@@ -317,9 +317,12 @@ function computeStamp(body) {
   return digest.slice(0, STAMP_HEX);
 }
 
-function attestationTrailer(body) {
-  const stamped = { ...body, stamp: computeStamp(body) };
-  return `${ATTESTATION_TRAILER_KEY}: ${canonicalJson(stamped)}`;
+function stamped(body) {
+  return { ...body, stamp: computeStamp(body) };
+}
+
+function attestationTrailer(record) {
+  return `${ATTESTATION_TRAILER_KEY}: ${canonicalJson(record)}`;
 }
 
 function parseAttestationTrailers(message) {
@@ -528,8 +531,9 @@ function cmdRun(argv) {
         host: hostLabel(),
         at: Math.floor(Date.now() / 1000),
       });
-      trailers.push(attestationTrailer(body));
-      records.push({ ...body, stamp: computeStamp(body) });
+      const record = stamped(body);
+      trailers.push(attestationTrailer(record));
+      records.push(record);
     }
   }
   const lanesField = results
