@@ -6,6 +6,8 @@ import io
 import tempfile
 import urllib.error
 import zipfile
+from email.message import Message
+from typing import Any
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location(
     "v0_promotion", ROOT / "scripts/verify-v0-promotion.py"
 )
+assert SPEC is not None and SPEC.loader is not None
 promotion = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(promotion)
 SHA = "a" * 40
@@ -58,7 +61,7 @@ def evidence(
     with zipfile.ZipFile(stream, "w") as archive:
         archive.writestr("job.txt", blob)
 
-    def fake_api(path, *, archive=False):
+    def fake_api(path, *, archive=False) -> Any:
         if path == promotion.SETUP_REPO:
             return {"id": alias_repository_id, "full_name": "forge-ci/setup-soldr"}
         if path.endswith("git/ref/heads/main"):
@@ -131,7 +134,7 @@ def test_rerun_canary_reads_every_attempts_logs():
         archive.writestr("rerun.txt", b"Run actions/checkout@v4\n")
     requested = []
 
-    def fake_api(path, *, archive=False):
+    def fake_api(path, *, archive=False) -> Any:
         if path.endswith("/logs"):
             requested.append(path)
             if path.endswith("/attempts/1/logs"):
@@ -220,7 +223,7 @@ def test_transport_error_and_5xx_retry_but_4xx_does_not():
         assert urlopen.call_count == 2
         sleep.assert_called_once_with(1)
 
-    error = urllib.error.HTTPError("https://example.com", 404, "missing", {}, None)
+    error = urllib.error.HTTPError("https://example.com", 404, "missing", Message(), None)
     with patch.dict(promotion.os.environ, {"GH_TOKEN": "test"}), patch.object(
         promotion.urllib.request, "urlopen", side_effect=error,
     ) as urlopen, patch.object(promotion.time, "sleep") as sleep:
@@ -241,7 +244,7 @@ def test_gateway_502_retries_on_metadata_calls():
         def read(self):
             return b'{"ok": true}'
 
-    bad_gateway = urllib.error.HTTPError("https://example.com", 502, "Bad Gateway", {}, None)
+    bad_gateway = urllib.error.HTTPError("https://example.com", 502, "Bad Gateway", Message(), None)
     with patch.dict(promotion.os.environ, {"GH_TOKEN": "test"}), patch.object(
         promotion.urllib.request, "urlopen", side_effect=[bad_gateway, Response()],
     ) as urlopen, patch.object(promotion.time, "sleep") as sleep:
@@ -251,20 +254,21 @@ def test_gateway_502_retries_on_metadata_calls():
 
 
 @pytest.mark.parametrize(
-    "conclusion,newer,other_workflow,wrong_sha,accepted",
+    "conclusion,newer,other_workflow,wrong_sha,accepted,seed_status",
     [
-        ("success", True, False, False, True),
-        ("success", False, False, False, False),
-        ("success", True, True, False, False),
-        ("success", True, False, True, False),
-        ("failure", True, False, False, False),
-        ("cancelled", True, False, False, False),
+        ("success", True, False, False, True, "cancelled"),
+        ("success", True, False, False, False, "failure"),
+        ("success", False, False, False, False, "cancelled"),
+        ("success", True, True, False, False, "cancelled"),
+        ("success", True, False, True, False, "cancelled"),
+        ("failure", True, False, False, False, "cancelled"),
+        ("cancelled", True, False, False, False, "cancelled"),
     ],
 )
 def test_cancelled_duplicate_requires_newer_exact_workflow_success(
-    conclusion, newer, other_workflow, wrong_sha, accepted,
+    conclusion, newer, other_workflow, wrong_sha, accepted, seed_status,
 ):
-    fake = evidence(canary_status="cancelled")
+    fake = evidence(canary_status=seed_status)
     seed = fake("/runs/43")
     sibling = {
         **seed, "id": 44, "run_number": 2 if newer else 0,
@@ -289,7 +293,7 @@ def test_resolved_canary_jobs_and_logs_use_successful_replacement():
     replacement = {**base("/runs/43"), "id": 44, "run_number": 2}
     requested = []
 
-    def fake_api(path, *, archive=False):
+    def fake_api(path, *, archive=False) -> Any:
         requested.append(path)
         if path.endswith("/runs/43"):
             return cancelled
