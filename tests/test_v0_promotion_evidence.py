@@ -38,6 +38,10 @@ def evidence(
     }
     canary = {
         "id": 43,
+        "head_sha": "b" * 40,
+        "name": "ci-minimal",
+        "workflow_id": 123,
+        "run_number": 1,
         "repository": {"full_name": "FastLED/fbuild"},
         "status": "completed",
         "conclusion": canary_status,
@@ -59,6 +63,8 @@ def evidence(
             return {"id": alias_repository_id, "full_name": "forge-ci/setup-soldr"}
         if path.endswith("git/ref/heads/main"):
             return {"object": {"sha": SHA}}
+        if "/actions/runs?" in path:
+            return {"workflow_runs": [canary], "total_count": 1}
         if "/workflows/" in path:
             return {"workflow_runs": [run] if contract else []}
         if "/jobs?" in path:
@@ -242,3 +248,36 @@ def test_gateway_502_retries_on_metadata_calls():
         assert promotion.api("FastLED/fbuild/actions/runs/43/jobs") == {"ok": True}
         assert urlopen.call_count == 2
         sleep.assert_called_once_with(1)
+
+
+@pytest.mark.parametrize(
+    "conclusion,newer,other_workflow,wrong_sha,accepted",
+    [
+        ("success", True, False, False, True),
+        ("success", False, False, False, False),
+        ("success", True, True, False, False),
+        ("success", True, False, True, False),
+        ("failure", True, False, False, False),
+        ("cancelled", True, False, False, False),
+    ],
+)
+def test_cancelled_duplicate_requires_newer_exact_workflow_success(
+    conclusion, newer, other_workflow, wrong_sha, accepted,
+):
+    fake = evidence(canary_status="cancelled")
+    seed = fake("/runs/43")
+    sibling = {
+        **seed, "id": 44, "run_number": 2 if newer else 0,
+        "conclusion": conclusion,
+        "name": "Formatting" if other_workflow else seed["name"],
+        "workflow_id": 999 if other_workflow else seed["workflow_id"],
+        "head_sha": "c" * 40 if wrong_sha else seed["head_sha"],
+    }
+    with patch.object(promotion, "api", return_value={
+        "workflow_runs": [seed, sibling], "total_count": 2,
+    }):
+        if accepted:
+            assert promotion.select_canary(seed)["id"] == 44
+        else:
+            with pytest.raises(ValueError, match="expected successful"):
+                promotion.select_canary(seed)
