@@ -2,7 +2,7 @@
 
 [![Setup Soldr Action](https://github.com/zackees/setup-soldr/actions/workflows/setup-soldr-action.yml/badge.svg)](https://github.com/zackees/setup-soldr/actions/workflows/setup-soldr-action.yml)
 
-Public GitHub Action for installing one released `soldr` binary, provisioning the resolved Rust toolchain, and restoring cacheable Soldr/zccache state without rehydrating large Cargo or toolchain homes by default. The default Soldr version is `0.9.47`.
+Public GitHub Action for installing one released `soldr` binary, provisioning the resolved Rust toolchain, and restoring cacheable Soldr/zccache state without rehydrating large Cargo or toolchain homes by default. The default Soldr version is `0.9.51`.
 
 This repository is intended to be generated from `zackees/soldr`. The source-of-truth contract and release process still live in `soldr` issue #137 and `docs/SETUP_SOLDR_PUBLIC_ACTION.md`.
 
