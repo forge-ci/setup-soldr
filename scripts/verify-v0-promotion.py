@@ -11,13 +11,22 @@ import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
+from typing import Any, Literal, overload
 
 SETUP_REPO = "zackees/setup-soldr"
 CANARY_REPO = "FastLED/fbuild"
 SHA_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
 
 
-def api(path: str, *, archive: bool = False):
+@overload
+def api(path: str, *, archive: Literal[True]) -> bytes: ...
+
+
+@overload
+def api(path: str, *, archive: Literal[False] = False) -> Any: ...
+
+
+def api(path: str, *, archive: bool = False) -> Any:
     token = os.environ["GH_TOKEN"]
     request = urllib.request.Request(
         f"https://api.github.com/repos/{path}",
@@ -45,7 +54,7 @@ def api(path: str, *, archive: bool = False):
     return data if archive else json.loads(data)
 
 
-def select_canary(seed):
+def select_canary(seed: dict[str, Any]) -> dict[str, Any]:
     """Resolve superseded duplicates only within the required workflow and commit."""
     if (
         seed["repository"]["full_name"].lower() != CANARY_REPO.lower()
@@ -54,7 +63,7 @@ def select_canary(seed):
         or not SHA_PATTERN.fullmatch(seed.get("head_sha", ""))
     ):
         raise ValueError("expected successful FastLED/fbuild ci-minimal pull-request canary")
-    groups = {}
+    groups: dict[str, list[dict[str, Any]]] = {}
     for page in range(1, 11):
         result = api(
             f"{CANARY_REPO}/actions/runs?head_sha={seed['head_sha']}"
@@ -84,7 +93,7 @@ def select_canary(seed):
         or any(run["conclusion"] == "failure" for run in runs)
     ):
         raise ValueError("expected successful FastLED/fbuild ci-minimal pull-request canary")
-    return latest
+    return seed if latest["id"] == seed["id"] else latest
 
 
 def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baseline, zackees/ci.yml#229

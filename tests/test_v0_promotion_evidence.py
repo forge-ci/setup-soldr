@@ -281,3 +281,29 @@ def test_cancelled_duplicate_requires_newer_exact_workflow_success(
         else:
             with pytest.raises(ValueError, match="expected successful"):
                 promotion.select_canary(seed)
+
+
+def test_resolved_canary_jobs_and_logs_use_successful_replacement():
+    base = evidence()
+    cancelled = {**base("/runs/43"), "conclusion": "cancelled"}
+    replacement = {**base("/runs/43"), "id": 44, "run_number": 2}
+    requested = []
+
+    def fake_api(path, *, archive=False):
+        requested.append(path)
+        if path.endswith("/runs/43"):
+            return cancelled
+        if "/actions/runs?" in path:
+            assert "head_sha=" + cancelled["head_sha"] in path
+            return {"workflow_runs": [cancelled, replacement], "total_count": 2}
+        return base(path, archive=archive)
+
+    with tempfile.TemporaryDirectory() as runner_temp:
+        with patch.object(promotion, "api", fake_api), patch.object(
+            promotion.subprocess, "check_output", return_value=SHA
+        ), patch.dict(promotion.os.environ, {"RUNNER_TEMP": runner_temp, "GITHUB_REPOSITORY_ID": "101"}):
+            assert promotion.verify(SHA, "43") == 42
+            assert Path(runner_temp, "v0-canary-run-id").read_text() == "44"
+    assert any("/runs/44/jobs?" in path for path in requested)
+    assert any("/runs/44/attempts/1/logs" in path for path in requested)
+    assert not any("/runs/43/jobs?" in path for path in requested)
