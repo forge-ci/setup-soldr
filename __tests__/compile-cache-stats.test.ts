@@ -1323,11 +1323,13 @@ interface GateModule {
     restored: boolean;
     newCompiles: number | null;
     minCompiles: number;
+    dylintOutputRestored?: boolean;
   }) => { skip: boolean; reason: string };
   decideTargetCacheSave: (input: {
     restored: boolean;
     newCompiles: number | null;
     minCompiles: number;
+    dylintOutputRestored?: boolean;
   }) => { skip: boolean; reason: string };
 }
 
@@ -1383,4 +1385,36 @@ test("#255 decideTargetCacheSave: same semantics as build, but reason names targ
   assert.equal(decideTargetCacheSave({ restored: false, newCompiles: 0, minCompiles: 1 }).skip, false);
   assert.equal(decideTargetCacheSave({ restored: true, newCompiles: 0, minCompiles: 0 }).skip, false);
   assert.equal(decideTargetCacheSave({ restored: true, newCompiles: null, minCompiles: 1 }).skip, false);
+});
+
+// ---------------------------------------------------------------------------
+// Dylint thin-store poisoning: a dylint-output-cache hit compiles almost
+// nothing, so its build/target store must never be saved (it would replace
+// and LRU-evict the real ~1.2 GB entry under Bosn's 8 GiB per-repo cap).
+// ---------------------------------------------------------------------------
+
+test("dylint thin store: output-cache hit + cold build-cache + thin compile skips build-cache save", async () => {
+  const { decideBuildCacheSave } = await gateMod();
+  const r = decideBuildCacheSave({ restored: false, newCompiles: 229, minCompiles: 1, dylintOutputRestored: true });
+  assert.equal(r.skip, true);
+  assert.match(r.reason, /dylint-output-cache was restored/);
+  // Same with a fallback build-cache restore and with an unknown count.
+  assert.equal(decideBuildCacheSave({ restored: true, newCompiles: 229, minCompiles: 1, dylintOutputRestored: true }).skip, true);
+  assert.equal(decideBuildCacheSave({ restored: false, newCompiles: null, minCompiles: 1, dylintOutputRestored: true }).skip, true);
+});
+
+test("dylint thin store: target-cache save is gated the same way", async () => {
+  const { decideTargetCacheSave } = await gateMod();
+  const r = decideTargetCacheSave({ restored: false, newCompiles: 229, minCompiles: 1, dylintOutputRestored: true });
+  assert.equal(r.skip, true);
+});
+
+test("dylint thin store: real compilation (output-cache miss) still saves, and min-compiles=0 force-saves", async () => {
+  const { decideBuildCacheSave } = await gateMod();
+  // cold seed after a real Dylint compile
+  assert.equal(decideBuildCacheSave({ restored: false, newCompiles: 2233, minCompiles: 1, dylintOutputRestored: false }).skip, false);
+  // warm fallback with a real delta
+  assert.equal(decideBuildCacheSave({ restored: true, newCompiles: 2233, minCompiles: 1 }).skip, false);
+  // explicit opt-out of the gate still saves a thin store
+  assert.equal(decideBuildCacheSave({ restored: false, newCompiles: 229, minCompiles: 0, dylintOutputRestored: true }).skip, false);
 });

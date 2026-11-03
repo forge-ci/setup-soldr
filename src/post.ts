@@ -268,6 +268,17 @@ export function dylintMarkerIdentityMatches(
   return markerChannel === `${expectedChannel}-${hostTriple}`;
 }
 
+/**
+ * True when main restored a Dylint output cache (exact or fallback key).
+ * Feeds the thin-store build/target save gate (see `decideCacheSaveGate`).
+ */
+export function dylintOutputCacheRestored(): boolean {
+  return (
+    core.getState("dylintOutputCacheExactHit") === "true" ||
+    core.getState("dylintOutputCacheMatchedKey").trim().length > 0
+  );
+}
+
 function stateBool(name: string, fallback = false): boolean {
   const value = core.getState(name).trim().toLowerCase();
   if (value === "true") return true;
@@ -1588,6 +1599,7 @@ export async function run(): Promise<void> {
     restored: buildCacheRestored,
     newCompiles: buildDeltaMisses,
     minCompiles: parseMinCompiles(rawInputs.buildCacheSaveMinCompiles),
+    dylintOutputRestored: dylintOutputCacheRestored(),
   });
   let buildSave: CacheSaveResultWithStats;
   if (!restoreState.buildCacheEnabled) {
@@ -1807,6 +1819,7 @@ export async function run(): Promise<void> {
           restored: targetCacheRestored,
           newCompiles: buildDeltaMisses,
           minCompiles: parseMinCompiles(rawInputs.targetCacheSaveMinCompiles),
+          dylintOutputRestored: dylintOutputCacheRestored(),
         });
         if (targetSaveGate.skip) {
           log(
