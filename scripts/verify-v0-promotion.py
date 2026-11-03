@@ -11,13 +11,22 @@ import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
+from typing import Any, Literal, overload
 
 SETUP_REPO = "zackees/setup-soldr"
 CANARY_REPO = "FastLED/fbuild"
 SHA_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
 
 
-def api(path: str, *, archive: bool = False):
+@overload
+def api(path: str, *, archive: Literal[True]) -> bytes: ...
+
+
+@overload
+def api(path: str, *, archive: Literal[False] = False) -> Any: ...
+
+
+def api(path: str, *, archive: bool = False) -> Any:
     token = os.environ["GH_TOKEN"]
     request = urllib.request.Request(
         f"https://api.github.com/repos/{path}",
@@ -30,6 +39,7 @@ def api(path: str, *, archive: bool = False):
     # Every call retries transport failures and 5xx: a 502 from the API
     # gateway (or the log archive's blob redirect) is transient, and failing
     # the promotion on it forces a re-run of the whole verification.
+    data = b""
     for attempt in range(4):
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
@@ -42,6 +52,48 @@ def api(path: str, *, archive: bool = False):
                 raise
             time.sleep(2 ** attempt)
     return data if archive else json.loads(data)
+
+
+def select_canary(seed: dict[str, Any]) -> dict[str, Any]:
+    """Resolve superseded duplicates only within the required workflow and commit."""
+    if (
+        seed["repository"]["full_name"].lower() != CANARY_REPO.lower()
+        or seed["event"] != "pull_request"
+        or seed["path"].lstrip("/") != ".github/workflows/ci-minimal.yml"
+        or not SHA_PATTERN.fullmatch(seed.get("head_sha", ""))
+    ):
+        raise ValueError("expected successful FastLED/fbuild ci-minimal pull-request canary")
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for page in range(1, 11):
+        result = api(
+            f"{CANARY_REPO}/actions/runs?head_sha={seed['head_sha']}"
+            f"&event=pull_request&per_page=100&page={page}"
+        )
+        for run in result["workflow_runs"]:
+            if (
+                run["head_sha"] == seed["head_sha"]
+                and run["repository"]["full_name"].lower() == CANARY_REPO.lower()
+                and run["event"] == "pull_request"
+            ):
+                groups.setdefault(run["name"], []).append(run)
+        if page * 100 >= result["total_count"]:
+            break
+    else:
+        raise ValueError("canary run listing exceeds verification limit")
+    runs = [
+        run for run in groups.get(seed["name"], [])
+        if run["path"] == seed["path"] and run["workflow_id"] == seed["workflow_id"]
+    ]
+    # A different workflow's green run is never replacement coverage. Require
+    # the newest run to succeed; older successes cannot hide failures or an
+    # unsuperseded cancellation. GitHub run_number orders same-second starts.
+    latest = max(runs, key=lambda run: (run["run_number"], run["id"]), default=seed)
+    if (
+        latest["status"] != "completed" or latest["conclusion"] != "success"
+        or any(run["conclusion"] == "failure" for run in runs)
+    ):
+        raise ValueError("expected successful FastLED/fbuild ci-minimal pull-request canary")
+    return seed if latest["id"] == seed["id"] else latest
 
 
 def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baseline, zackees/ci.yml#229
@@ -78,16 +130,11 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
     if not contracts:
         raise ValueError("no successful Setup Soldr Contract run for exact main SHA")
 
-    canary = api(f"{CANARY_REPO}/actions/runs/{canary_id}")
-    if (
-        canary["id"] != int(canary_id)
-        or canary["repository"]["full_name"].lower() != CANARY_REPO.lower()
-        or canary["event"] != "pull_request"
-        or canary["path"].lstrip("/") != ".github/workflows/ci-minimal.yml"
-        or canary["status"] != "completed"
-        or canary["conclusion"] != "success"
-    ):
-        raise ValueError("expected successful FastLED/fbuild ci-minimal pull-request canary")
+    seed = api(f"{CANARY_REPO}/actions/runs/{canary_id}")
+    if seed["id"] != int(canary_id):
+        raise ValueError("canary run ID mismatch")
+    canary = select_canary(seed)
+    canary_id = str(canary["id"])
 
     required_jobs = {"CI selected coverage", "full / Full coverage"}
     successful_jobs = set()
@@ -131,6 +178,7 @@ def verify(target: str, canary_id: str) -> int:  # noqa: C901 - measured baselin
     print(f"Contract: {contract['html_url']}")
     print(f"Canary: {canary['html_url']}")
     Path(os.environ["RUNNER_TEMP"], "v0-contract-run-id").write_text(str(contract["id"]))
+    Path(os.environ["RUNNER_TEMP"], "v0-canary-run-id").write_text(canary_id)
     return contract["id"]
 
 

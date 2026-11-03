@@ -76,6 +76,10 @@ npm        = { prefix = "node-cache-",             max = "100MB", per = "none", 
 [cache.promote]
 mode = "off"
 
+[local.gate]
+run = ["bash", "-c", "uvx ruff==0.12.10 check . && uv run --with pytest --with pyyaml python -m pytest tests/test_action_target_cache_wiring.py tests/test_bench_cache_modes_workflow.py tests/test_cook_rematerialization_workflow.py tests/test_rust_ci_workflow.py tests/test_release_rollout_contract.py tests/test_v0_promotion_evidence.py tests/test_release_lane_workflow.py tests/test_ci_summary.py"]
+mirrors = ["setup-soldr-contract.yml:contract-tests"]
+
 [local]
 runner = "native"
 lanes  = []

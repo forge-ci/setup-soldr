@@ -11,7 +11,7 @@ on:
         required: true
         type: string
       canary_run_id:
-        description: Successful FastLED/fbuild exact-pin canary run ID.
+        description: FastLED/fbuild exact-pin ci-minimal run ID (superseded duplicates resolved).
         required: true
         type: string
       dry_run:
@@ -64,7 +64,7 @@ jobs:
           test "${old_ref}" != ""
           test "$(git ls-remote origin refs/heads/main | cut -f1)" = "${TARGET_SHA}"
           echo "Contract: https://github.com/zackees/setup-soldr/actions/runs/$(cat "$RUNNER_TEMP/v0-contract-run-id")"
-          echo "Canary: https://github.com/FastLED/fbuild/actions/runs/${CANARY_RUN_ID}"
+          echo "Canary: https://github.com/FastLED/fbuild/actions/runs/$(cat "$RUNNER_TEMP/v0-canary-run-id")"
           echo "Decision: v0 ${old_ref} -> ${TARGET_SHA}; dry_run=${DRY_RUN}"
           if [[ "${DRY_RUN}" == "true" ]]; then exit 0; fi
           git push --force-with-lease="refs/tags/v0:${old_ref}" origin "${TARGET_SHA}:refs/tags/v0"
