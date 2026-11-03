@@ -51750,6 +51750,16 @@ function parseMinCompiles(value) {
 function decideCacheSaveGate(input, gateName) {
     if (input.minCompiles <= 0)
         return { skip: false, reason: "" };
+    // A run whose Dylint output came from cache did little compilation, so its
+    // store is thin even when nothing was restored (the cold-seed exemption
+    // below would otherwise upload it). Skip; a run that misses the output
+    // cache compiles for real and seeds the layer.
+    if (input.dylintOutputRestored) {
+        return {
+            skip: true,
+            reason: `dylint-output-cache was restored, so this run's store is thin (${input.newCompiles ?? "unknown"} new compile(s)); a thin save would evict the real entry`,
+        };
+    }
     if (!input.restored)
         return { skip: false, reason: "" };
     if (input.newCompiles === null)
@@ -60948,6 +60958,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.dylintMarkerIdentityMatches = dylintMarkerIdentityMatches;
+exports.dylintOutputCacheRestored = dylintOutputCacheRestored;
 exports.resolveJournalPrintRaw = resolveJournalPrintRaw;
 exports.resolveCachePayloadPolicy = resolveCachePayloadPolicy;
 exports.applyCachePayloadOversizeAction = applyCachePayloadOversizeAction;
@@ -61060,6 +61071,14 @@ function dylintMarkerIdentityMatches(markerContent, cacheIdentity, hostTriple) {
     if (!hostTriple)
         return false;
     return markerChannel === `${expectedChannel}-${hostTriple}`;
+}
+/**
+ * True when main restored a Dylint output cache (exact or fallback key).
+ * Feeds the thin-store build/target save gate (see `decideCacheSaveGate`).
+ */
+function dylintOutputCacheRestored() {
+    return (core.getState("dylintOutputCacheExactHit") === "true" ||
+        core.getState("dylintOutputCacheMatchedKey").trim().length > 0);
 }
 function stateBool(name, fallback = false) {
     const value = core.getState(name).trim().toLowerCase();
@@ -62249,6 +62268,7 @@ async function run() {
         restored: buildCacheRestored,
         newCompiles: buildDeltaMisses,
         minCompiles: (0, compile_cache_stats_js_1.parseMinCompiles)(rawInputs.buildCacheSaveMinCompiles),
+        dylintOutputRestored: dylintOutputCacheRestored(),
     });
     let buildSave;
     if (!restoreState.buildCacheEnabled) {
@@ -62456,6 +62476,7 @@ async function run() {
                     restored: targetCacheRestored,
                     newCompiles: buildDeltaMisses,
                     minCompiles: (0, compile_cache_stats_js_1.parseMinCompiles)(rawInputs.targetCacheSaveMinCompiles),
+                    dylintOutputRestored: dylintOutputCacheRestored(),
                 });
                 if (targetSaveGate.skip) {
                     log(`target-cache: skipping save — ${targetSaveGate.reason} ` +

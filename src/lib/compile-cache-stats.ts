@@ -705,6 +705,13 @@ export interface BuildCacheSaveGateInput {
   newCompiles: number | null;
   /** `build-cache-save-min-compiles`. <= 0 disables the gate (always save). */
   minCompiles: number;
+  /**
+   * A Dylint output cache (`dylint-output-cache`) was restored this run,
+   * exact or fallback. Dylint then skips most rustc work, so the zccache
+   * store only holds the handful of crates it re-checked: a thin entry that
+   * must never replace (or LRU-evict) one produced by real compilation.
+   */
+  dylintOutputRestored?: boolean;
 }
 
 export interface BuildCacheSaveGate {
@@ -736,6 +743,16 @@ function decideCacheSaveGate(
   gateName: string,
 ): BuildCacheSaveGate {
   if (input.minCompiles <= 0) return { skip: false, reason: "" };
+  // A run whose Dylint output came from cache did little compilation, so its
+  // store is thin even when nothing was restored (the cold-seed exemption
+  // below would otherwise upload it). Skip; a run that misses the output
+  // cache compiles for real and seeds the layer.
+  if (input.dylintOutputRestored) {
+    return {
+      skip: true,
+      reason: `dylint-output-cache was restored, so this run's store is thin (${input.newCompiles ?? "unknown"} new compile(s)); a thin save would evict the real entry`,
+    };
+  }
   if (!input.restored) return { skip: false, reason: "" };
   if (input.newCompiles === null) return { skip: false, reason: "" };
   if (input.newCompiles < input.minCompiles) {

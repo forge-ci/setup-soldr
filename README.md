@@ -878,6 +878,15 @@ layer is actually paying off:
   skipped (`build-cache-save-min-compiles`, default `1`) to avoid re-uploading a
   duplicate multi-GiB payload; raise the threshold to also skip tiny deltas, or
   set `0` to always save.
+- **Dylint thin-store rule.** When the `dylint-output-cache` was restored
+  (exact or fallback key), Dylint skips almost all rustc work, so the
+  build-cache and target-cache stores hold only the few crates it re-checked
+  (measured on zccache: ~294 MB vs the real ~1.2 GB, 644 vs 2648 rustc-cache
+  hits on the next run). Those saves are skipped even on a cold seed, because a
+  thin entry would win the key and, under Bosn's 8 GiB per-repository act-cache
+  LRU cap, evict the real one; the next run that misses the output cache
+  compiles for real and seeds the layer. `build-cache-save-min-compiles: 0`
+  (or `target-cache-save-min-compiles: 0`) still forces the save.
 
 ## Release-grade usage: encrypted cache
 
