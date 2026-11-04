@@ -54372,7 +54372,7 @@ async function downloadOnce(url, dest, headers) {
         if (error instanceof Error && error.message.startsWith("download failed for "))
             throw error;
         const detail = error instanceof Error ? error.message : String(error);
-        throw new Error(`download failed for ${url}: network error: ${detail}`);
+        throw new Error(`download failed for ${url}: network error: ${detail}`, { cause: error });
     }
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, buffer);
