@@ -49,5 +49,5 @@ def test_workflow_triggers_are_unfiltered():
     on = wf[True]  # PyYAML reads the `on:` key as boolean True
     assert "pull_request" in on and "merge_group" in on
     for event, spec in on.items():
-        assert not (spec or {}).get("paths"), f"{event} must not be path-filtered: the required check would never run"
-        assert not (spec or {}).get("paths-ignore"), f"{event} must not use paths-ignore"
+        assert not (spec if isinstance(spec, dict) else {}).get("paths"), f"{event} must not be path-filtered: the required check would never run"
+        assert not (spec if isinstance(spec, dict) else {}).get("paths-ignore"), f"{event} must not use paths-ignore"

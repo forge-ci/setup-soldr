@@ -217,7 +217,6 @@ export function diagnoseShimBypass(input: ShimBypassInput): string[] {
     const w = input.rustcWrapperEnv.trim();
     const wName = execBasename(w, platform);
     const soldr = (input.soldrBinary ?? "").trim();
-    const soldrName = soldr ? execBasename(soldr, platform) : "";
     const normW = normalizePath(w, platform);
     const normSoldr = soldr ? normalizePath(soldr, platform) : "";
 

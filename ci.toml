@@ -27,6 +27,7 @@ windows-arm64 = { target = "aarch64-pc-windows-msvc",   runs-on = "windows-11-ar
 [suites]
 unit          = { run = "npm test", required = true }
 typecheck     = { run = "npm run typecheck", required = true }
+lint          = { run = "npm run lint", required = true }
 build         = { run = "npm run build", required = true }
 contract      = { run = "python -m ruff check .", required = true }
 readiness     = { run = "node scripts/check-default-release-readiness.mjs", required = true }
@@ -37,7 +38,7 @@ comparison    = { run = "comparison-cluster.yml", kind = "bench", gating = false
 # -- Flows ---------------------------------------------------------------------
 [flow.pr]
 platforms = ["linux-x64"]
-suites    = ["unit", "typecheck", "build", "contract", "readiness", "vendor-prose", "cook-selftest"]
+suites    = ["unit", "typecheck", "lint", "build", "contract", "readiness", "vendor-prose", "cook-selftest"]
 
 [flow.main]
 extends = "pr"
@@ -80,9 +81,17 @@ mode = "off"
 run = ["bash", "-c", "uvx ruff==0.12.10 check . && uv run --with pytest --with pyyaml python -m pytest tests/test_action_target_cache_wiring.py tests/test_bench_cache_modes_workflow.py tests/test_cook_rematerialization_workflow.py tests/test_rust_ci_workflow.py tests/test_release_rollout_contract.py tests/test_v0_promotion_evidence.py tests/test_release_lane_workflow.py tests/test_ci_summary.py"]
 mirrors = ["setup-soldr-contract.yml:contract-tests"]
 
+# -- Local gate ----------------------------------------------------------------
+# ci/local_gate.mjs proves the lint, typecheck and unit suites on the
+# developer host and stamps the commit with the fleet's `Local-Gate:` trailer
+# plus one `Ci-Attestation:` record per gate declared in
+# `ci-attestations.yml` (forge-ci/ci.yml GATE-008/GATE-010). The `js-build`
+# job re-verifies those records and skips the steps they prove; it fails
+# closed on anything it cannot verify. There is no lane result cache yet, so
+# `cache = "off"`.
 [local]
 runner = "native"
-lanes  = []
+lanes  = ["lint", "typecheck", "tests"]
 cache  = "off"
 
 # -- Allowlists ----------------------------------------------------------------

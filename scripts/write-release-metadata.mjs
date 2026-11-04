@@ -13,7 +13,7 @@ function parseJson(name) {
   try {
     return JSON.parse(required(name));
   } catch (error) {
-    throw new Error(`${name} must contain valid JSON: ${error.message}`);
+    throw new Error(`${name} must contain valid JSON: ${error.message}`, { cause: error });
   }
 }
 

@@ -11,6 +11,11 @@ on:
   # merge_group takes no `paths:` filter, so every queue entry runs this workflow.
   merge_group:
   workflow_dispatch:
+  # TEST-004 (forge-ci/ci.yml#518): PRs run only the node test suites their
+  # change selects, so main runs every suite nightly as well as on every push.
+  # A failure here is reported, never cached over.
+  schedule:
+    - cron: "17 7 * * *"
 
 # One live run per workflow per ref: a new push to a branch or PR cancels the
 # superseded run instead of queuing behind it in the shared account-wide runner
@@ -53,6 +58,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # The local gate's attestation lives in the PR head's commit
+          # message, and on a `pull_request` event the checked-out commit is
+          # GitHub's merge commit: `HEAD^1` is the base, `HEAD^2` is the head.
+          # Depth 2 is the cheapest checkout that can read both.
+          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -65,11 +76,109 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # ci/local_gate.mjs, run from a pre-push hook, proves lint, typecheck
+      # and the node suite on the developer's host and stamps the commit with
+      # the fleet's tree-bound `Local-Gate:` trailer plus one
+      # `Ci-Attestation:` record per proven gate (forge-ci/ci.yml GATE-008 /
+      # GATE-010). This step re-verifies those records against the head's own
+      # tree and parents and decides which steps below are already proven.
+      #
+      # Fail-closed, every time: a non-`pull_request` event, a head that is
+      # not the merge commit's second parent, a change to a gate surface, a
+      # missing or stale or mis-stamped record, or an unreadable git state all
+      # leave every `skip_*` output false and the steps run exactly as before.
+      - id: gate
+        name: Verify local-gate attestation
+        # Everything the decision reads comes in through `env:`, never through
+        # `${{ }}` inside the script: the event payload is attacker-controlled
+        # on a fork PR, and an expression spliced into shell text is how that
+        # becomes code execution.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          THIS_REPO: ${{ github.repository }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          REPORTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          deny() {
+            printf 'attested=false\nstate=%s\nskip_lint=false\nskip_typecheck=false\nskip_tests=false\n' "$1" >> "$GITHUB_OUTPUT"
+            printf '### Local gate attestation\n\nNot consulted (%s); every step runs as before.\n\n' "$1" >> "$GITHUB_STEP_SUMMARY"
+            echo "local gate: $1; running every step."
+            exit 0
+          }
+          # Pushes to main and merge-queue entries are the post-merge catch and
+          # the merge boundary: they never skip.
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            deny "event is $EVENT_NAME, not pull_request"
+          fi
+          # GATE-008's head-level policy. The stamp is tamper-evident, not a
+          # signature: anyone holding the script can mint a record. So only a
+          # head pushed to this repository by someone with write access may
+          # authorize a skip; a fork or an outside contributor runs everything.
+          if [ "$HEAD_REPO" != "$THIS_REPO" ]; then
+            deny "the head is on a fork"
+          fi
+          case "$AUTHOR_ASSOCIATION" in
+            OWNER|MEMBER|COLLABORATOR) ;;
+            *) deny "author association is $AUTHOR_ASSOCIATION, not a repository writer" ;;
+          esac
+          head="$(git rev-parse --verify --quiet 'HEAD^2' || true)"
+          base="$(git rev-parse --verify --quiet 'HEAD^1' || true)"
+          if [ -z "$head" ] || [ -z "$base" ]; then
+            deny "the checkout is not a two-parent merge commit"
+          fi
+          # The parent must be the head GitHub reported, or we are verifying
+          # the wrong commit.
+          if [ "$head" != "$REPORTED_HEAD" ]; then
+            deny "HEAD^2 ($head) is not the reported PR head ($REPORTED_HEAD)"
+          fi
+          # `fetch-depth: 2` must have brought both parents' objects along, or
+          # there is nothing to read the attestation out of.
+          git --no-pager log -1 --format='local gate: head %h is readable (%s)' "$head" \
+            || deny "the PR head is not in this shallow checkout"
+          node ci/local_gate.mjs verify \
+            --commit "$head" --base "$base" \
+            --github-output --summary
+
+      - name: Lint
+        if: ${{ steps.gate.outputs.skip_lint != 'true' }}
+        run: npm run lint
+
       - name: Typecheck
+        if: ${{ steps.gate.outputs.skip_typecheck != 'true' }}
         run: npm run typecheck
 
+      - name: Select test suites
+        id: select
+        if: ${{ steps.gate.outputs.skip_tests != 'true' }}
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        # TEST-004: a pull_request runs only the suites ci/test-selection.json
+        # selects for HEAD^1...HEAD (the merge commit's base side vs the PR).
+        # Every other event -- push to main, merge queue, nightly schedule,
+        # manual dispatch -- runs every suite. The selector fails closed: an
+        # unresolvable path selects everything, and a map the import graph
+        # contradicts fails this step (exit 3).
+        run: |
+          node ci/select-tests.mjs check
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            node ci/select-tests.mjs plan --base HEAD^1 --head HEAD --github-output --summary
+          else
+            node ci/select-tests.mjs plan --all --github-output
+            printf '### Test selection (TEST-004)\n\nEvent is %s: **all suites** run.\n\n' "$EVENT_NAME" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Unit tests
-        run: npm test
+        if: ${{ steps.gate.outputs.skip_tests != 'true' }}
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            node ci/select-tests.mjs run --base HEAD^1 --head HEAD
+          else
+            npm test
+          fi
 
       - name: Build dist bundles
         run: npm run build

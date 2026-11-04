@@ -255,21 +255,21 @@ function rewriteRequireIds(text, idMap) {
 }
 
 function replaceRequireIdsInText(text, mapId) {
-  let out = text.replace(/__nccwpck_require__\((\d+)\)/g, (match, rawId) => {
+  let rewritten = text.replace(/__nccwpck_require__\((\d+)\)/g, (match, rawId) => {
     return `__nccwpck_require__(${mapId(rawId)})`;
   });
 
-  out = out.replace(
+  rewritten = rewritten.replace(
     /(__nccwpck_require__\.t\.bind\(__nccwpck_require__,\s*)(\d+)(\s*,)/g,
     (match, prefix, rawId, suffix) => `${prefix}${mapId(rawId)}${suffix}`,
   );
 
-  out = out.replace(
+  rewritten = rewritten.replace(
     /(__nccwpck_require__\.t\(\s*)(\d+)(\s*,)/g,
     (match, prefix, rawId, suffix) => `${prefix}${mapId(rawId)}${suffix}`,
   );
 
-  return out;
+  return rewritten;
 }
 
 function hashString(text) {

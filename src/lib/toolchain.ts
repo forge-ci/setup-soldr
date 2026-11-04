@@ -166,7 +166,7 @@ export async function loadToolchainSpec(opts: {
         data = toml.parse(bytes.toString("utf8"));
       } catch (err) {
         throw new Error(
-          `failed to parse toolchain file ${filePath}: ${(err as Error).message}`,
+          `failed to parse toolchain file ${filePath}: ${(err as Error).message}`, { cause: err },
         );
       }
       if (typeof data === "object" && data !== null) {
