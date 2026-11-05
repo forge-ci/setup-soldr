@@ -54386,6 +54386,7 @@ async function downloadWithHeaders(url, dest, headers, retry = {}) {
     await (0, release_readiness_js_1.retryReleaseRequest)(() => downloadOnce(url, dest, headers), {
         attempts,
         delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
+        backoffFactor: 2,
         sleep: retry.sleep,
         isRetryable: isRetryableDownloadError,
         onRetry: (attempt, error) => {
@@ -55619,7 +55620,7 @@ async function retryReleaseRequest(request, options = {}) {
             if (attempt === attempts || !isRetryable(error))
                 break;
             options.onRetry?.(attempt, error);
-            await sleep(delayMs);
+            await sleep(delayMs * (options.backoffFactor ?? 1) ** (attempt - 1));
         }
     }
     const detail = lastError instanceof Error ? lastError.message : String(lastError);

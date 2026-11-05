@@ -974,6 +974,7 @@ export async function downloadWithHeaders(
   await retryReleaseRequest(() => downloadOnce(url, dest, headers), {
     attempts,
     delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
+    backoffFactor: 2,
     sleep: retry.sleep,
     isRetryable: isRetryableDownloadError,
     onRetry: (attempt, error) => {
