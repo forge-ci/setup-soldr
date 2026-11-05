@@ -112,6 +112,7 @@ export async function retryReleaseRequest<T>(
   options: {
     attempts?: number;
     delayMs?: number;
+    backoffFactor?: number;
     onRetry?: (attempt: number, error: unknown) => void;
     isRetryable?: (error: unknown) => boolean;
     sleep?: (delayMs: number) => Promise<void>;
@@ -130,7 +131,7 @@ export async function retryReleaseRequest<T>(
       lastError = error;
       if (attempt === attempts || !isRetryable(error)) break;
       options.onRetry?.(attempt, error);
-      await sleep(delayMs);
+      await sleep(delayMs * (options.backoffFactor ?? 1) ** (attempt - 1));
     }
   }
 

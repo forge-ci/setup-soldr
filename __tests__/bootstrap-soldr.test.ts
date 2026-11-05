@@ -114,3 +114,23 @@ test("offline prefill rejects symlinks and special files", { skip: process.platf
   execFileSync("mkfifo", [fifo]);
   await assert.rejects(() => ensureBootstrap(root, asset, undefined, undefined, fifo), /invalid Soldr bootstrap archive/);
 });
+
+// zccache run 42056470706: exercise the production bootstrap transport,
+// including its retry budget, before digest verification or execution.
+test("bootstrap production download recovers from HTTP 504 before checking the digest", async () => {
+  const original = globalThis.fetch;
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "bootstrap-504-"));
+  let calls = 0;
+  globalThis.fetch = (async (url: string | URL | Request) => {
+    assert.match(String(url), /releases\/download\/v0\.9\.41\/soldr-v0\.9\.41-/);
+    return new Response(++calls === 1 ? "gateway timeout" : "untrusted archive", {
+      status: calls === 1 ? 504 : 200,
+    });
+  }) as typeof fetch;
+  try {
+    await assert.rejects(ensureBootstrap(root, bootstrapAssetFor("linux", "x64", "glibc")), /SHA-256 mismatch/);
+    assert.equal(calls, 2);
+  } finally {
+    globalThis.fetch = original;
+  }
+});

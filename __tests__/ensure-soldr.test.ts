@@ -566,3 +566,14 @@ test("downloadWithHeaders retries HTTP 429 and network errors", async () => {
   assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: network error: fetch failed`)), true);
   assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: HTTP 403`)), false);
 });
+
+
+test("release asset retries back off within the four-attempt bootstrap budget", async () => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  const delays: number[] = [];
+  await withFetchSequence([504, 504, 504, 200], async (dest, calls) => {
+    await downloadWithHeaders(ASSET_URL, dest, {}, { sleep: async delay => { delays.push(delay); } });
+    assert.equal(calls.count, 4);
+    assert.deepEqual(delays, [2000, 4000, 8000]);
+  });
+});
