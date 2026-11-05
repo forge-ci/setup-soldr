@@ -566,3 +566,157 @@ test("downloadWithHeaders retries HTTP 429 and network errors", async () => {
   assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: network error: fetch failed`)), true);
   assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: HTTP 403`)), false);
 });
+
+for (const status of [503, 504]) {
+  test(`downloadWithHeaders retries HTTP ${status} then publishes the complete body`, async () => {
+    const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+    await withFetchSequence([status, 200], async (dest, calls) => {
+      const delays: number[] = [];
+      await downloadWithHeaders(ASSET_URL, dest, {}, { sleep: async (delay) => { delays.push(delay); } });
+      assert.equal(calls.count, 2);
+      assert.equal(fs.readFileSync(dest, "utf8"), "payload");
+      assert.equal(delays.length, 1);
+      assert.ok(delays[0]! >= 250 && delays[0]! <= 500);
+      assert.deepEqual(fs.readdirSync(path.dirname(dest)), [path.basename(dest)]);
+    });
+  });
+}
+
+for (const [value, expected] of [["2", 2000], ["999", 5000], [new Date(Date.now() + 60_000).toUTCString(), 5000]] as const) {
+  test(`downloadWithHeaders honors capped Retry-After ${value}`, async () => {
+    const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+    await withFetchSequence([200], async (dest, calls) => {
+      const original = globalThis.fetch;
+      globalThis.fetch = (async () => {
+        calls.count++;
+        return calls.count === 1 ? new Response("busy", { status: 429, headers: { "Retry-After": value } }) :
+          new Response("payload");
+      }) as typeof fetch;
+      try {
+        const delays: number[] = [];
+        await downloadWithHeaders(ASSET_URL, dest, {}, { sleep: async (delay) => { delays.push(delay); } });
+        assert.deepEqual(delays, [expected]);
+        assert.equal(calls.count, 2);
+      } finally { globalThis.fetch = original; }
+    });
+  });
+}
+
+test("downloadWithHeaders exhausts 504 attempts with the exact original error and no partial file", async () => {
+  const { downloadWithHeaders, DOWNLOAD_ATTEMPTS } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([504], async (dest, calls) => {
+    const delays: number[] = [];
+    await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, {
+      sleep: async (delay) => { delays.push(delay); },
+    }), { message: `download failed for ${ASSET_URL}: HTTP 504` });
+    assert.equal(calls.count, DOWNLOAD_ATTEMPTS);
+    assert.equal(delays.length, DOWNLOAD_ATTEMPTS - 1);
+    delays.forEach((delay, index) => assert.ok(delay >= 250 * 2 ** index && delay <= 500 * 2 ** index));
+    assert.deepEqual(fs.readdirSync(path.dirname(dest)), []);
+  });
+});
+
+test("downloadWithHeaders restarts broken bodies and leaves no partial file on exhaustion", async () => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([200], async (dest, calls) => {
+    globalThis.fetch = (async () => {
+      calls.count++;
+      return new Response(new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("truncated"));
+          controller.error(new TypeError("terminated"));
+        },
+      }));
+    }) as typeof fetch;
+    await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, noSleep), {
+      message: `download failed for ${ASSET_URL}: network error: terminated`,
+    });
+    assert.equal(calls.count, 4);
+    assert.deepEqual(fs.readdirSync(path.dirname(dest)), []);
+  });
+});
+
+for (const status of [401, 403, 501, 505]) {
+  test(`downloadWithHeaders fails immediately on HTTP ${status}`, async () => {
+    const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+    await withFetchSequence([status, 200], async (dest, calls) => {
+      await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, noSleep), {
+        message: `download failed for ${ASSET_URL}: HTTP ${status}`,
+      });
+      assert.equal(calls.count, 1);
+    });
+  });
+}
+
+for (const status of [408, 429, 500, 502]) {
+  test(`downloadWithHeaders retries HTTP ${status} with a fresh request`, async () => {
+    const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+    await withFetchSequence([status, 200], async (dest, calls) => {
+      await downloadWithHeaders(ASSET_URL, dest, {}, noSleep);
+      assert.equal(calls.count, 2);
+    });
+  });
+}
+
+
+test("downloadWithHeaders retries a network reset then succeeds", async () => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([200], async (dest, calls) => {
+    globalThis.fetch = (async () => {
+      calls.count++;
+      if (calls.count === 1) throw new TypeError("fetch failed", { cause: new Error("ECONNRESET") });
+      return new Response("complete");
+    }) as typeof fetch;
+    await downloadWithHeaders(ASSET_URL, dest, {}, noSleep);
+    assert.equal(calls.count, 2);
+    assert.equal(fs.readFileSync(dest, "utf8"), "complete");
+  });
+});
+
+test("downloadWithHeaders aborts a stalled request at the total deadline", async (t) => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let elapsed = 0;
+  t.mock.method(performance, "now", () => elapsed);
+  await withFetchSequence([200], async (dest, calls) => {
+    globalThis.fetch = ((_url, options) => {
+      calls.count++;
+      return new Promise<Response>((_resolve, reject) => {
+        options?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    }) as typeof fetch;
+    const download = downloadWithHeaders(ASSET_URL, dest, {}, noSleep);
+    const rejection = assert.rejects(download, { message: `download failed for ${ASSET_URL}: network error: aborted` });
+    elapsed = 30_000;
+    t.mock.timers.tick(30_000);
+    await rejection;
+    assert.equal(calls.count, 1);
+    assert.deepEqual(fs.readdirSync(path.dirname(dest)), []);
+  });
+});
+
+test("downloadWithHeaders cleans temporary files after a filesystem failure without retrying", async () => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([200], async (dest, calls) => {
+    fs.mkdirSync(dest);
+    await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, noSleep));
+    assert.equal(calls.count, 1);
+    assert.deepEqual(fs.readdirSync(path.dirname(dest)), [path.basename(dest)]);
+    assert.deepEqual(fs.readdirSync(dest), []);
+  });
+});
+
+
+test("downloadWithHeaders does not retry invalid request configuration", async () => {
+  const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([200], async (dest, calls) => {
+    globalThis.fetch = (async () => {
+      calls.count++;
+      throw new TypeError("Failed to parse URL");
+    }) as typeof fetch;
+    await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, noSleep), {
+      message: `download failed for ${ASSET_URL}: network error: Failed to parse URL`,
+    });
+    assert.equal(calls.count, 1);
+  });
+});

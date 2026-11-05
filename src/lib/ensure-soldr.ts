@@ -927,37 +927,29 @@ async function buildFromLocalSource(opts: {
 }
 
 export const DOWNLOAD_ATTEMPTS = 4;
-const DOWNLOAD_RETRY_DELAY_MS = 2000;
+const DOWNLOAD_RETRY_DELAY_MS = 500;
+const DOWNLOAD_TIMEOUT_MS = 30_000;
+const DOWNLOAD_MAX_DELAY_MS = 5000;
 
-// Transient = HTTP 5xx, HTTP 429, or a network-level failure (fetch threw or
-// the body stream broke). Other 4xx (404, 403, ...) are permanent and fail fast.
-export function isRetryableDownloadError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  if (!message.startsWith("download failed for ")) return false;
-  if (message.includes(": network error: ")) return true;
-  const status = message.match(/HTTP\s+(\d{3})\b/)?.[1];
-  if (!status) return false;
-  const code = Number(status);
-  return code === 429 || code >= 500;
+class DownloadError extends Error {
+  readonly status: number | undefined;
+  readonly retryAfterMs: number;
+
+  constructor(message: string, status?: number, retryAfterMs = 0, options?: ErrorOptions) {
+    super(message, options);
+    this.status = status;
+    this.retryAfterMs = retryAfterMs;
+  }
 }
 
-async function downloadOnce(url: string, dest: string, headers: Record<string, string>): Promise<void> {
-  // Never leave (or reuse) a stale/partial file from a previous attempt.
-  fs.rmSync(dest, { force: true });
-  let buffer: Buffer;
-  try {
-    const response = await fetch(url, { headers });
-    if (!response.ok || !response.body) {
-      throw new Error(`download failed for ${url}: HTTP ${response.status}`);
-    }
-    buffer = Buffer.from(await response.arrayBuffer());
-  } catch (error) {
-    if (error instanceof Error && error.message.startsWith("download failed for ")) throw error;
-    const detail = error instanceof Error ? error.message : String(error);
-    throw new Error(`download failed for ${url}: network error: ${detail}`, { cause: error });
+export function isRetryableDownloadError(error: unknown): boolean {
+  if (error instanceof DownloadError) {
+    return error.status === undefined || [408, 429, 500, 502, 503, 504].includes(error.status);
   }
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
-  fs.writeFileSync(dest, buffer);
+  // Preserve the exported classifier's existing message-based contract.
+  const message = error instanceof Error ? error.message : String(error);
+  return message.startsWith("download failed for ") &&
+    (message.includes(": network error: ") || /HTTP (408|429|500|502|503|504)\b/.test(message));
 }
 
 export async function downloadWithHeaders(
@@ -966,21 +958,60 @@ export async function downloadWithHeaders(
   headers: Record<string, string>,
   retry: { attempts?: number; delayMs?: number; sleep?: (delayMs: number) => Promise<void> } = {},
 ): Promise<void> {
-  // Manual fetch (not tc.downloadTool) for header parity with the Python
-  // implementation. Transient GitHub CDN failures are retried with a bounded
-  // delay; integrity (SHA-256 / trust mode) is checked by callers afterwards
-  // against the final, fully re-downloaded file.
-  const attempts = retry.attempts ?? DOWNLOAD_ATTEMPTS;
-  await retryReleaseRequest(() => downloadOnce(url, dest, headers), {
-    attempts,
-    delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
-    sleep: retry.sleep,
-    isRetryable: isRetryableDownloadError,
-    onRetry: (attempt, error) => {
-      const detail = error instanceof Error ? error.message : String(error);
-      core.warning(`download attempt ${attempt}/${attempts} failed (${detail}); retrying`);
-    },
-  });
+  const attempts = Math.max(1, Math.min(DOWNLOAD_ATTEMPTS, retry.attempts ?? DOWNLOAD_ATTEMPTS));
+  const deadline = performance.now() + DOWNLOAD_TIMEOUT_MS;
+  const sleep = retry.sleep ?? ((delay: number) => new Promise<void>((resolve) => setTimeout(resolve, delay)));
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    let buffer: Buffer;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), Math.max(1, deadline - performance.now()));
+    try {
+      const response = await fetch(url, { headers, signal: controller.signal });
+      if (!response.ok || !response.body) {
+        const value = response.headers.get("retry-after");
+        const seconds = value === null ? NaN : Number(value);
+        const retryAfterMs = Number.isFinite(seconds) ? seconds * 1000 :
+          value ? Date.parse(value) - Date.now() : 0;
+        // Release rejected response streams before starting another request.
+        void response.body?.cancel().catch(() => {});
+        throw new DownloadError(`download failed for ${url}: HTTP ${response.status}`, response.status,
+          Math.max(0, Math.min(DOWNLOAD_MAX_DELAY_MS, retryAfterMs || 0)));
+      }
+      buffer = Buffer.from(await response.arrayBuffer());
+    } catch (cause) {
+      const error = cause instanceof DownloadError ? cause : new DownloadError(
+        `download failed for ${url}: network error: ${cause instanceof Error ? cause.message : String(cause)}`,
+        undefined, 0, { cause });
+      const transport = cause instanceof Error && (
+        ["AbortError", "TimeoutError"].includes(cause.name) ||
+        (cause instanceof TypeError && /fetch failed|failed to fetch|terminated|network/i.test(cause.message)) ||
+        /^(EAI_AGAIN|ENOTFOUND|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EPIPE|ENETUNREACH|EHOSTUNREACH|UND_ERR_(CONNECT_TIMEOUT|HEADERS_TIMEOUT|BODY_TIMEOUT|SOCKET))$/.test(
+          String((cause as NodeJS.ErrnoException).code ?? "")));
+      const remaining = deadline - performance.now();
+      if (!(cause instanceof DownloadError ? isRetryableDownloadError(error) : transport) || attempt === attempts || remaining <= 0) throw error;
+      const backoff = Math.max(0, retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS) * 2 ** (attempt - 1);
+      const delay = Math.min(DOWNLOAD_MAX_DELAY_MS, remaining,
+        Math.max(error.retryAfterMs, backoff * (0.5 + Math.random() * 0.5)));
+      core.warning(`download attempt ${attempt}/${attempts} failed (${error.message}); retrying in ${Math.round(delay)}ms`);
+      clearTimeout(timer);
+      await sleep(delay);
+      if (performance.now() >= deadline) throw error;
+      continue;
+    } finally {
+      clearTimeout(timer);
+    }
+    // Publish only a complete body; filesystem failures are never transport retries.
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    const temporary = fs.mkdtempSync(path.join(path.dirname(dest), ".soldr-download-"));
+    try {
+      const file = path.join(temporary, "asset");
+      fs.writeFileSync(file, buffer);
+      fs.renameSync(file, dest);
+    } finally {
+      fs.rmSync(temporary, { recursive: true, force: true });
+    }
+    return;
+  }
 }
 
 function fileSha256(filePath: string): string {
