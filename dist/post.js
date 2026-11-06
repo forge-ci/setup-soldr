@@ -52805,8 +52805,9 @@ async function saveCookCache(opts) {
     const reserveMs = Date.now() - reserveStart;
     if ((0, two_phase_actions_cache_js_1.isReservationConflict)(result))
         return { status: "skipped-race-precheck", reserveMs };
-    if (result.status === "failed")
+    if (result.status === "failed" || result.status === "reservation-failed") {
         return { status: "failed", error: result.error, reserveMs };
+    }
     const archive = result.archive;
     return {
         status: "saved",
@@ -52890,8 +52891,9 @@ async function saveLayeredCookCache(opts) {
     const reserveMs = Date.now() - reserveStart;
     if ((0, two_phase_actions_cache_js_1.isReservationConflict)(result))
         return { status: "skipped-race-precheck", archivePath, reserveMs };
-    if (result.status === "failed")
+    if (result.status === "failed" || result.status === "reservation-failed") {
         return { status: "failed", archivePath, error: result.error, reserveMs };
+    }
     const archive = result.archive;
     return {
         status: "saved",
@@ -59513,6 +59515,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.prepareActionsCacheArchive = prepareActionsCacheArchive;
+exports.reserve = reserve;
 exports.saveReservedCache = saveReservedCache;
 exports.isReservationConflict = isReservationConflict;
 const fsp = __importStar(__nccwpck_require__(51455));
@@ -59549,35 +59552,73 @@ async function prepareActionsCacheArchive(reservation, archive, tools = defaultA
         throw error;
     }
 }
+/** Service errors can echo signed URLs, so never log or report one verbatim. */
+function redactSecrets(message) {
+    return message
+        .replace(/https?:\/\/\S+/g, "<redacted-url>")
+        .replace(/\bBearer\s+\S+/gi, "Bearer <redacted>");
+}
+/**
+ * The v2 twirp client exposes no status on its response: any non-2xx is thrown
+ * as `Failed to CreateCacheEntry: ... Failed request: (409) Conflict: <msg>`,
+ * so that text is the only place a real conflict can be recognized. A status,
+ * when present, decides on its own: a 500 mentioning "already exists" failed.
+ */
+function isConflictMessage(message) {
+    const status = /Failed request: \((\d{3})\)/.exec(message)?.[1];
+    if (status)
+        return status === "409";
+    return /already[ _]exists/i.test(message);
+}
+function classifyReservationMessage(message) {
+    return isConflictMessage(message)
+        ? { kind: "conflict" }
+        : { kind: "failed", message: redactSecrets(message) };
+}
 function log(options, message) {
     options.log?.(`two-phase-cache: ${message}`);
 }
-async function reserve(options) {
+async function reserve(options, client) {
     const compressionMethod = await cacheUtils.getCompressionMethod();
     const enableCrossOsArchive = options.enableCrossOsArchive ?? false;
-    if ((0, config_js_1.getCacheServiceVersion)() === "v2") {
+    if ((client?.serviceVersion ?? config_js_1.getCacheServiceVersion)() === "v2") {
         const version = cacheUtils.getCacheVersion(options.paths, compressionMethod, enableCrossOsArchive);
-        const response = await twirp.internalCacheTwirpClient().CreateCacheEntry({
-            key: options.key,
-            version,
-        });
-        if (!response.ok || !response.signedUploadUrl)
-            return null;
+        const request = { key: options.key, version };
+        // Non-2xx responses throw; saveReservedCache classifies those.
+        const response = await (client
+            ? client.createCacheEntry(request)
+            : twirp.internalCacheTwirpClient().CreateCacheEntry(request));
+        if (!response.ok) {
+            return classifyReservationMessage(`CreateCacheEntry returned ok=false: ${response.message || "no message"}`);
+        }
+        if (!response.signedUploadUrl) {
+            return { kind: "failed", message: "CreateCacheEntry returned ok=true without signedUploadUrl" };
+        }
         return {
-            service: "v2",
-            compressionMethod,
-            version,
-            signedUploadUrl: response.signedUploadUrl,
+            kind: "reserved",
+            reservation: {
+                service: "v2",
+                compressionMethod,
+                version,
+                signedUploadUrl: response.signedUploadUrl,
+            },
         };
     }
-    const response = await cacheHttpClient.reserveCache(options.key, options.paths, {
+    const response = await (client?.reserveCacheV1 ?? cacheHttpClient.reserveCache)(options.key, options.paths, {
         compressionMethod,
         enableCrossOsArchive,
     });
     const cacheId = response.result?.cacheId;
-    if (typeof cacheId !== "number")
-        return null;
-    return { service: "v1", compressionMethod, cacheId };
+    if (typeof cacheId === "number") {
+        return { kind: "reserved", reservation: { service: "v1", compressionMethod, cacheId } };
+    }
+    if (response.statusCode === 409)
+        return { kind: "conflict" };
+    return {
+        kind: "failed",
+        message: redactSecrets(`reserveCache returned HTTP ${response.statusCode} without a cacheId` +
+            (response.error ? `: ${response.error.message}` : "")),
+    };
 }
 /**
  * Reserve an exact Actions cache key before producing the archive. The
@@ -59589,18 +59630,22 @@ async function saveReservedCache(options) {
     if (!(0, save_policy_js_1.allowCacheSave)(options.layer ?? "actions-cache", (m) => options.log?.(m))) {
         return { status: "policy-skip" };
     }
-    let reservation;
+    let outcome;
     try {
-        reservation = options.reserve ? await options.reserve() : await reserve(options);
+        outcome = options.reserve ? await options.reserve() : await reserve(options);
     }
     catch (error) {
-        log(options, `reservation failed: ${error instanceof Error ? error.message : String(error)}`);
-        return { status: "skipped-reservation" };
+        outcome = classifyReservationMessage(error instanceof Error ? error.message : String(error));
     }
-    if (!reservation) {
+    if (outcome.kind === "conflict") {
         log(options, `reservation conflict for key=${options.key}`);
         return { status: "skipped-reservation" };
     }
+    if (outcome.kind === "failed") {
+        log(options, `reservation failed for key=${options.key}: ${outcome.message}`);
+        return { status: "reservation-failed", error: outcome.message };
+    }
+    const { reservation } = outcome;
     let archive;
     try {
         archive = await options.produce();

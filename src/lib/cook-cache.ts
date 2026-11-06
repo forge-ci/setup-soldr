@@ -862,7 +862,9 @@ export async function saveCookCache(opts: CookSaveOpts): Promise<CookSaveResult>
   });
   const reserveMs = Date.now() - reserveStart;
   if (isReservationConflict(result)) return { status: "skipped-race-precheck", reserveMs };
-  if (result.status === "failed") return { status: "failed", error: result.error, reserveMs };
+  if (result.status === "failed" || result.status === "reservation-failed") {
+    return { status: "failed", error: result.error, reserveMs };
+  }
   const archive = result.archive!;
   return {
     status: "saved",
@@ -949,7 +951,9 @@ export async function saveLayeredCookCache(opts: CookLayeredSaveOpts): Promise<C
   });
   const reserveMs = Date.now() - reserveStart;
   if (isReservationConflict(result)) return { status: "skipped-race-precheck", archivePath, reserveMs };
-  if (result.status === "failed") return { status: "failed", archivePath, error: result.error, reserveMs };
+  if (result.status === "failed" || result.status === "reservation-failed") {
+    return { status: "failed", archivePath, error: result.error, reserveMs };
+  }
   const archive = result.archive!;
   return {
     status: "saved",

@@ -65,7 +65,7 @@ async function main(): Promise<void> {
       baseManifestPath: state("BaseManifest"),
       log: (msg) => core.info(msg),
     });
-    core.info(`cook-cache-${saveLayer}: save status=${saveResult.status}`);
+    core.info(`cook-cache-${saveLayer}: save status=${saveResult.status} error=${saveResult.error ?? "none"}`);
     if (saveResult.status === "failed" && failOnError) {
       throw new Error(`cook-cache-${saveLayer}: save failed: ${saveResult.error ?? "unknown error"}`);
     }
@@ -80,7 +80,7 @@ async function main(): Promise<void> {
     debug: stateBool("Debug"),
     log: (msg) => core.info(msg),
   });
-  core.info(`cook-cache: save status=${saveResult.status}`);
+  core.info(`cook-cache: save status=${saveResult.status} error=${saveResult.error ?? "none"}`);
   if (saveResult.status === "failed" && failOnError) {
     throw new Error(`cook-cache: save failed: ${saveResult.error ?? "unknown error"}`);
   }

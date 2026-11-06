@@ -96,7 +96,7 @@ async function exerciseAllLayers(): Promise<{ saveCalls: number; reserveCalls: n
       key: "k-two-phase",
       reserve: async () => {
         reserveCalls += 1;
-        return winner;
+        return { kind: "reserved", reservation: winner };
       },
       produce: async () => ({ archivePath: archive, archiveBytes: 7 }),
       prepareUpload: async () => ({ archivePath: archive, archiveBytes: 7 }),
