@@ -116,7 +116,7 @@ setup-soldr       = { only-in = "" }
 "cross-prepare.yml"                     = ["pull_request", "workflow_dispatch"]
 "dylint-map-smoke.yml"                  = ["pull_request", "workflow_dispatch"]
 "release-lane-smoke.yml"                = ["pull_request", "workflow_dispatch"]
-"ingest-soldr-release.yml"              = ["schedule", "workflow_dispatch"]
+"ingest-soldr-release.yml"              = ["schedule", "workflow_dispatch", "workflow_run"]
 "bench-cache-modes.yml"                 = ["workflow_dispatch"]
 "cargo-registry-soldr-benchmark.yml"    = ["workflow_dispatch"]
 "comparison-child-branch.yml"           = ["workflow_dispatch"]
@@ -130,7 +130,7 @@ setup-soldr       = { only-in = "" }
 "_cook-consumer-rematerialization.yml"  = ["workflow_call"]
 
 [allow.permissions]
-"actions: write"       = ["cleanup", "cancel-superseded", "queue-cache-janitor"]
+"actions: write"       = ["cleanup", "cancel-superseded", "queue-cache-sweep"]
 "contents: write"      = ["benchmark"]
 "issues: write"        = ["benchmark"]
 "pull-requests: write" = ["benchmark"]
