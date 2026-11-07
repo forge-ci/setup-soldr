@@ -5,6 +5,12 @@ name: Ingest soldr release
 # through the github.com/<repo>/releases/latest web redirect (no REST quota),
 # bumps the default, rebuilds dist/, and opens a PR. Merging that PR and then
 # moving v0 still follow the gated update-v0-tag.yml process.
+#
+# It also hosts the end-of-queue cache sweep (queue-cache-sweep below): this is
+# the repository's one standalone maintenance workflow, and the sweep must run
+# outside the merge_group run it follows.
+
+run-name: ${{ github.event_name == 'workflow_run' && 'End-of-queue cache sweep' || 'Ingest soldr release' }}
 
 on:
   schedule:
@@ -15,18 +21,22 @@ on:
         description: Exact soldr version to ingest (empty = latest release).
         required: false
         default: ""
+  workflow_run:
+    workflows: [Setup Soldr Contract]
+    types: [completed]
+    branches: ['gh-readonly-queue/main/**']
 
 permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: ingest-soldr-release
-  cancel-in-progress: false
-
 jobs:
   ingest:
+    if: ${{ github.event_name != 'workflow_run' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: ingest-soldr-release
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -93,3 +103,40 @@ jobs:
             exit 1
           fi
           echo "${out}"
+
+  # GEN-022 (forge-ci/ci.yml#405): sweep to [cache].budget by our LRU order instead
+  # of GitHub's, one hop after the queue run instead of inside it. A pending sweep
+  # can still be replaced by a newer request for the group, but that only cancels
+  # this run, and the newer sweep does the same work against newer state.
+  # workflow_run executes the default branch's reviewed workflow, never the queue
+  # candidate's, and the janitor reads only ci.toml from this repository.
+  queue-cache-sweep:
+    name: End-of-queue cache sweep
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.event == 'merge_group' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    concurrency:
+      group: cache-janitor
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout: ci.toml
+          sparse-checkout-cone-mode: false
+      # Same commit as ci.toml's `linter` pin.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: forge-ci/ci.yml
+          ref: 953c4e13691b10c1c4f1f9c39fa259fd732c5789
+          path: .ci-lint
+          persist-credentials: false
+          sparse-checkout: ci_lint
+      - name: Sweep caches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .ci-lint
+        run: python3 -P -m ci_lint cache janitor --repo . --default-branch main

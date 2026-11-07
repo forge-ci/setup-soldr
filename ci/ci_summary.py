@@ -11,7 +11,6 @@ end `cancelled` while its caller reports success.
 Exempt jobs (by exact name, never by pattern):
   - CI summary                    this job; it is still running.
   - Cancel superseded queue runs  housekeeping; cancels other runs, not code.
-  - End-of-queue cache janitor    cache writer that runs alongside this gate.
 """
 
 from __future__ import annotations
@@ -24,7 +23,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 SELF = "CI summary"
-EXEMPT = frozenset({SELF, "Cancel superseded queue runs", "End-of-queue cache janitor"})
+EXEMPT = frozenset({SELF, "Cancel superseded queue runs"})
 BLOCKING = frozenset({"failure", "cancelled", "timed_out", "startup_failure", "action_required"})
 ATTEMPTS = 6
 
