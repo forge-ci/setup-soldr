@@ -4,6 +4,8 @@
 // decisions, hash stability. The actual cache restore/save round trip
 // is validated end-to-end by the demo workflow.
 
+import * as http from "node:http";
+import type { AddressInfo } from "node:net";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
@@ -28,8 +30,13 @@ import {
   restoreLayeredCookCacheArchives,
   saveLayeredCookCache,
   supportsLayeredCookCache,
+  saveCookCache,
 } from "../src/lib/cook-cache.js";
-import type { TwoPhaseCacheOptions } from "../src/lib/two-phase-actions-cache.js";
+import {
+  saveReservedCache,
+  type ReservationResult,
+  type TwoPhaseCacheOptions,
+} from "../src/lib/two-phase-actions-cache.js";
 
 function mkTmp(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -507,6 +514,92 @@ test("#511 layered cook save preserves a non-empty serialized zero-file delta", 
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+async function layeredSaveWithReservation(reservation: ReservationResult) {
+  const root = mkTmp("cook-save-reservation-");
+  try {
+    const targetDir = path.join(root, "target");
+    fs.mkdirSync(targetDir);
+    fs.writeFileSync(path.join(targetDir, "artifact"), "materialized");
+    return await saveLayeredCookCache({
+      soldrBinary: "soldr",
+      projectRoot: root,
+      targetDir,
+      exactKey: "cook-base-v3-test-key",
+      archivePath: path.join(root, "cook-base.tar.zst"),
+      layer: "base",
+      zstdLevel: "9",
+      log: () => {},
+      runSoldrJson: async () => {
+        throw new Error("producer must not run");
+      },
+      saveReservedCache: (options: TwoPhaseCacheOptions) =>
+        saveReservedCache({ ...options, reserve: async () => reservation }),
+    });
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test("#662 layered cook save reports a reservation conflict as a race", async () => {
+  const result = await layeredSaveWithReservation({ kind: "conflict" });
+  assert.equal(result.status, "skipped-race-precheck");
+  assert.equal(result.error, undefined);
+});
+
+test("#662 layered cook save reports a failed reservation as failed", async () => {
+  const result = await layeredSaveWithReservation({
+    kind: "failed",
+    message: "Failed request: (500) Internal Server Error",
+  });
+  assert.equal(result.status, "failed");
+  assert.match(result.error ?? "", /\(500\)/);
+});
+
+async function plainSaveAgainstTwirpStatus(status: number, code: string) {
+  const root = mkTmp("cook-save-twirp-");
+  const server = http.createServer((_req, res) => {
+    res.writeHead(status, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ code, msg: "from test server" }));
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const names = ["ACTIONS_RESULTS_URL", "ACTIONS_RUNTIME_TOKEN", "ACTIONS_CACHE_SERVICE_V2"] as const;
+  const saved = names.map((name) => process.env[name]);
+  process.env.ACTIONS_RESULTS_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}/`;
+  process.env.ACTIONS_RUNTIME_TOKEN = "test-token";
+  process.env.ACTIONS_CACHE_SERVICE_V2 = "true";
+  try {
+    const targetDir = path.join(root, "target");
+    fs.mkdirSync(targetDir);
+    fs.writeFileSync(path.join(targetDir, "artifact"), "materialized");
+    return await saveCookCache({
+      targetDir,
+      exactKey: "cook-test-key",
+      level: "3",
+      longWindow: 27,
+      debug: false,
+      log: () => {},
+    });
+  } finally {
+    names.forEach((name, index) => {
+      const value = saved[index];
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    });
+    await new Promise((resolve) => server.close(resolve));
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test("#662 plain cook save: a real 409 is a race, a real 403 is a failure", async () => {
+  const conflict = await plainSaveAgainstTwirpStatus(409, "already_exists");
+  assert.equal(conflict.status, "skipped-race-precheck");
+  assert.equal(conflict.error, undefined);
+
+  const failed = await plainSaveAgainstTwirpStatus(403, "permission_denied");
+  assert.equal(failed.status, "failed");
+  assert.match(failed.error ?? "", /\(403\)/);
 });
 
 test("supportsLayeredCookCache gates soldr versions", () => {
