@@ -53722,7 +53722,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports._internal = exports.DOWNLOAD_ATTEMPTS = void 0;
+exports._internal = exports.DOWNLOAD_RETRY_BUDGET_MS = exports.DOWNLOAD_ATTEMPTS = void 0;
 exports.installedSoldrReleaseIsUsable = installedSoldrReleaseIsUsable;
 exports.extractBinary = extractBinary;
 exports.isRetryableDownloadError = isRetryableDownloadError;
@@ -54519,8 +54519,11 @@ async function buildFromLocalSource(opts) {
     }
     return destination;
 }
-exports.DOWNLOAD_ATTEMPTS = 4;
-const DOWNLOAD_RETRY_DELAY_MS = 2000;
+exports.DOWNLOAD_ATTEMPTS = 7;
+// Maximum cumulative backoff, excluding time spent in the unchanged requests.
+// Six doubling delays total 180s at maximum jitter (144s at minimum jitter).
+exports.DOWNLOAD_RETRY_BUDGET_MS = 180_000;
+const DOWNLOAD_RETRY_DELAY_MS = exports.DOWNLOAD_RETRY_BUDGET_MS / (2 ** (exports.DOWNLOAD_ATTEMPTS - 1) - 1);
 // Transient = HTTP 5xx, HTTP 429, or a network-level failure (fetch threw or
 // the body stream broke). Other 4xx (404, 403, ...) are permanent and fail fast.
 function isRetryableDownloadError(error) {
@@ -54561,15 +54564,22 @@ async function downloadWithHeaders(url, dest, headers, retry = {}) {
     // delay; integrity (SHA-256 / trust mode) is checked by callers afterwards
     // against the final, fully re-downloaded file.
     const attempts = retry.attempts ?? exports.DOWNLOAD_ATTEMPTS;
+    const sleep = retry.sleep ?? ((delay) => new Promise(resolve => setTimeout(resolve, delay)));
+    let retryDetail = "";
     await (0, release_readiness_js_1.retryReleaseRequest)(() => downloadOnce(url, dest, headers), {
         attempts,
         delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
         backoffFactor: 2,
-        sleep: retry.sleep,
+        sleep: async (delay) => {
+            // Downward jitter spreads concurrent runners without exceeding the budget.
+            const jitteredDelay = Math.floor(delay * (0.8 + 0.2 * (retry.random ?? Math.random)()));
+            core.warning(`${retryDetail}; retrying in ${jitteredDelay}ms`);
+            await sleep(jitteredDelay);
+        },
         isRetryable: isRetryableDownloadError,
         onRetry: (attempt, error) => {
             const detail = error instanceof Error ? error.message : String(error);
-            core.warning(`download attempt ${attempt}/${attempts} failed (${detail}); retrying`);
+            retryDetail = `download attempt ${attempt}/${attempts} failed (${detail})`;
         },
     });
 }

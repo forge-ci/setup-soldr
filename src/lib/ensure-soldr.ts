@@ -926,8 +926,11 @@ async function buildFromLocalSource(opts: {
   return destination;
 }
 
-export const DOWNLOAD_ATTEMPTS = 4;
-const DOWNLOAD_RETRY_DELAY_MS = 2000;
+export const DOWNLOAD_ATTEMPTS = 7;
+// Maximum cumulative backoff, excluding time spent in the unchanged requests.
+// Six doubling delays total 180s at maximum jitter (144s at minimum jitter).
+export const DOWNLOAD_RETRY_BUDGET_MS = 180_000;
+const DOWNLOAD_RETRY_DELAY_MS = DOWNLOAD_RETRY_BUDGET_MS / (2 ** (DOWNLOAD_ATTEMPTS - 1) - 1);
 
 // Transient = HTTP 5xx, HTTP 429, or a network-level failure (fetch threw or
 // the body stream broke). Other 4xx (404, 403, ...) are permanent and fail fast.
@@ -964,22 +967,29 @@ export async function downloadWithHeaders(
   url: string,
   dest: string,
   headers: Record<string, string>,
-  retry: { attempts?: number; delayMs?: number; sleep?: (delayMs: number) => Promise<void> } = {},
+  retry: { attempts?: number; delayMs?: number; sleep?: (delayMs: number) => Promise<void>; random?: () => number } = {},
 ): Promise<void> {
   // Manual fetch (not tc.downloadTool) for header parity with the Python
   // implementation. Transient GitHub CDN failures are retried with a bounded
   // delay; integrity (SHA-256 / trust mode) is checked by callers afterwards
   // against the final, fully re-downloaded file.
   const attempts = retry.attempts ?? DOWNLOAD_ATTEMPTS;
+  const sleep = retry.sleep ?? ((delay: number) => new Promise<void>(resolve => setTimeout(resolve, delay)));
+  let retryDetail = "";
   await retryReleaseRequest(() => downloadOnce(url, dest, headers), {
     attempts,
     delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
     backoffFactor: 2,
-    sleep: retry.sleep,
+    sleep: async delay => {
+      // Downward jitter spreads concurrent runners without exceeding the budget.
+      const jitteredDelay = Math.floor(delay * (0.8 + 0.2 * (retry.random ?? Math.random)()));
+      core.warning(`${retryDetail}; retrying in ${jitteredDelay}ms`);
+      await sleep(jitteredDelay);
+    },
     isRetryable: isRetryableDownloadError,
     onRetry: (attempt, error) => {
       const detail = error instanceof Error ? error.message : String(error);
-      core.warning(`download attempt ${attempt}/${attempts} failed (${detail}); retrying`);
+      retryDetail = `download attempt ${attempt}/${attempts} failed (${detail})`;
     },
   });
 }

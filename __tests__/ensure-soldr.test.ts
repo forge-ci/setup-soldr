@@ -568,12 +568,49 @@ test("downloadWithHeaders retries HTTP 429 and network errors", async () => {
 });
 
 
-test("release asset retries back off within the four-attempt bootstrap budget", async () => {
+test("release asset survives a 504 flap beyond the old four-attempt limit", async () => {
   const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
   const delays: number[] = [];
-  await withFetchSequence([504, 504, 504, 200], async (dest, calls) => {
-    await downloadWithHeaders(ASSET_URL, dest, {}, { sleep: async delay => { delays.push(delay); } });
-    assert.equal(calls.count, 4);
-    assert.deepEqual(delays, [2000, 4000, 8000]);
+  await withFetchSequence([504, 504, 504, 504, 504, 504, 200], async (dest, calls) => {
+    await downloadWithHeaders(ASSET_URL, dest, {}, {
+      sleep: async delay => { delays.push(delay); }, random: () => 1,
+    });
+    assert.equal(calls.count, 7);
+    assert.equal(fs.readFileSync(dest, "utf8"), "payload");
+    assert.equal(delays.length, 6);
+  });
+});
+
+test("release asset backoff stays within the three-minute budget at both jitter bounds", async () => {
+  const { downloadWithHeaders, DOWNLOAD_ATTEMPTS, DOWNLOAD_RETRY_BUDGET_MS } = await import("../src/lib/ensure-soldr.js");
+  assert.equal(DOWNLOAD_ATTEMPTS, 7);
+  assert.equal(DOWNLOAD_RETRY_BUDGET_MS, 180_000);
+  for (const random of [0, 1]) {
+    const delays: number[] = [];
+    await withFetchSequence([504], async (dest, calls) => {
+      await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, {
+        sleep: async delay => { delays.push(delay); }, random: () => random,
+      }), /after 7 attempts:.*HTTP 504/);
+      assert.equal(calls.count, 7);
+      const base = 180_000 / 63;
+      assert.deepEqual(delays, Array.from({ length: 6 }, (_, i) => Math.floor(base * 2 ** i * (0.8 + 0.2 * random))));
+      const total = delays.reduce((sum, delay) => sum + delay, 0);
+      assert.ok(total >= 144_000 - 6 && total <= DOWNLOAD_RETRY_BUDGET_MS, String(total));
+    });
+  }
+});
+
+test("downloaded digest mismatch is fatal without another download or sleep", async () => {
+  const { downloadWithHeaders, isRetryableDownloadError } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([200], async (dest, calls) => {
+    let sleeps = 0;
+    await downloadWithHeaders(ASSET_URL, dest, {}, { sleep: async () => { sleeps += 1; } });
+    assert.throws(() => _internal.verifyDownloadedAsset(dest, "0".repeat(64)), error => {
+      assert.match((error as Error).message, /SHA-256 mismatch/);
+      assert.equal(isRetryableDownloadError(error), false);
+      return true;
+    });
+    assert.equal(calls.count, 1);
+    assert.equal(sleeps, 0);
   });
 });
