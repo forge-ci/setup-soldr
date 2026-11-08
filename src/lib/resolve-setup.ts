@@ -1090,9 +1090,16 @@ export async function resolveSetup(
   const cargoRegistryCachePrefix = `setup-soldr-cargoregistry-${cargoRegistryFormat === "soldr-v2" ? "v2" : "v1"}-${runnerOs}-${runnerArch}`;
   // Production registry content is shared across jobs (#375). A pinned local
   // source validation run may opt into an explicit generation namespace so its
-  // seed/warm proof cannot reuse an older registry archive.
+  // seed/warm proof cannot reuse an older registry archive. A released-soldr
+  // seed/warm proof opts in with `cargo-registry-cache-scope: cache-key-suffix`
+  // so its registry entry is created by the seed itself: a shared entry saved
+  // on a pull-request ref is deleted by the repository cache janitor
+  // (CACHE-003) between the seed and the warm job.
+  const cargoRegistryCacheScope = parseCargoRegistryCacheScope(inputs.cargoRegistryCacheScope);
   const cargoRegistryValidationNamespace =
-    soldrSourcePath && sanitizedSuffix ? `x${sanitizedSuffix}-` : "";
+    (soldrSourcePath || cargoRegistryCacheScope === "cache-key-suffix") && sanitizedSuffix
+      ? `x${sanitizedSuffix}-`
+      : "";
   const cargoRegistryCacheRestorePrefix =
     `${cargoRegistryCachePrefix}-${cargoLockHash}-${cargoRegistryValidationNamespace}`;
   // #371: drop git SHA from the exact key, same anti-pattern fix as
@@ -1784,3 +1791,11 @@ export async function applyResolveResult(result: ResolveResult): Promise<void> {
 
 // `buildOutputs` and `pythonDefaultJson` are re-exported at the top of
 // this file from their dedicated submodules.
+
+/** `cargo-registry-cache-scope`: `shared` (default) or `cache-key-suffix`. */
+export function parseCargoRegistryCacheScope(raw: string | undefined): "shared" | "cache-key-suffix" {
+  const value = (raw ?? "").trim().toLowerCase();
+  if (value === "" || value === "shared") return "shared";
+  if (value === "cache-key-suffix") return "cache-key-suffix";
+  throw new Error(`cargo-registry-cache-scope must be "shared" or "cache-key-suffix", got "${raw}"`);
+}

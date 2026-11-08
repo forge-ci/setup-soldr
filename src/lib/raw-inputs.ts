@@ -57,6 +57,7 @@ export function readRawInputs(env: Record<string, string | undefined>): RawInput
     cacheEncryptOnFailure: get("cache-encrypt-on-failure"),
     sourceMtimeNormalize: get("source-mtime-normalize"),
     cargoRegistryCache: get("cargo-registry-cache"),
+    cargoRegistryCacheScope: get("cargo-registry-cache-scope"),
     compileCacheStats: get("compile-cache-stats"),
     shims: get("shims"),
     stats: get("stats"),

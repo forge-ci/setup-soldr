@@ -64,6 +64,9 @@ def test_reusable_workflow_proves_a_clean_job_loaded_the_cook_base() -> None:
         assert inputs["build-cache"] is False
         assert inputs["target-cache"] is False
         assert inputs["cargo-registry-cache"] is True
+        # Run-scoped registry: the shared PR-ref entry is janitor-deleted
+        # (CACHE-003) between seed and warm (run 42474355930).
+        assert inputs["cargo-registry-cache-scope"] == "cache-key-suffix"
         assert inputs["prebuild-deps"] == "soldr-cook"
         assert inputs["prebuild-deps-flags"] == "--release ${{ inputs.build_args }}"
 
@@ -96,3 +99,11 @@ def test_reusable_workflow_serializes_cold_release_cooks() -> None:
     workflow = _load(REUSABLE)
     assert workflow["env"]["CARGO_BUILD_JOBS"] == "1"
     assert workflow["env"]["SOLDR_JOBS"] == "1"
+
+
+def test_driver_also_observes_main_and_a_weekly_schedule() -> None:
+    triggers = _load(DRIVER)[True]  # PyYAML parses the bare `on` key as True
+    assert "workflow_dispatch" in triggers
+    assert "pull_request" in triggers
+    assert triggers["push"] == {"branches": ["main"]}
+    assert len(triggers["schedule"]) == 1
