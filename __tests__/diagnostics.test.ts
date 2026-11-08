@@ -58,6 +58,7 @@ function fixtureRawInputs(): RawInputs {
     cacheEncryptOnFailure: "",
     sourceMtimeNormalize: "",
     cargoRegistryCache: "true",
+    cargoRegistryCacheScope: "",
     compileCacheStats: "summarize",
     shims: "false",
     stats: "summarize",

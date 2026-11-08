@@ -67,6 +67,9 @@ jobs:
           build-cache: false
           target-cache: false
           cargo-registry-cache: true
+          # Seed-created, run-scoped registry entry: a shared one saved on a PR ref
+          # is deleted by the end-of-queue janitor (CACHE-003) between seed and warm.
+          cargo-registry-cache-scope: cache-key-suffix
           solo-toolchain-cache: false
           soldr-mini-cache: false
           prebuild-deps: soldr-cook
@@ -127,6 +130,9 @@ jobs:
           build-cache: false
           target-cache: false
           cargo-registry-cache: true
+          # Seed-created, run-scoped registry entry: a shared one saved on a PR ref
+          # is deleted by the end-of-queue janitor (CACHE-003) between seed and warm.
+          cargo-registry-cache-scope: cache-key-suffix
           solo-toolchain-cache: false
           soldr-mini-cache: false
           prebuild-deps: soldr-cook

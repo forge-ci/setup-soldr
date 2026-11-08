@@ -2,6 +2,12 @@ name: Cook downstream rematerialization
 
 on:
   workflow_dispatch:
+  # Observe the default branch too: on pull requests this workflow gates
+  # nothing, so a regression that merges must still turn main red.
+  push:
+    branches: [main]
+  schedule:
+    - cron: "23 6 * * 1"
   pull_request:
     paths:
       - action.yml

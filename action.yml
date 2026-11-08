@@ -498,6 +498,15 @@ inputs:
       real source edits still invalidate fingerprints. Defaults to "false".
     required: false
     default: "false"
+  cargo-registry-cache-scope:
+    description: >
+      "shared" (default) keys the cargo-registry entry on the lockfile only, so
+      every job and workflow reuses it. "cache-key-suffix" also namespaces it
+      under cache-key-suffix, for seed/warm proofs whose warm job must restore
+      the entry its own seed saved rather than a shared entry the repository
+      cache janitor may delete in between.
+    required: false
+    default: "shared"
   cargo-registry-cache:
     description: >
       When "true", setup-soldr manages a separate actions/cache step

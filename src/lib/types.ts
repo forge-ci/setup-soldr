@@ -114,6 +114,7 @@ export interface RawInputs {
   cacheEncryptOnFailure: string;
   sourceMtimeNormalize: string;
   cargoRegistryCache: string;
+  cargoRegistryCacheScope: string;
   compileCacheStats: string;
   shims: string;
   stats: string;

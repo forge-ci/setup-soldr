@@ -1780,6 +1780,33 @@ test(
 );
 
 test(
+  "cargo-registry-cache-scope: cache-key-suffix namespaces the registry key under the suffix",
+  async () => {
+    // A released-soldr seed/warm proof (cook-downstream-rematerialization) must
+    // restore the registry entry its own seed saved: a shared entry saved on a
+    // pull-request ref is deleted by the cache janitor (CACHE-003) mid-run.
+    const shared = await run({}, {
+      INPUT_CARGO_REGISTRY_CACHE: "true",
+      INPUT_CACHE_KEY_SUFFIX: "consumer-zccache-42-1",
+    });
+    assert.match(shared.result.cargoRegistryCache.key, /^setup-soldr-cargoregistry-v1-linux-x64-[0-9a-f]{16}-[0-9a-f]{16}$/);
+    const scoped = await run({}, {
+      INPUT_CARGO_REGISTRY_CACHE: "true",
+      INPUT_CACHE_KEY_SUFFIX: "consumer-zccache-42-1",
+      INPUT_CARGO_REGISTRY_CACHE_SCOPE: "cache-key-suffix",
+    });
+    assert.match(
+      scoped.result.cargoRegistryCache.key,
+      /^setup-soldr-cargoregistry-v1-linux-x64-[0-9a-f]{16}-xconsumer-zccache-42-1-[0-9a-f]{16}$/,
+    );
+    await assert.rejects(
+      run({}, { INPUT_CARGO_REGISTRY_CACHE: "true", INPUT_CARGO_REGISTRY_CACHE_SCOPE: "bogus" }),
+      /cargo-registry-cache-scope/,
+    );
+  },
+);
+
+test(
   "setup-cache always includes rustup update-hashes path (#102 PR 3)",
   async () => {
     // System rustup layout (no explicit RUSTUP_HOME, system rustup satisfies):
