@@ -66,6 +66,7 @@ EXPECTED_INPUTS = {
     "target-cache-compress-level",
     "source-mtime-normalize",
     "cargo-registry-cache",
+    "cargo-registry-cache-scope",
     "compile-cache-stats",
     "shims",
     "stats",
