@@ -125,3 +125,18 @@ def test_the_warm_job_refuses_to_assert_without_a_restore() -> None:
     assert "soldr cargo metadata --locked --format-version=1" in build["run"]
     assert "touch crates/soldr-cli/src/main.rs" in build["run"]
     assert '"$RUNNER_TEMP/warm-metadata.json"' in build["run"]
+
+
+def test_selftest_builds_use_the_default_cook_profile() -> None:
+    """An early release capture cannot warm an unrelated debug build."""
+    action = yaml.safe_load(ACTION.read_text(encoding="utf-8"))
+    flags = action["inputs"]["prebuild-deps-flags"]["default"].split()
+    assert "--release" in flags
+    for job_name in ("seed", "warm"):
+        builds = [
+            step["run"]
+            for step in _workflow()["jobs"][job_name]["steps"]
+            if "soldr cargo build" in step.get("run", "")
+        ]
+        assert len(builds) == 1
+        assert "soldr cargo build -p soldr-cli --release --locked" in builds[0]

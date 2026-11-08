@@ -138,7 +138,9 @@ jobs:
       - name: Build soldr so the closure is populated
         shell: bash
         working-directory: _vender/soldr
-        run: soldr cargo build -p soldr-cli --locked
+        # Match the default cook profile (--release). Deferred capture used to
+        # smuggle this later build's debug artifacts into the cook archive.
+        run: soldr cargo build -p soldr-cli --release --locked
 
   warm:
     name: Rematerialize soldr dependency closure
@@ -189,7 +191,7 @@ jobs:
           touch crates/soldr-cli/src/main.rs
           soldr cargo metadata --locked --format-version=1 \
             > "$RUNNER_TEMP/warm-metadata.json"
-          soldr cargo build -p soldr-cli --locked \
+          soldr cargo build -p soldr-cli --release --locked \
             --message-format=json-render-diagnostics \
             > "$RUNNER_TEMP/warm-messages.jsonl" \
             2> "$RUNNER_TEMP/warm-stderr.log"
