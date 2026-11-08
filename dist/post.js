@@ -50784,6 +50784,168 @@ async function evictIfOverBudget(policy, deps) {
 
 /***/ }),
 
+/***/ 84412:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+/**
+ * Delete superseded generations of a cache family right after a newer one is
+ * saved.
+ *
+ * Why: the Actions cache is a 10 GB pool shared by every family, and the janitor
+ * that enforces the repository budget only runs at the end of a merge-queue run.
+ * Between those sweeps a family accumulates one entry per Rust/lockfile change,
+ * so a single bump of the toolchain or a lockfile edit can momentarily hold two
+ * or three complete generations of every cook layer and push the pool over the
+ * ceiling, at which point GitHub's LRU evicts whatever it likes - including
+ * layers a lane needs on its next run.
+ *
+ * Deleting the older generation at save time keeps exactly one entry per family
+ * without waiting for the janitor, and it is the cheapest possible policy: the
+ * save just proved the new key is complete, so the old one is by definition
+ * superseded.
+ *
+ * Safety: only entries whose key shares the saved key's family prefix are
+ * touched, never the just-saved key itself, and the whole sweep is best-effort -
+ * a failure to delete is logged, never fatal.
+ */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.familyPrefixOfBaseKey = familyPrefixOfBaseKey;
+exports.supersedeDisabled = supersedeDisabled;
+exports.deleteSupersededFamilyEntries = deleteSupersededFamilyEntries;
+const github = __importStar(__nccwpck_require__(93228));
+/**
+ * The family prefix of a base-layer key.
+ *
+ * `buildCookBaseCacheKey` puts the soldr version last (`cook-base-v3-…-soldrv0.9.45`,
+ * see setup-soldr#625) precisely so the version can be dropped; everything before
+ * that segment identifies the family (os, arch, libc, rustc release, flags hash,
+ * lockfile hash, key suffix).
+ */
+function familyPrefixOfBaseKey(key) {
+    const marker = key.lastIndexOf("-soldrv");
+    if (marker <= 0)
+        return null;
+    return key.slice(0, marker);
+}
+function truthy(value) {
+    return Boolean(value && value.trim() && value.trim() !== "0");
+}
+/** `NO_CACHE_SUPERSEDE` (any truthy value) turns the sweep off entirely. */
+function supersedeDisabled(env = process.env) {
+    return truthy(env.NO_CACHE_SUPERSEDE);
+}
+async function deleteSupersededFamilyEntries(opts) {
+    if (supersedeDisabled()) {
+        return { deleted: 0, failed: 0, bytes: 0, reason: "disabled by NO_CACHE_SUPERSEDE" };
+    }
+    const prefix = opts.familyPrefix ?? familyPrefixOfBaseKey(opts.keepKey);
+    if (!prefix) {
+        return { deleted: 0, failed: 0, bytes: 0, reason: "key has no family prefix" };
+    }
+    const owner = opts.owner ?? process.env.GITHUB_REPOSITORY_OWNER ?? process.env.GITHUB_REPOSITORY?.split("/")[0];
+    const repo = opts.repo ?? process.env.GITHUB_REPOSITORY?.split("/")[1];
+    const token = opts.token ?? process.env.GITHUB_TOKEN;
+    if (!owner || !repo || !token) {
+        return { deleted: 0, failed: 0, bytes: 0, reason: "no repository or token" };
+    }
+    const octokit = github.getOctokit(token);
+    const listCachesByPrefix = opts.listCachesByPrefix ??
+        (async (familyPrefix) => {
+            const found = [];
+            let page = 1;
+            while (true) {
+                const response = await octokit.rest.actions.getActionsCacheList({
+                    owner,
+                    repo,
+                    key: familyPrefix,
+                    per_page: 100,
+                    page,
+                });
+                const items = response.data.actions_caches ?? [];
+                for (const item of items) {
+                    if (item.id != null && item.key != null && item.size_in_bytes != null) {
+                        found.push({ id: item.id, key: item.key, size_in_bytes: item.size_in_bytes });
+                    }
+                }
+                if (items.length < 100)
+                    break;
+                page += 1;
+            }
+            return found;
+        });
+    const deleteCacheById = opts.deleteCacheById ??
+        (async (cacheId) => {
+            await octokit.rest.actions.deleteActionsCacheById({ owner, repo, cache_id: cacheId });
+        });
+    let stale;
+    try {
+        stale = (await listCachesByPrefix(prefix)).filter((entry) => entry.key !== opts.keepKey && entry.key.startsWith(prefix));
+    }
+    catch (error) {
+        opts.log(`cache-supersede: could not list family ${prefix}: ${error instanceof Error ? error.message : String(error)}`);
+        return { deleted: 0, failed: 0, bytes: 0, reason: "list failed" };
+    }
+    if (stale.length === 0) {
+        return { deleted: 0, failed: 0, bytes: 0 };
+    }
+    let deleted = 0;
+    let failed = 0;
+    let bytes = 0;
+    for (const entry of stale) {
+        try {
+            await deleteCacheById(entry.id);
+            deleted += 1;
+            bytes += entry.size_in_bytes;
+        }
+        catch (error) {
+            failed += 1;
+            opts.log(`cache-supersede: delete failed id=${entry.id} key=${entry.key}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    if (deleted > 0) {
+        opts.log(`cache-supersede: deleted ${deleted} superseded ${prefix} entr${deleted === 1 ? "y" : "ies"} (${bytes} bytes) after saving ${opts.keepKey}`);
+    }
+    return { deleted, failed, bytes };
+}
+
+
+/***/ }),
+
 /***/ 43408:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -52227,6 +52389,7 @@ const cache = __importStar(__nccwpck_require__(5116));
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const log_utils_js_1 = __nccwpck_require__(28129);
 const two_phase_actions_cache_js_1 = __nccwpck_require__(27190);
+const cache_supersede_js_1 = __nccwpck_require__(84412);
 const save_policy_js_1 = __nccwpck_require__(98097);
 function layeredCookBaseReady(restore, loaded) {
     return restore.base.hit && loaded.baseLoaded;
@@ -52809,6 +52972,7 @@ async function saveCookCache(opts) {
         return { status: "failed", error: result.error, reserveMs };
     }
     const archive = result.archive;
+    await sweepSupersededGeneration(exactKey, log);
     return {
         status: "saved",
         cacheId: result.cacheId,
@@ -52819,6 +52983,18 @@ async function saveCookCache(opts) {
         compressMs: archive.compressMs,
         reserveMs,
     };
+}
+/**
+ * Delete the previous generation of this family once the new one is safely
+ * saved. Best effort: failing to delete must never fail a build.
+ */
+async function sweepSupersededGeneration(exactKey, log) {
+    try {
+        await (0, cache_supersede_js_1.deleteSupersededFamilyEntries)({ keepKey: exactKey, log });
+    }
+    catch (error) {
+        log(`cache-supersede: skipped after save: ${error instanceof Error ? error.message : String(error)}`);
+    }
 }
 function saveReport(payload) {
     return {

@@ -22,6 +22,7 @@ import * as cache from "@actions/cache";
 import { compressCache, decompressCache, detectCompressMagic } from "./cache-compress.js";
 import { formatLogLine } from "./log-utils.js";
 import { isReservationConflict, saveReservedCache } from "./two-phase-actions-cache.js";
+import { deleteSupersededFamilyEntries } from "./cache-supersede.js";
 import { allowCacheSave } from "./save-policy.js";
 
 export interface CookCacheKeyParts {
@@ -866,6 +867,7 @@ export async function saveCookCache(opts: CookSaveOpts): Promise<CookSaveResult>
     return { status: "failed", error: result.error, reserveMs };
   }
   const archive = result.archive!;
+  await sweepSupersededGeneration(exactKey, log);
   return {
     status: "saved",
     cacheId: result.cacheId,
@@ -876,6 +878,20 @@ export async function saveCookCache(opts: CookSaveOpts): Promise<CookSaveResult>
     compressMs: archive.compressMs,
     reserveMs,
   };
+}
+
+/**
+ * Delete the previous generation of this family once the new one is safely
+ * saved. Best effort: failing to delete must never fail a build.
+ */
+async function sweepSupersededGeneration(exactKey: string, log: (msg: string) => void): Promise<void> {
+  try {
+    await deleteSupersededFamilyEntries({ keepKey: exactKey, log });
+  } catch (error) {
+    log(
+      `cache-supersede: skipped after save: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 function saveReport(payload: Record<string, unknown> | null): {
