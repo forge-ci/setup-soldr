@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
@@ -560,20 +561,235 @@ test("downloadWithHeaders gives up after all attempts return HTTP 500", async ()
   });
 });
 
-test("downloadWithHeaders retries HTTP 429 and network errors", async () => {
+test("downloadWithHeaders treats HTTP 429 as fatal and retries network errors", async () => {
   const { isRetryableDownloadError } = await import("../src/lib/ensure-soldr.js");
-  assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: HTTP 429`)), true);
+  assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: HTTP 429`)), false);
   assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: network error: fetch failed`)), true);
   assert.equal(isRetryableDownloadError(new Error(`download failed for ${ASSET_URL}: HTTP 403`)), false);
 });
 
 
-test("release asset retries back off within the four-attempt bootstrap budget", async () => {
+test("release asset survives a 504 flap beyond the old four-attempt limit", async () => {
   const { downloadWithHeaders } = await import("../src/lib/ensure-soldr.js");
   const delays: number[] = [];
-  await withFetchSequence([504, 504, 504, 200], async (dest, calls) => {
-    await downloadWithHeaders(ASSET_URL, dest, {}, { sleep: async delay => { delays.push(delay); } });
-    assert.equal(calls.count, 4);
-    assert.deepEqual(delays, [2000, 4000, 8000]);
+  await withFetchSequence([504, 504, 504, 504, 504, 504, 200], async (dest, calls) => {
+    await downloadWithHeaders(ASSET_URL, dest, {}, {
+      sleep: async delay => { delays.push(delay); }, random: () => 1,
+    });
+    assert.equal(calls.count, 7);
+    assert.equal(fs.readFileSync(dest, "utf8"), "payload");
+    assert.equal(delays.length, 6);
   });
+});
+
+test("release asset backoff stays within the three-minute budget at both jitter bounds", async () => {
+  const { downloadWithHeaders, DOWNLOAD_ATTEMPTS, DOWNLOAD_RETRY_BUDGET_MS } = await import("../src/lib/ensure-soldr.js");
+  assert.equal(DOWNLOAD_ATTEMPTS, 7);
+  assert.equal(DOWNLOAD_RETRY_BUDGET_MS, 180_000);
+  for (const random of [0, 1]) {
+    const delays: number[] = [];
+    await withFetchSequence([504], async (dest, calls) => {
+      await assert.rejects(downloadWithHeaders(ASSET_URL, dest, {}, {
+        sleep: async delay => { delays.push(delay); }, random: () => random,
+      }), /after 7 attempts:.*HTTP 504/);
+      assert.equal(calls.count, 7);
+      const base = 180_000 / 63;
+      assert.deepEqual(delays, Array.from({ length: 6 }, (_, i) => Math.floor(base * 2 ** i * (0.8 + 0.2 * random))));
+      const total = delays.reduce((sum, delay) => sum + delay, 0);
+      assert.ok(total >= 144_000 - 6 && total <= DOWNLOAD_RETRY_BUDGET_MS, String(total));
+    });
+  }
+});
+
+test("downloaded digest mismatch is fatal without another download or sleep", async () => {
+  const { downloadWithHeaders, isRetryableDownloadError } = await import("../src/lib/ensure-soldr.js");
+  await withFetchSequence([200], async (dest, calls) => {
+    let sleeps = 0;
+    await downloadWithHeaders(ASSET_URL, dest, {}, { sleep: async () => { sleeps += 1; } });
+    assert.throws(() => _internal.verifyDownloadedAsset(dest, "0".repeat(64)), error => {
+      assert.match((error as Error).message, /SHA-256 mismatch/);
+      assert.equal(isRetryableDownloadError(error), false);
+      return true;
+    });
+    assert.equal(calls.count, 1);
+    assert.equal(sleeps, 0);
+  });
+});
+
+
+// Exercise the production download boundary with real fetch Responses and hashing.
+const FALLBACK_VERSION = "v0.9.41";
+const FALLBACK_TARGET = "x86_64-unknown-linux-gnu";
+const WHEEL_NAME = "soldr-0.9.41-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl";
+const WHEEL_URL = `https://files.pythonhosted.org/packages/${WHEEL_NAME}`;
+const WHEEL_BODY = "verified wheel bytes";
+const wheelMetadata = (version = "0.9.41", digest = createHash("sha256").update(WHEEL_BODY).digest("hex")) => ({
+  info: { version },
+  urls: [{ filename: WHEEL_NAME, url: WHEEL_URL, digests: { sha256: digest }, yanked: false }],
+});
+
+async function withReleaseDownload(
+  githubStatus: number,
+  pypiStatus: number,
+  body: (run: () => ReturnType<typeof _internal.downloadReleaseAsset>, calls: string[], logs: string[]) => Promise<void>,
+  metadata = wheelMetadata(),
+  wheelStatus = 200,
+): Promise<void> {
+  const original = globalThis.fetch;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "soldr-fallback-test-"));
+  const calls: string[] = [];
+  const logs: string[] = [];
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = String(input);
+    calls.push(url);
+    if (url === ASSET_URL) return new Response(githubStatus === 200 ? "github archive" : "error", { status: githubStatus });
+    // Authorization for GitHub must never be forwarded to PyPI.
+    assert.equal(new Headers(init?.headers).has("Authorization"), false);
+    if (url === `https://pypi.org/pypi/soldr/0.9.41/json`) {
+      return new Response(JSON.stringify(metadata), { status: pypiStatus });
+    }
+    assert.equal(url, WHEEL_URL);
+    return new Response(WHEEL_BODY, { status: wheelStatus });
+  }) as typeof fetch;
+  try {
+    await body(() => _internal.downloadReleaseAsset({
+      asset: { name: "soldr.tar.zst", url: ASSET_URL, archiveExt: "tar.zst", source: "github-release" },
+      version: FALLBACK_VERSION, target: FALLBACK_TARGET, repo: "forge-ci/soldr", directory: dir,
+      githubToken: "github-only-token", log: message => { logs.push(message); }, retry: noSleep,
+    }), calls, logs);
+  } finally {
+    globalThis.fetch = original;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test("release download keeps healthy GitHub bytes and never contacts PyPI", async () => {
+  await withReleaseDownload(200, 200, async (run, calls, logs) => {
+    const result = await run();
+    assert.equal(result.asset.source, "github-release");
+    assert.equal(fs.readFileSync(result.archivePath, "utf8"), "github archive");
+    assert.deepEqual(calls, [ASSET_URL]);
+    assert.ok(logs.includes("soldr source: github-release"));
+  });
+});
+
+test("exhausted GitHub 504 budget falls back to the exact digest-verified PyPI wheel", async () => {
+  await withReleaseDownload(504, 200, async (run, calls, logs) => {
+    const result = await run();
+    assert.equal(result.asset.source, "pypi-wheel");
+    assert.equal(fs.readFileSync(result.archivePath, "utf8"), WHEEL_BODY);
+    assert.equal(calls.filter(url => url === ASSET_URL).length, 7);
+    assert.deepEqual(calls.slice(7), ["https://pypi.org/pypi/soldr/0.9.41/json", WHEEL_URL]);
+    assert.ok(logs.includes("soldr source: pypi-fallback"));
+  });
+});
+
+test("both-fail error names GitHub and PyPI with both failure reasons", async () => {
+  await withReleaseDownload(504, 404, async (run, calls) => {
+    await assert.rejects(run(), /github-release:.*HTTP 504.*pypi-fallback:.*HTTP 404/s);
+    assert.equal(calls.length, 8); // PyPI 404 is fatal on its first request.
+  });
+});
+
+test("fallback digest mismatch is fatal without retry or alternate artifact", async () => {
+  await withReleaseDownload(504, 200, async (run, calls) => {
+    await assert.rejects(run(), /github-release:.*HTTP 504.*pypi-fallback:.*SHA-256 mismatch/s);
+    assert.equal(calls.filter(url => url === WHEEL_URL).length, 1);
+  }, wheelMetadata("0.9.41", "0".repeat(64)));
+});
+
+test("release download fails immediately for GitHub 4xx without fallback", async () => {
+  for (const status of [400, 403, 404, 429]) {
+    await withReleaseDownload(status, 200, async (run, calls) => {
+      await assert.rejects(run(), new RegExp(`HTTP ${status}`));
+      assert.deepEqual(calls, [ASSET_URL]);
+    });
+  }
+});
+
+test("PyPI artifact 4xx is not retried and both sources remain in the error", async () => {
+  for (const status of [403, 404, 429]) {
+    await withReleaseDownload(504, 200, async (run, calls) => {
+      await assert.rejects(run(), new RegExp(`github-release:.*HTTP 504.*pypi-fallback:.*HTTP ${status}`, "s"));
+      assert.equal(calls.filter(url => url === WHEEL_URL).length, 1);
+    }, wheelMetadata(), status);
+  }
+});
+
+test("fallback refuses metadata for a different version", async () => {
+  await withReleaseDownload(504, 200, async (run, calls) => {
+    await assert.rejects(run(), /PyPI.*version.*0.9.42.*0.9.41/);
+    assert.equal(calls.includes(WHEEL_URL), false);
+  }, wheelMetadata("0.9.42"));
+});
+
+test("fallback refuses a wheel filename for a different version", async () => {
+  const metadata = wheelMetadata();
+  metadata.urls[0]!.filename = WHEEL_NAME.replace("0.9.41", "0.9.42");
+  await withReleaseDownload(504, 200, async (run, calls) => {
+    await assert.rejects(run(), /no.*PyPI wheel.*0.9.41/);
+    assert.equal(calls.includes(WHEEL_URL), false);
+  }, metadata);
+});
+
+test("fallback refuses wheel URLs outside the PyPI artifact CDN", async () => {
+  const metadata = wheelMetadata();
+  metadata.urls[0]!.url = "https://untrusted.invalid/soldr.whl";
+  await withReleaseDownload(504, 200, async run => {
+    await assert.rejects(run(), /PyPI.*URL/);
+  }, metadata);
+});
+
+
+test("GitHub release metadata 4xx is fatal without retry", async () => {
+  const original = globalThis.fetch;
+  try {
+    for (const status of [403, 404, 429]) {
+      let calls = 0;
+      globalThis.fetch = (async () => { calls += 1; return new Response("error", { status }); }) as typeof fetch;
+      await assert.rejects(_internal.fetchRelease("forge-ci/soldr", FALLBACK_VERSION, "token", FALLBACK_TARGET), new RegExp(`HTTP ${status}`));
+      assert.equal(calls, 1);
+    }
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+
+function singlePartChefCatalog(assetOverrides: Record<string, unknown> = {}, partOverrides: Record<string, unknown> = {}) {
+  return { releases: [{ version: "v0.1.73", platforms: [{
+    platform: { os: "linux", arch: "x86_64", libc: "musl" },
+    asset: {
+      filename: "cargo-chef-linux-x86_64-musl.tar.gz", sha256: "a".repeat(64), size_bytes: 12345,
+      parts: [{ number: 1, sha256: "a".repeat(64), size_bytes: 12345,
+        urls: ["https://raw.githubusercontent.com/forge-ci/soldr-toolchain/main/cargo-chef.part001"],
+        ...partOverrides }], ...assetOverrides,
+    },
+  }] }] };
+}
+
+test("cargo-chef support accepts the current one-part catalogue with a whole-archive digest", () => {
+  assert.deepEqual(_internal.selectToolchainSupportAsset(singlePartChefCatalog(), "0.1.73", FALLBACK_TARGET), {
+    filename: "cargo-chef-linux-x86_64-musl.tar.gz", sha256: "a".repeat(64), archiveExt: "tar.gz",
+    urls: ["https://raw.githubusercontent.com/forge-ci/soldr-toolchain/main/cargo-chef.part001"],
+  });
+});
+
+test("cargo-chef support rejects multipart, inconsistent, or incomplete catalogue parts", () => {
+  const invalidCatalogs = [
+    singlePartChefCatalog({ parts: [{ number: 1 }, { number: 2 }] }),
+    singlePartChefCatalog({}, { number: 2 }),
+    singlePartChefCatalog({}, { sha256: "b".repeat(64) }),
+    singlePartChefCatalog({}, { size_bytes: 12344 }),
+    singlePartChefCatalog({ size_bytes: 0 }, { size_bytes: 0 }),
+    singlePartChefCatalog({ size_bytes: -1 }, { size_bytes: -1 }),
+    singlePartChefCatalog({ size_bytes: 1.5 }, { size_bytes: 1.5 }),
+    singlePartChefCatalog({}, { urls: [] }),
+    singlePartChefCatalog({}, { urls: [""] }),
+    singlePartChefCatalog({}, { urls: [42] }),
+    singlePartChefCatalog({}, { urls: ["https://example.invalid/part", 42] }),
+  ];
+  for (const catalog of invalidCatalogs) {
+    assert.throws(() => _internal.selectToolchainSupportAsset(catalog, "0.1.73", FALLBACK_TARGET), /incomplete/);
+  }
 });
