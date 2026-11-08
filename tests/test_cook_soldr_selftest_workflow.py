@@ -81,6 +81,39 @@ def test_both_jobs_default_to_linux_and_allow_dispatch_elsewhere() -> None:
     assert {"windows-2022", "macos-14"} <= set(options)
 
 
+def test_seed_asserts_the_cook_save_stayed_inside_the_inventory() -> None:
+    """#513 P0: capture cook output at the correct boundary.
+
+    The seed job builds soldr-cli right after setup — the lane that once
+    uploaded a ~1 GB cook base containing the first-party build. The
+    assertion must exist (post-step outputs are invisible to setup-step
+    reads, so a regression back to deferred capture fails here) and must
+    bound the saved file count by the cook-time inventory.
+    """
+    workflow = _workflow()
+    seed = workflow["jobs"]["seed"]
+    step = next(
+        s
+        for s in seed["steps"]
+        if s.get("name") == "Assert the cook save stayed inside the cook-time inventory"
+    )
+    assert step["shell"] == "bash"
+    assert (
+        step["env"]["SAVE_REPORT"]
+        == "${{ steps.setup.outputs.cook-cache-save-report-json }}"
+    )
+    run = step["run"]
+    assert '(.layer == "base")' in run
+    assert "inventoryFileCount" in run
+    assert "fileCount" in run
+    assert "1.05" in run
+    # The assertion must precede the first-party build it protects against.
+    names = [s.get("name") for s in seed["steps"]]
+    assert names.index(
+        "Assert the cook save stayed inside the cook-time inventory"
+    ) < names.index("Build soldr so the closure is populated")
+
+
 def test_the_warm_job_refuses_to_assert_without_a_restore() -> None:
     """A freshness assertion after a cache miss proves nothing."""
     warm = _workflow()["jobs"]["warm"]
@@ -92,3 +125,18 @@ def test_the_warm_job_refuses_to_assert_without_a_restore() -> None:
     assert "soldr cargo metadata --locked --format-version=1" in build["run"]
     assert "touch crates/soldr-cli/src/main.rs" in build["run"]
     assert '"$RUNNER_TEMP/warm-metadata.json"' in build["run"]
+
+
+def test_selftest_builds_use_the_default_cook_profile() -> None:
+    """An early release capture cannot warm an unrelated debug build."""
+    action = yaml.safe_load(ACTION.read_text(encoding="utf-8"))
+    flags = action["inputs"]["prebuild-deps-flags"]["default"].split()
+    assert "--release" in flags
+    for job_name in ("seed", "warm"):
+        builds = [
+            step["run"]
+            for step in _workflow()["jobs"][job_name]["steps"]
+            if "soldr cargo build" in step.get("run", "")
+        ]
+        assert len(builds) == 1
+        assert "soldr cargo build -p soldr-cli --release --locked" in builds[0]

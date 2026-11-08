@@ -35,6 +35,24 @@ def test_rematerialization_workflow_has_isolated_baseline_seed_delta_and_warm_jo
         assert checkout["with"]["submodules"] == "recursive"
 
 
+def test_seed_asserts_the_cook_save_stayed_inside_the_inventory() -> None:
+    """#513 P0: the cook base is captured at cook time, bounded by the
+    cook-time inventory — a deferred post-step capture reports nothing
+    here and cannot pass."""
+    workflow = _load()
+    seed = workflow["jobs"]["seed"]
+    step = _step(seed, "Assert the cook save stayed inside the cook-time inventory")
+    assert step["shell"] == "bash"
+    assert (
+        step["env"]["SAVE_REPORT"]
+        == "${{ steps.setup.outputs.cook-cache-save-report-json }}"
+    )
+    run = step["run"]
+    assert '(.layer == "base")' in run
+    assert "inventoryFileCount" in run
+    assert "1.05" in run
+
+
 def test_cleanup_is_an_always_finalizer_with_cache_delete_access() -> None:
     """#513 P0: run-scoped cache keys must be deleted on success, failure,
     and cancellation, and the job needs actions: write to do it."""

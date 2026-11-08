@@ -72,7 +72,7 @@ test("disabled policy never fires", async () => {
 
 test("under trigger threshold is no-op", async () => {
   const { deps, deleted } = makeDeps({
-    caches: [entry(1, "cook-delta-v2-foo", 500, 24)],
+    caches: [entry(1, "cook-delta-v3-foo", 500, 24)],
     usageGb: 9, // < 9.5 GB trigger
   });
   const result = await evictIfOverBudget("protect-foundations", deps);
@@ -83,13 +83,13 @@ test("under trigger threshold is no-op", async () => {
 
 test("evicts biggest non-foundation entries until under target (age tiebreaker)", async () => {
   const caches = [
-    entry(101, "cook-delta-v2-foo", 1024, 48), // oldest, evictable (>6h)
+    entry(101, "cook-delta-v3-foo", 1024, 48), // oldest, evictable (>6h)
     entry(102, "zccache-Linux-X64-test-aaa", 1024, 36), // evictable
-    entry(103, "cook-delta-v2-bar", 1024, 24), // evictable
+    entry(103, "cook-delta-v3-bar", 1024, 24), // evictable
     entry(104, "solo-toolchain-v2-xyz", 170, 12), // FOUNDATION — protected
     entry(105, "soldr-mini-darwin", 11, 12), // FOUNDATION
     entry(106, "setup-soldr-cargoregistry-v1-foo", 50, 12), // FOUNDATION
-    entry(107, "cook-delta-v2-baz", 1024, 12), // evictable (>6h)
+    entry(107, "cook-delta-v3-baz", 1024, 12), // evictable (>6h)
   ];
   // total = 3*1024 + 170 + 11 + 50 + 1024 ≈ 4.25 GB
   // But say usage is reported as 11 GB to force eviction.
@@ -119,11 +119,11 @@ test("age floor protects fresh entries from self-eviction (#352)", async () => {
   const caches = [
     // #368: cook-base is now foundation, so we use cook-delta + buildcache
     // here to exercise the age-floor path (these layers ARE evictable).
-    entry(201, "cook-delta-v2-foo", 2000, 0.1), // age 6 minutes
+    entry(201, "cook-delta-v3-foo", 2000, 0.1), // age 6 minutes
     entry(202, "setup-soldr-buildcache-v2-bar", 300, 0.1),
-    entry(203, "cook-delta-v2-baz", 1500, 1.5), // age 1.5h still < 6h
+    entry(203, "cook-delta-v3-baz", 1500, 1.5), // age 1.5h still < 6h
     entry(204, "solo-toolchain-v2-foo", 170, 1), // foundation
-    entry(205, "cook-base-v2-baz", 300, 12), // foundation (#368) — old but protected
+    entry(205, "cook-base-v4-baz", 300, 12), // foundation (#368) — old but protected
   ];
   const { deps, deleted, log } = makeDeps({ caches, usageGb: 10 });
   const result = await evictIfOverBudget("protect-foundations", deps);
@@ -164,11 +164,11 @@ test("graduated age floor evicts in danger zone (#356)", async () => {
   // but > 0.5h. The graduated floor drops to 0.5h, so most should
   // become evictable and we should free space toward the 9 GB target.
   const caches = [
-    entry(301, "cook-delta-v2-foo", 2000, 5), // 5h old — beats 0.5h floor
+    entry(301, "cook-delta-v3-foo", 2000, 5), // 5h old — beats 0.5h floor
     entry(302, "setup-soldr-buildcache-v2-bar", 1500, 4),
-    entry(303, "cook-delta-v2-baz", 1500, 3),
+    entry(303, "cook-delta-v3-baz", 1500, 3),
     entry(304, "solo-toolchain-v2-foo", 170, 1), // foundation, protected anyway
-    entry(305, "cook-delta-v2-fresh", 200, 0.1), // 6 min — still under 0.5h floor
+    entry(305, "cook-delta-v3-fresh", 200, 0.1), // 6 min — still under 0.5h floor
   ];
   const { deps, deleted, log } = makeDeps({ caches, usageGb: 13.63 });
   const result = await evictIfOverBudget("protect-foundations", deps);
@@ -190,7 +190,7 @@ test("graduated age floor evicts in danger zone (#356)", async () => {
 });
 
 test("404 from delete is tolerated (concurrent race)", async () => {
-  const caches = [entry(1, "cook-delta-v2-foo", 1024, 24)];
+  const caches = [entry(1, "cook-delta-v3-foo", 1024, 24)];
   const log: string[] = [];
   const deps: EvictDeps = {
     owner: "x",
@@ -212,8 +212,8 @@ test("404 from delete is tolerated (concurrent race)", async () => {
 
 test("403 permission denied logs once and stops", async () => {
   const caches = [
-    entry(1, "cook-delta-v2-foo", 1024, 24),
-    entry(2, "cook-delta-v2-bar", 1024, 18),
+    entry(1, "cook-delta-v3-foo", 1024, 24),
+    entry(2, "cook-delta-v3-bar", 1024, 18),
   ];
   let attempts = 0;
   const log: string[] = [];
@@ -250,7 +250,7 @@ test("entries matching ANY foundation prefix are protected", () => {
     // #368: cook-cache-base is foundation. Lockfile-keyed →
     // serves many CI cycles. Eviction observed within 20 min on
     // zccache before this was added.
-    "cook-base-v2-linux-x64-glibc-rustc1.94.1-fnone-l92559307b22cc1be-soldrv0.7.51",
+    "cook-base-v4-linux-x64-glibc-rustc1.94.1-fnone-l92559307b22cc1be-soldrv0.7.51",
   ]) {
     assert.ok(
       FOUNDATION_PREFIXES.some((p) => key.startsWith(p)),
@@ -262,7 +262,7 @@ test("entries matching ANY foundation prefix are protected", () => {
 test("entries NOT matching foundation prefix are evictable", () => {
   for (const key of [
     // cook-delta IS evictable — it's commit-keyed, ages off quickly.
-    "cook-delta-v2-linux-x64-glibc-rustc1.94.1-fnone-l...",
+    "cook-delta-v3-linux-x64-glibc-rustc1.94.1-fnone-l...",
     "setup-soldr-buildcache-v2-linux-unknown-abc",
     "zccache-Linux-X64-test-foo",
     "cargo-target-Linux-X64-bench-abc",

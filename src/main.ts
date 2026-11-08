@@ -92,11 +92,13 @@ import {
   loadLayeredCookCache,
   layeredCookBaseReady,
   layeredCookDeltaReady,
+  measureDirInventory,
   parseCookFlags,
   restoreCookCache,
   restoreLayeredCookCacheArchives,
   selectCookSaveLayer,
   runCook,
+  saveLayeredCookCache,
   supportsLayeredCookCache,
 } from "./lib/cook-cache.js";
 import {
@@ -1196,6 +1198,7 @@ export async function run(): Promise<void> {
   core.setOutput("cook-cache-delta-hit", "false");
   core.setOutput("cook-cache-status", cookActive ? "miss" : "disabled");
   core.setOutput("cook-cache-load-report-json", "{}");
+  core.setOutput("cook-cache-save-report-json", "{}");
   let cookRestoreT0 = Date.now();
   let cookRestorePromise: Promise<{ hit: boolean; matchedKey: string; archiveBytes: number }> | null = null;
   let cookLayeredRestorePromise: ReturnType<typeof restoreLayeredCookCacheArchives> | null = null;
@@ -1951,6 +1954,111 @@ export async function run(): Promise<void> {
     // (ACT=true) has no cache budget and compresses at -1.
     core.saveState("cookCompressLevel", cacheProfileDefault("cook-base-zstd-level", isLocalRunner(process.env)));
     core.saveState("cookDeltaCompressLevel", cacheProfileDefault("cook-delta-zstd-level", isLocalRunner(process.env)));
+
+    // #513: capture the dependency closure NOW, before the consumer's
+    // first-party build mutates target/. The old deferred (post-step) save
+    // snapshotted post-build state — that is how cook-base entries reached
+    // ~1 GB in this repository's self-test lane (first-party soldr-cli
+    // artifacts rode along). The inventory measured immediately after cook
+    // is also the ceiling any later fallback save may upload.
+    core.saveState("cookSavedEarly", "false");
+    if (cookRan && cookSaveLayer !== "none") {
+      const saveLayer = cookSaveLayer === "delta" ? "delta" : "base";
+      const saveKey = saveLayer === "delta" ? cookDeltaKey : cookBaseKey;
+      const archivePath = saveLayer === "delta" ? cookDeltaArchive : cookBaseArchive;
+      const zstdLevel = cacheProfileDefault(saveLayer === "delta" ? "cook-delta-zstd-level" : "cook-base-zstd-level", isLocalRunner(process.env));
+      let inventory = { fileCount: 0, bytes: 0 };
+      try {
+        inventory = await measureDirInventory(cookTargetDir);
+      } catch (err) {
+        logger.warning(
+          `cook-cache: inventory measurement failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+      core.saveState("cookInventoryFileCount", String(inventory.fileCount));
+      core.saveState("cookInventoryBytes", String(inventory.bytes));
+      const maxFileCount = Math.ceil(inventory.fileCount * 1.05);
+      logger.log(
+        `cook-cache: capturing ${saveLayer} immediately after cook (#513): ` +
+          `inventory files=${inventory.fileCount} bytes=${inventory.bytes} ` +
+          `upload ceiling=${maxFileCount}`,
+      );
+      const saveStart = Date.now();
+      let saveReportJson = JSON.stringify({
+        layer: saveLayer,
+        status: "failed",
+        fileCount: null,
+        archiveBytes: null,
+        inventoryFileCount: inventory.fileCount,
+        inventoryBytes: inventory.bytes,
+        ratio: null,
+        durationMs: 0,
+      });
+      try {
+        const saveResult = await saveLayeredCookCache({
+          soldrBinary: result.soldrPath,
+          projectRoot: cookProjectRoot,
+          targetDir: cookTargetDir,
+          exactKey: saveKey,
+          archivePath,
+          layer: saveLayer,
+          zstdLevel,
+          baseManifestPath: cookBaseManifest,
+          maxFileCount,
+          log: (msg) => logger.log(msg),
+        });
+        const ratio =
+          saveResult.fileCount && inventory.fileCount > 0
+            ? saveResult.fileCount / inventory.fileCount
+            : null;
+        saveReportJson = JSON.stringify({
+          layer: saveLayer,
+          status: saveResult.status,
+          fileCount: saveResult.fileCount ?? null,
+          archiveBytes: saveResult.archiveBytes ?? null,
+          inventoryFileCount: inventory.fileCount,
+          inventoryBytes: inventory.bytes,
+          ratio,
+          durationMs: Date.now() - saveStart,
+        });
+        statsCollector.record({
+          label: `cook-cache-${saveLayer}`,
+          operation: "save",
+          status: saveResult.status,
+          hit: false,
+          key: saveKey,
+          matchedKey: "",
+          restoreKeys: [],
+          archiveBytes: saveResult.status === "saved" ? (saveResult.archiveBytes ?? null) : null,
+          inflatedBytes: null,
+          fileCount: saveResult.status === "saved" ? (saveResult.fileCount ?? null) : null,
+          durationMs: Date.now() - saveStart,
+          compressMs: saveResult.compressMs,
+          uploadMs: saveResult.uploadMs,
+          timestamp: new Date().toISOString(),
+        });
+        if (saveResult.status !== "saved") {
+          logger.warning(
+            `cook-cache-${saveLayer}: early save status=${saveResult.status} ` +
+              `error=${saveResult.error ?? "none"}; the post step will retry ` +
+              `under the cook-time inventory ceiling`,
+          );
+        }
+        const earlyHandled =
+          saveResult.status === "saved" ||
+          saveResult.status === "skipped-race" ||
+          saveResult.status === "skipped-race-precheck";
+        core.saveState("cookSavedEarly", earlyHandled ? "true" : "false");
+      } catch (err) {
+        logger.warning(
+          `cook-cache-${saveLayer}: early save failed: ` +
+            `${err instanceof Error ? err.message : String(err)}; the post step ` +
+            `will retry under the cook-time inventory ceiling`,
+        );
+      }
+      core.saveState("cookSaveReport", saveReportJson);
+      core.setOutput("cook-cache-save-report-json", saveReportJson);
+    }
   } else if (cookActive && cookRestorePromise) {
     const restore = await cookRestorePromise;
     core.setOutput("cook-cache-hit", restore.hit ? "true" : "false");

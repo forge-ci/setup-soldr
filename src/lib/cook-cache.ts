@@ -238,6 +238,16 @@ export interface CookLayeredSaveOpts {
   layer: "base" | "delta";
   zstdLevel: string;
   baseManifestPath?: string;
+  /**
+   * #513: cook-time inventory ceiling. When set, a save whose reported
+   * `cache_files` exceeds this count is refused BEFORE upload preparation —
+   * the same pre-upload rejection family as the #511 missing/zero-byte
+   * guards. The ceiling is measured immediately after `soldr cook` returns,
+   * so anything above it (a later first-party build, a nextest archive)
+   * entered the capture window after the dependency closure was final and
+   * must not reach an immutable exact key.
+   */
+  maxFileCount?: number;
   log: (msg: string) => void;
   /** Test seam for producing a Soldr archive without spawning a binary. */
   runSoldrJson?: typeof runSoldrJson;
@@ -246,8 +256,8 @@ export interface CookLayeredSaveOpts {
 }
 
 const COOK_KEY_PREFIX = "cook";
-const COOK_BASE_KEY_PREFIX = "cook-base-v3";
-const COOK_DELTA_KEY_PREFIX = "cook-delta-v2";
+const COOK_BASE_KEY_PREFIX = "cook-base-v4";
+const COOK_DELTA_KEY_PREFIX = "cook-delta-v3";
 export const LAYERED_COOK_MIN_SOLDR_VERSION = "0.7.38";
 const COOK_MODE = "soldr-cook";
 const LEGACY_COOK_MODE = "cargo-chef";
@@ -908,6 +918,51 @@ function saveReport(payload: Record<string, unknown> | null): {
   };
 }
 
+/**
+ * #513: count files and bytes under a directory. Measured immediately after
+ * `soldr cook` returns, this is the cook-time inventory — the ceiling any
+ * save of the dependency closure may upload (see `maxFileCount`). Entries
+ * that vanish mid-walk are skipped; a missing root yields an empty
+ * inventory rather than throwing, so inventory failure never fails the
+ * action itself.
+ */
+export async function measureDirInventory(
+  dir: string,
+): Promise<{ fileCount: number; bytes: number }> {
+  let fileCount = 0;
+  let bytes = 0;
+  const walk = async (current: string): Promise<void> => {
+    let entries: fs.Dirent[];
+    try {
+      entries = await fsp.readdir(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    await Promise.all(
+      entries.map(async (entry) => {
+        const entryPath = path.join(current, entry.name);
+        if (entry.isDirectory()) {
+          await walk(entryPath);
+          return;
+        }
+        try {
+          // stat() follows symlinks so a link to a file counts once with
+          // its target's size; broken links throw and are skipped.
+          const stat = await fsp.stat(entryPath);
+          if (stat.isFile()) {
+            fileCount += 1;
+            bytes += stat.size;
+          }
+        } catch {
+          /* racing deletion — not part of the inventory */
+        }
+      }),
+    );
+  };
+  await walk(dir);
+  return { fileCount, bytes };
+}
+
 export async function saveLayeredCookCache(opts: CookLayeredSaveOpts): Promise<CookSaveResult> {
   const { soldrBinary, projectRoot, targetDir, exactKey, archivePath, layer, zstdLevel, log } = opts;
   if (!allowCacheSave(`cook-cache-${layer}`, log)) return { status: "policy-skip" };
@@ -937,6 +992,20 @@ export async function saveLayeredCookCache(opts: CookLayeredSaveOpts): Promise<C
       const soldrSave = await run(soldrBinary, args, projectRoot, log);
       if (soldrSave.code !== 0) throw new Error(`soldr save ${layer} exited ${soldrSave.code}`);
       const report = saveReport(soldrSave.payload);
+      // #513: the cook-time inventory is the upload ceiling. A deferred save
+      // that outgrew it captured post-cook mutation (first-party build
+      // output) — refusing here keeps that out of the immutable exact key.
+      if (
+        opts.maxFileCount !== undefined &&
+        report.cacheFiles !== null &&
+        report.cacheFiles > opts.maxFileCount
+      ) {
+        throw new Error(
+          `cook-cache-${layer}: refusing to upload ${report.cacheFiles} files — exceeds the ` +
+            `cook-time inventory ceiling of ${opts.maxFileCount} (#513); post-cook mutation ` +
+            `entered the capture window for key=${exactKey}`,
+        );
+      }
       // A successful Soldr exit and a non-empty Actions-cache wrapper do not
       // prove that the inner archive is usable. Validate the serialized file
       // itself before upload so an immutable exact key cannot be poisoned.
