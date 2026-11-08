@@ -754,3 +754,42 @@ test("GitHub release metadata 4xx is fatal without retry", async () => {
     globalThis.fetch = original;
   }
 });
+
+
+function singlePartChefCatalog(assetOverrides: Record<string, unknown> = {}, partOverrides: Record<string, unknown> = {}) {
+  return { releases: [{ version: "v0.1.73", platforms: [{
+    platform: { os: "linux", arch: "x86_64", libc: "musl" },
+    asset: {
+      filename: "cargo-chef-linux-x86_64-musl.tar.gz", sha256: "a".repeat(64), size_bytes: 12345,
+      parts: [{ number: 1, sha256: "a".repeat(64), size_bytes: 12345,
+        urls: ["https://raw.githubusercontent.com/forge-ci/soldr-toolchain/main/cargo-chef.part001"],
+        ...partOverrides }], ...assetOverrides,
+    },
+  }] }] };
+}
+
+test("cargo-chef support accepts the current one-part catalogue with a whole-archive digest", () => {
+  assert.deepEqual(_internal.selectToolchainSupportAsset(singlePartChefCatalog(), "0.1.73", FALLBACK_TARGET), {
+    filename: "cargo-chef-linux-x86_64-musl.tar.gz", sha256: "a".repeat(64), archiveExt: "tar.gz",
+    urls: ["https://raw.githubusercontent.com/forge-ci/soldr-toolchain/main/cargo-chef.part001"],
+  });
+});
+
+test("cargo-chef support rejects multipart, inconsistent, or incomplete catalogue parts", () => {
+  const invalidCatalogs = [
+    singlePartChefCatalog({ parts: [{ number: 1 }, { number: 2 }] }),
+    singlePartChefCatalog({}, { number: 2 }),
+    singlePartChefCatalog({}, { sha256: "b".repeat(64) }),
+    singlePartChefCatalog({}, { size_bytes: 12344 }),
+    singlePartChefCatalog({ size_bytes: 0 }, { size_bytes: 0 }),
+    singlePartChefCatalog({ size_bytes: -1 }, { size_bytes: -1 }),
+    singlePartChefCatalog({ size_bytes: 1.5 }, { size_bytes: 1.5 }),
+    singlePartChefCatalog({}, { urls: [] }),
+    singlePartChefCatalog({}, { urls: [""] }),
+    singlePartChefCatalog({}, { urls: [42] }),
+    singlePartChefCatalog({}, { urls: ["https://example.invalid/part", 42] }),
+  ];
+  for (const catalog of invalidCatalogs) {
+    assert.throws(() => _internal.selectToolchainSupportAsset(catalog, "0.1.73", FALLBACK_TARGET), /incomplete/);
+  }
+});

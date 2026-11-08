@@ -54169,10 +54169,28 @@ function selectToolchainSupportAsset(catalog, version, target) {
         const assetRecord = asset;
         const filename = typeof assetRecord["filename"] === "string" ? assetRecord["filename"] : "";
         const archiveExt = archiveExtForFilename(filename);
-        const urls = Array.isArray(assetRecord["urls"])
+        let urls = Array.isArray(assetRecord["urls"])
             ? assetRecord["urls"].filter((url) => typeof url === "string" && url.length > 0)
             : [];
         const sha256 = typeof assetRecord["sha256"] === "string" ? assetRecord["sha256"].toLowerCase() : "";
+        if (assetRecord["urls"] === undefined) {
+            // The current catalogue stores even small archives as parts. A single
+            // part is the complete archive only when its number, size, and digest
+            // prove that identity. Multipart reassembly is deliberately unsupported.
+            const parts = assetRecord["parts"];
+            const part = Array.isArray(parts) && parts.length === 1 && typeof parts[0] === "object" && parts[0] !== null
+                ? parts[0]
+                : undefined;
+            const size = assetRecord["size_bytes"];
+            const partUrls = part?.["urls"];
+            if (part?.["number"] === 1 &&
+                typeof part["sha256"] === "string" && part["sha256"].toLowerCase() === sha256 &&
+                typeof size === "number" && Number.isSafeInteger(size) && size > 0 && part["size_bytes"] === size &&
+                Array.isArray(partUrls) && partUrls.length > 0 &&
+                partUrls.every((url) => typeof url === "string" && url.trim().length > 0)) {
+                urls = partUrls;
+            }
+        }
         if (!archiveExt || urls.length === 0 || !/^[0-9a-f]{64}$/.test(sha256)) {
             throw new Error(`soldr-toolchain cargo-chef ${releaseTag} asset for ${target} is incomplete`);
         }
