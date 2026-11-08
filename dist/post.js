@@ -53722,7 +53722,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports._internal = exports.DOWNLOAD_ATTEMPTS = void 0;
+exports._internal = exports.DOWNLOAD_RETRY_BUDGET_MS = exports.DOWNLOAD_ATTEMPTS = void 0;
 exports.installedSoldrReleaseIsUsable = installedSoldrReleaseIsUsable;
 exports.extractBinary = extractBinary;
 exports.isRetryableDownloadError = isRetryableDownloadError;
@@ -53769,6 +53769,20 @@ const CARGO_CHEF_VERSION_BY_SOLDR = {
     "0.9.25": "0.1.73",
     "0.9.26": "0.1.73",
     "0.9.27": "0.1.73",
+    "0.9.28": "0.1.73",
+    "0.9.29": "0.1.73",
+    "0.9.30": "0.1.73",
+    "0.9.31": "0.1.73",
+    "0.9.32": "0.1.73",
+    "0.9.33": "0.1.73",
+    "0.9.34": "0.1.73",
+    "0.9.35": "0.1.73",
+    "0.9.36": "0.1.73",
+    "0.9.37": "0.1.73",
+    "0.9.38": "0.1.73",
+    "0.9.39": "0.1.73",
+    "0.9.40": "0.1.73",
+    "0.9.41": "0.1.73",
 };
 function detectTarget() {
     const machine = process.arch;
@@ -53823,10 +53837,10 @@ function requestHeaders(githubToken) {
     }
     return headers;
 }
-async function fetchJson(url, githubToken) {
+async function fetchJson(url, githubToken, source = "GitHub API") {
     const response = await fetch(url, { headers: requestHeaders(githubToken) });
     if (!response.ok) {
-        throw new Error(`GitHub API returned HTTP ${response.status} for ${url}`);
+        throw new Error(`${source} returned HTTP ${response.status} for ${url}`);
     }
     const payload = (await response.json());
     if (typeof payload !== "object" || payload === null) {
@@ -53878,6 +53892,11 @@ async function fetchRelease(repo, version, githubToken, target = "") {
     const url = releaseUrl(repo, version);
     try {
         return await (0, release_readiness_js_1.retryReleaseRequest)(() => fetchJson(url, githubToken), {
+            isRetryable: error => {
+                const message = error instanceof Error ? error.message : String(error);
+                const status = message.match(/HTTP\s+(\d{3})\b/)?.[1];
+                return status ? Number(status) >= 500 : error instanceof TypeError;
+            },
             onRetry: (attempt, error) => {
                 const detail = error instanceof Error ? error.message : String(error);
                 core.info(`Release ${version || "latest"} was not ready (attempt ${attempt}/3): ${detail}; retrying exact tag`);
@@ -53895,7 +53914,13 @@ async function fetchPypiRelease(version) {
         throw new Error("cannot resolve a PyPI wheel without an exact soldr version");
     const url = `https://pypi.org/pypi/soldr/${encodeURIComponent(normalized)}/json`;
     try {
-        return await (0, release_readiness_js_1.retryReleaseRequest)(() => fetchJson(url, ""));
+        return await (0, release_readiness_js_1.retryReleaseRequest)(() => fetchJson(url, "", "PyPI"), {
+            isRetryable: error => {
+                const message = error instanceof Error ? error.message : String(error);
+                const status = message.match(/HTTP\s+(\d{3})\b/)?.[1];
+                return status ? Number(status) >= 500 : error instanceof TypeError;
+            },
+        });
     }
     catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
@@ -53903,7 +53928,7 @@ async function fetchPypiRelease(version) {
     }
 }
 function canUseOfficialPypiFallback(repo, version) {
-    return (repo.trim().toLowerCase() === "zackees/soldr" &&
+    return (["zackees/soldr", "forge-ci/soldr"].includes(repo.trim().toLowerCase()) &&
         bundledCargoChefVersionForSoldr(version) !== null);
 }
 function bundledCargoChefVersionForSoldr(version) {
@@ -54056,7 +54081,7 @@ function selectReleaseAsset(release, target) {
     }
     return null;
 }
-function selectPypiWheel(pypiRelease, target) {
+function selectPypiWheel(pypiRelease, target, version) {
     const files = pypiRelease["urls"];
     if (!Array.isArray(files))
         throw new Error("PyPI release payload has no urls array");
@@ -54066,6 +54091,12 @@ function selectPypiWheel(pypiRelease, target) {
         const record = file;
         const name = record["filename"];
         const url = record["url"];
+        if (version && name.split("-")[1] !== normalizeVersion(version))
+            continue;
+        const parsedUrl = new URL(url);
+        if (parsedUrl.protocol !== "https:" || parsedUrl.hostname !== "files.pythonhosted.org" || parsedUrl.username || parsedUrl.password) {
+            throw new Error(`PyPI wheel ${name} has an untrusted URL: ${url}`);
+        }
         const digests = record["digests"];
         const expectedSha256 = typeof digests === "object" &&
             digests !== null &&
@@ -54519,13 +54550,16 @@ async function buildFromLocalSource(opts) {
     }
     return destination;
 }
-exports.DOWNLOAD_ATTEMPTS = 4;
-const DOWNLOAD_RETRY_DELAY_MS = 2000;
-// Transient = HTTP 5xx, HTTP 429, or a network-level failure (fetch threw or
+exports.DOWNLOAD_ATTEMPTS = 7;
+// Maximum cumulative backoff, excluding time spent in the unchanged requests.
+// Six doubling delays total 180s at maximum jitter (144s at minimum jitter).
+exports.DOWNLOAD_RETRY_BUDGET_MS = 180_000;
+const DOWNLOAD_RETRY_DELAY_MS = exports.DOWNLOAD_RETRY_BUDGET_MS / (2 ** (exports.DOWNLOAD_ATTEMPTS - 1) - 1);
+// Transient = HTTP 5xx or a network-level failure (fetch threw or
 // the body stream broke). Other 4xx (404, 403, ...) are permanent and fail fast.
 function isRetryableDownloadError(error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (!message.startsWith("download failed for "))
+    if (!message.includes("download failed for "))
         return false;
     if (message.includes(": network error: "))
         return true;
@@ -54533,7 +54567,7 @@ function isRetryableDownloadError(error) {
     if (!status)
         return false;
     const code = Number(status);
-    return code === 429 || code >= 500;
+    return code >= 500;
 }
 async function downloadOnce(url, dest, headers) {
     // Never leave (or reuse) a stale/partial file from a previous attempt.
@@ -54561,17 +54595,70 @@ async function downloadWithHeaders(url, dest, headers, retry = {}) {
     // delay; integrity (SHA-256 / trust mode) is checked by callers afterwards
     // against the final, fully re-downloaded file.
     const attempts = retry.attempts ?? exports.DOWNLOAD_ATTEMPTS;
+    const sleep = retry.sleep ?? ((delay) => new Promise(resolve => setTimeout(resolve, delay)));
+    let retryDetail = "";
     await (0, release_readiness_js_1.retryReleaseRequest)(() => downloadOnce(url, dest, headers), {
         attempts,
         delayMs: retry.delayMs ?? DOWNLOAD_RETRY_DELAY_MS,
         backoffFactor: 2,
-        sleep: retry.sleep,
+        sleep: async (delay) => {
+            // Downward jitter spreads concurrent runners without exceeding the budget.
+            const jitteredDelay = Math.floor(delay * (0.8 + 0.2 * (retry.random ?? Math.random)()));
+            core.warning(`${retryDetail}; retrying in ${jitteredDelay}ms`);
+            await sleep(jitteredDelay);
+        },
         isRetryable: isRetryableDownloadError,
         onRetry: (attempt, error) => {
             const detail = error instanceof Error ? error.message : String(error);
-            core.warning(`download attempt ${attempt}/${attempts} failed (${detail}); retrying`);
+            retryDetail = `download attempt ${attempt}/${attempts} failed (${detail})`;
         },
     });
+}
+/** Download the primary archive, or an exact official wheel after a transient outage. */
+async function downloadReleaseAsset(opts) {
+    const { version, target, repo, directory, githubToken, log, retry } = opts;
+    let githubFailure = new Error(`no release asset found for target ${target} in ${repo}`);
+    if (opts.asset) {
+        const archivePath = path.join(directory, opts.asset.name);
+        try {
+            log(`Downloading ${opts.asset.name}`);
+            await downloadWithHeaders(opts.asset.url, archivePath, requestHeaders(githubToken), retry);
+            verifyDownloadedAsset(archivePath, opts.asset.expectedSha256);
+            log("soldr source: github-release");
+            return { asset: opts.asset, archivePath };
+        }
+        catch (error) {
+            // Integrity failures and all 4xx remain fatal; only an exhausted transient
+            // download failure may switch source.
+            if (!isRetryableDownloadError(error))
+                throw error;
+            githubFailure = error;
+        }
+    }
+    const githubReason = githubFailure instanceof Error ? githubFailure.message : String(githubFailure);
+    try {
+        if (!canUseOfficialPypiFallback(repo, version)) {
+            throw new Error(`PyPI fallback is supported only for known wheel-compatible official releases (${repo}@${version})`);
+        }
+        log(`GitHub release unavailable (${githubReason}); resolving the exact ${version} PyPI wheel`);
+        const metadata = await fetchPypiRelease(version);
+        const info = metadata["info"];
+        if (info?.["version"] !== normalizeVersion(version)) {
+            throw new Error(`PyPI metadata version ${String(info?.["version"])} does not match requested ${normalizeVersion(version)}`);
+        }
+        const asset = selectPypiWheel(metadata, target, version);
+        if (!asset)
+            throw new Error(`no exact PyPI wheel found for target ${target} at ${version}`);
+        const archivePath = path.join(directory, asset.name);
+        await downloadWithHeaders(asset.url, archivePath, {}, retry);
+        verifyDownloadedAsset(archivePath, asset.expectedSha256);
+        log("soldr source: pypi-fallback");
+        return { asset, archivePath };
+    }
+    catch (error) {
+        const pypiReason = error instanceof Error ? error.message : String(error);
+        throw new Error(`soldr ${version} download failed; github-release: ${githubReason}; pypi-fallback: ${pypiReason}`, { cause: error });
+    }
 }
 function fileSha256(filePath) {
     return (0, node_crypto_1.createHash)("sha256").update(fs.readFileSync(filePath)).digest("hex");
@@ -54724,28 +54811,22 @@ async function ensureSoldr(opts) {
     log(`Resolving soldr release ${resolvedVersion || "(latest)"} from ${repo}`);
     const release = await fetchRelease(repo, resolvedVersion, githubToken, target);
     const tagName = typeof release["tag_name"] === "string" ? release["tag_name"] : resolvedVersion;
-    let asset = selectReleaseAsset(release, target);
-    if (!asset) {
-        if (!canUseOfficialPypiFallback(repo, tagName)) {
-            throw new Error(`no release asset found for target ${target} in ${repo}; ` +
-                `PyPI fallback is supported only for known wheel-compatible official releases`);
-        }
-        log(`Combined GitHub release archive is absent for ${target}; resolving the exact ${tagName} PyPI wheel`);
-        const pypiRelease = await fetchPypiRelease(tagName);
-        asset = selectPypiWheel(pypiRelease, target);
-        if (!asset) {
-            throw new Error(`no combined release archive or PyPI wheel found for target ${target} at ${tagName}`);
-        }
+    if (resolvedVersion && normalizeVersion(tagName) !== normalizeVersion(resolvedVersion)) {
+        throw new Error(`GitHub release version ${tagName} does not match requested ${resolvedVersion}`);
     }
-    const { name: assetName, url: downloadUrl, archiveExt } = asset;
+    let asset;
+    let assetName;
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "setup-soldr-release-"));
     try {
-        const archivePath = path.join(tmp, assetName);
+        const downloaded = await downloadReleaseAsset({
+            asset: selectReleaseAsset(release, target), version: tagName, target, repo,
+            directory: tmp, githubToken, log: core.info,
+        });
+        asset = downloaded.asset;
+        assetName = asset.name;
+        const archivePath = downloaded.archivePath;
+        const archiveExt = asset.archiveExt;
         const extractDir = path.join(tmp, "extract");
-        log(`Downloading ${assetName}`);
-        const downloadHeaders = asset.source === "github-release" ? requestHeaders(githubToken) : {};
-        await downloadWithHeaders(downloadUrl, archivePath, downloadHeaders);
-        verifyDownloadedAsset(archivePath, asset.expectedSha256);
         const sourceBinary = await extractBinary(archivePath, archiveExt, binaryName, extractDir);
         clearBundledReleasePayload(installDir, binaryName);
         fs.copyFileSync(sourceBinary, binaryPath);
@@ -54804,6 +54885,7 @@ async function ensureSoldr(opts) {
 }
 exports._internal = {
     fetchRelease,
+    downloadReleaseAsset,
     resolveRefCommitSha,
     probeReleaseWithoutApi,
     bundledReleasePayloadNames,
