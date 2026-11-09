@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import "./yank-audit.test.ts";
+import "./required-attestation.test.ts";
 import assert from "node:assert/strict";
 
 // Ensure main.ts does not auto-invoke its run() when imported under test.

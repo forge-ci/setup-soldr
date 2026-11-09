@@ -19,6 +19,14 @@ inputs:
       rewriting it.
     required: false
     default: "true"
+  required-attestation:
+    description: >
+      What to do when the checked-out commit has no Ci-Attestation trailers.
+      "off" (default) says nothing; "warn" emits a warning annotation and
+      continues; "enforce" fails the step. Set to "warn" on a repo before
+      tightening it to "enforce".
+    required: false
+    default: "off"
   version:
     description: >
       Soldr version or tag to install. Defaults to the soldr release this
