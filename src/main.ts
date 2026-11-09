@@ -9,6 +9,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { spawn } from "node:child_process";
 import * as core from "@actions/core";
+import { checkRequiredAttestation } from "./lib/required-attestation.js";
 import {
   configFromEnv as s3ConfigFromEnv,
   credentialValues as s3CredentialValues,
@@ -648,6 +649,7 @@ export async function run(): Promise<void> {
   await finishPhase("verdict-preflight");
   if (verdict.lazy) {
     await finishLazySetup({ result, logger });
+    checkRequiredAttestation();
     await finishPhase("action");
     return;
   }
@@ -2276,6 +2278,8 @@ export async function run(): Promise<void> {
     "cook",
   ]);
   if (setupPhaseSummary) core.info(setupPhaseSummary);
+
+  checkRequiredAttestation();
 
   await finishPhase("action");
 
