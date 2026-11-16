@@ -17,6 +17,7 @@ import { isSymbolsSidecar, pypiWheelHasTarget, retryReleaseRequest } from "./rel
 import type { ResolveResult } from "./types.js";
 import { githubApiUrl } from "./github-api.js";
 import { parseVersionJsonOutput } from "./verify-soldr.js";
+import { fetchToolchainJson } from "./soldr-toolchain-origins.cjs";
 
 type ArchiveExt = "tar.zst" | "tar.gz" | "zip" | "whl";
 
@@ -1118,8 +1119,12 @@ async function installCargoChefSupport(opts: {
   log: (message: string) => void;
 }): Promise<string> {
   const { version, target, installDir, binaryName, log } = opts;
-  const catalogUrl = "https://zackees.github.io/soldr-toolchain/cargo-chef/manifest.json";
-  const catalog = await fetchJson(catalogUrl, "");
+  // Resolved through the soldr toolchain redirect manifest with per-origin
+  // failover; never a hard-coded Pages origin (see soldr-toolchain-origins.cjs).
+  const { payload: catalog } = await fetchToolchainJson("cargo-chef/manifest.json", {
+    env: process.env,
+    log,
+  });
   const asset = selectToolchainSupportAsset(catalog, version, target);
   if (!asset) {
     throw new Error(`soldr-toolchain has no cargo-chef ${version} support asset for ${target}`);
@@ -1354,6 +1359,7 @@ export async function ensureSoldr(opts: {
 
 export const _internal = {
   fetchRelease,
+  installCargoChefSupport,
   downloadReleaseAsset,
   resolveRefCommitSha,
   probeReleaseWithoutApi,

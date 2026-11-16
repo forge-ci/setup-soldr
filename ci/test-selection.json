@@ -64,6 +64,7 @@
       "__tests__/ensure-rust-toolchain.test.ts",
       "__tests__/ensure-shims.test.ts",
       "__tests__/soldr-toolchain-client.test.ts",
+      "__tests__/soldr-toolchain-origins.test.ts",
       "__tests__/ensure-soldr.test.ts",
       "__tests__/bootstrap-soldr.test.ts",
       "__tests__/verify-soldr.test.ts",
@@ -189,6 +190,8 @@
         "src/lib/github-api.ts",
         "src/lib/release-readiness.ts",
         "src/lib/soldr-*.ts",
+        "src/lib/soldr-*.cjs",
+        "src/lib/soldr-*.d.cts",
         "src/lib/tool-cache-store.ts",
         "src/lib/verify-soldr.ts",
         "src/lib/input-parsers.ts"

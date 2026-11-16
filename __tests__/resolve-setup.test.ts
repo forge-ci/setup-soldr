@@ -512,6 +512,9 @@ test("dylint mode resolves newest nightly identity and keys the foundation cache
   assert.equal(result.dylintCache.cargoDylintVersion, "6.2.0");
   assert.equal(result.dylintCache.dylintLinkVersion, "6.2.0");
   assert.equal(result.envExports["SOLDR_TOOLCHAIN_ORIGIN"], undefined);
+  // soldr resolves its own toolchain redirect; the action must not pin it.
+  assert.equal(result.envExports["SOLDR_TOOLCHAIN_REDIRECT"], undefined);
+  assert.equal(result.envExports["SOLDR_TOOLCHAIN_REDIRECT_URL"], undefined);
   assert.match(result.dylintCache.key, /^setup-soldr-dylint-v2-/);
   assert.ok(result.dylintCache.paths.some((p) => p.includes("nightly-2026-01-18")));
   assert.equal(
