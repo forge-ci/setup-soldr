@@ -71,10 +71,36 @@ def test_default_release_readiness_is_part_of_the_contract() -> None:
         encoding="utf-8"
     )
     assert "https://pypi.org/pypi/soldr/" in readiness
-    assert "https://zackees.github.io/soldr-toolchain/cargo-chef/manifest.json" in readiness
+    # The cargo-chef catalogue goes through the shared toolchain origin
+    # resolver (redirect manifest + built-in mirrors), never a pinned origin.
+    assert "../src/lib/soldr-toolchain-origins.cjs" in readiness
+    assert 'fetchToolchainJson("cargo-chef/manifest.json"' in readiness
+    assert "github.io/soldr-toolchain" not in readiness
     assert "digests?.sha256" in readiness
     assert "missingSupport" in readiness
     assert "PyPI wheel fallbacks" in readiness
+
+
+def test_toolchain_origin_resolver_carries_the_redirect_contract() -> None:
+    resolver = (REPO_ROOT / "src/lib/soldr-toolchain-origins.cjs").read_text(encoding="utf-8")
+
+    assert '"https://forge-ci.github.io/soldr-redirect.v1.json"' in resolver
+    forge = resolver.index('"https://forge-ci.github.io/soldr-toolchain"')
+    zackees = resolver.index('"https://zackees.github.io/soldr-toolchain"')
+    assert forge < zackees, "built-in list must try the forge-ci mirror before zackees"
+    for env_name in (
+        "SOLDR_TOOLCHAIN_ORIGIN",
+        "SOLDR_TOOLCHAIN_REDIRECT",
+        "SOLDR_TOOLCHAIN_REDIRECT_URL",
+        "SOLDR_TOOLCHAIN_CATALOGUE_URL",
+        "SOLDR_TOOLCHAIN_CATALOGUE_V2_URL",
+    ):
+        assert f'"{env_name}"' in resolver
+
+    for consumer in ("src/lib/ensure-soldr.ts", "scripts/check-default-release-readiness.mjs"):
+        source = (REPO_ROOT / consumer).read_text(encoding="utf-8")
+        assert "soldr-toolchain-origins.cjs" in source, consumer
+        assert "github.io/soldr-toolchain" not in source, consumer
 
 
 def test_install_smoke_runs_every_platform_that_uses_the_default_wheel_fallback() -> None:

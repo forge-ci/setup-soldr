@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { fetchToolchainJson } from "../src/lib/soldr-toolchain-origins.cjs";
 
 const requiredTargets = [
   "x86_64-unknown-linux-gnu",
@@ -86,11 +87,13 @@ if (missingArchives.length > 0) {
   if (!cargoChefVersion) {
     throw new Error(`default release ${tag} has wheel fallbacks but no pinned cargo-chef support version`);
   }
-  const catalogResponse = await fetch("https://zackees.github.io/soldr-toolchain/cargo-chef/manifest.json", {
+  // Same origin resolution as the action: redirect manifest, then the
+  // built-in mirrors, failing over on network errors, 404 and 5xx.
+  const { url: catalogUrl, payload: catalog } = await fetchToolchainJson("cargo-chef/manifest.json", {
     headers: { Accept: "application/json", "User-Agent": "setup-soldr-release-readiness" },
+    log: (message) => console.log(message),
   });
-  if (!catalogResponse.ok) throw new Error(`cargo-chef catalogue returned HTTP ${catalogResponse.status}`);
-  const catalog = await catalogResponse.json();
+  console.log(`cargo-chef catalogue: ${catalogUrl}`);
   const supportRelease = Array.isArray(catalog.releases)
     ? catalog.releases.find((candidate) => candidate?.version === `v${cargoChefVersion}`)
     : undefined;

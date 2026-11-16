@@ -793,3 +793,61 @@ test("cargo-chef support rejects multipart, inconsistent, or incomplete catalogu
     assert.throws(() => _internal.selectToolchainSupportAsset(catalog, "0.1.73", FALLBACK_TARGET), /incomplete/);
   }
 });
+
+test("cargo-chef support catalogue is resolved through the redirect manifest with failover", async () => {
+  const { resetToolchainRedirectCache, DEFAULT_TOOLCHAIN_REDIRECT_URL } = await import(
+    "../src/lib/soldr-toolchain-origins.cjs"
+  );
+  resetToolchainRedirectCache();
+  const original = globalThis.fetch;
+  const saved = {
+    origin: process.env["SOLDR_TOOLCHAIN_ORIGIN"],
+    redirect: process.env["SOLDR_TOOLCHAIN_REDIRECT"],
+    redirectUrl: process.env["SOLDR_TOOLCHAIN_REDIRECT_URL"],
+  };
+  delete process.env["SOLDR_TOOLCHAIN_ORIGIN"];
+  delete process.env["SOLDR_TOOLCHAIN_REDIRECT"];
+  delete process.env["SOLDR_TOOLCHAIN_REDIRECT_URL"];
+  const calls: string[] = [];
+  const mirror = "https://mirror.example/soldr-toolchain";
+  try {
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const url = String(input);
+      calls.push(url);
+      if (url === DEFAULT_TOOLCHAIN_REDIRECT_URL) {
+        return new Response(JSON.stringify({ schema_version: 1, toolchain: { origins: [mirror] } }));
+      }
+      if (url === `${mirror}/cargo-chef/manifest.json`) return new Response("gone", { status: 404 });
+      if (url === "https://forge-ci.github.io/soldr-toolchain/cargo-chef/manifest.json") {
+        return new Response(JSON.stringify({ releases: [] }));
+      }
+      throw new Error(`unexpected request to ${url}`);
+    }) as typeof fetch;
+    await assert.rejects(
+      _internal.installCargoChefSupport({
+        version: "0.1.73",
+        target: FALLBACK_TARGET,
+        installDir: fs.mkdtempSync(path.join(os.tmpdir(), "chef-redirect-")),
+        binaryName: "soldr",
+        log: () => {},
+      }),
+      /has no cargo-chef 0\.1\.73 support asset/,
+    );
+    assert.deepEqual(calls, [
+      DEFAULT_TOOLCHAIN_REDIRECT_URL,
+      `${mirror}/cargo-chef/manifest.json`,
+      "https://forge-ci.github.io/soldr-toolchain/cargo-chef/manifest.json",
+    ]);
+  } finally {
+    globalThis.fetch = original;
+    for (const [key, name] of [
+      ["origin", "SOLDR_TOOLCHAIN_ORIGIN"],
+      ["redirect", "SOLDR_TOOLCHAIN_REDIRECT"],
+      ["redirectUrl", "SOLDR_TOOLCHAIN_REDIRECT_URL"],
+    ] as const) {
+      if (saved[key] === undefined) delete process.env[name];
+      else process.env[name] = saved[key];
+    }
+    resetToolchainRedirectCache();
+  }
+});
