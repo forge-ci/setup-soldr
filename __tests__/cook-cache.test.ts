@@ -865,3 +865,190 @@ test("#513 inventory ceiling allows a save within tolerance and omits the guard 
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// forge-ci/setup-soldr#675: a persistent root keeps the cook layer locally
+// (read-through: local store, then the Actions cache, writing back locally)
+// instead of dropping it.
+// ---------------------------------------------------------------------------
+
+async function withPersistentRoot<T>(fn: (root: string, work: string) => Promise<T>): Promise<T> {
+  const { PERSISTENT_ROOT_ENV, resetPersistentRootLogForTest } = await import("../src/lib/persistent-root.js");
+  const root = mkTmp("cook-store-root-");
+  const work = mkTmp("cook-store-work-");
+  const saved = process.env[PERSISTENT_ROOT_ENV];
+  process.env[PERSISTENT_ROOT_ENV] = root;
+  resetPersistentRootLogForTest();
+  try {
+    return await fn(root, work);
+  } finally {
+    if (saved === undefined) delete process.env[PERSISTENT_ROOT_ENV];
+    else process.env[PERSISTENT_ROOT_ENV] = saved;
+    resetPersistentRootLogForTest();
+    fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(work, { recursive: true, force: true });
+  }
+}
+
+test("#675 persistent root: a local cook-store entry is restored without touching the Actions cache", async () => {
+  const { cookStorePath } = await import("../src/lib/cook-local-store.js");
+  await withPersistentRoot(async (root, work) => {
+    const stored = cookStorePath(root, "cook-base-v4-k");
+    fs.mkdirSync(path.dirname(stored), { recursive: true });
+    fs.writeFileSync(stored, "local closure archive");
+    let remoteCalls = 0;
+    const result = await restoreLayeredCookCacheArchives({
+      baseKey: "cook-base-v4-k",
+      baseRestoreKeys: ["cook-base-v4-"],
+      deltaKey: "cook-delta-v3-k",
+      deltaRestoreKeys: [],
+      baseArchivePath: path.join(work, "base.tar.zst"),
+      deltaArchivePath: path.join(work, "delta.tar.zst"),
+      deltaEnabled: true,
+      log: () => {},
+      restoreCache: async () => {
+        remoteCalls += 1;
+        return undefined;
+      },
+    });
+    assert.equal(result.base.hit, true);
+    assert.equal(result.base.matchedKey, "cook-base-v4-k");
+    assert.equal(result.base.archiveBytes, "local closure archive".length);
+    assert.equal(fs.readFileSync(path.join(work, "base.tar.zst"), "utf8"), "local closure archive");
+    assert.equal(result.delta.hit, false);
+    assert.equal(remoteCalls, 0);
+  });
+});
+
+test("#675 persistent root: a local miss reads the Actions cache and writes an exact hit back locally", async () => {
+  const { cookStorePath } = await import("../src/lib/cook-local-store.js");
+  await withPersistentRoot(async (root, work) => {
+    const seen: string[] = [];
+    const result = await restoreLayeredCookCacheArchives({
+      baseKey: "cook-base-v4-k",
+      baseRestoreKeys: ["cook-base-v4-"],
+      deltaKey: "cook-delta-v3-k",
+      deltaRestoreKeys: [],
+      baseArchivePath: path.join(work, "base.tar.zst"),
+      deltaArchivePath: path.join(work, "delta.tar.zst"),
+      deltaEnabled: true,
+      log: () => {},
+      restoreCache: async (paths, key) => {
+        seen.push(key);
+        fs.writeFileSync(paths[0]!, "remote closure archive");
+        return key;
+      },
+    });
+    assert.deepEqual(seen, ["cook-base-v4-k"], "only the base layer is read remotely");
+    assert.equal(result.base.hit, true);
+    assert.equal(result.delta.hit, false);
+    assert.equal(fs.readFileSync(cookStorePath(root, "cook-base-v4-k"), "utf8"), "remote closure archive");
+  });
+});
+
+test("#675 persistent root: a fallback-prefix remote match is used but not stored under the exact key", async () => {
+  const { cookStorePath } = await import("../src/lib/cook-local-store.js");
+  await withPersistentRoot(async (root, work) => {
+    const result = await restoreLayeredCookCacheArchives({
+      baseKey: "cook-base-v4-new",
+      baseRestoreKeys: ["cook-base-v4-"],
+      deltaKey: "cook-delta-v3-k",
+      deltaRestoreKeys: [],
+      baseArchivePath: path.join(work, "base.tar.zst"),
+      deltaArchivePath: path.join(work, "delta.tar.zst"),
+      log: () => {},
+      restoreCache: async (paths) => {
+        fs.writeFileSync(paths[0]!, "older soldr closure");
+        return "cook-base-v4-old";
+      },
+    });
+    assert.equal(result.base.hit, false);
+    assert.equal(result.base.matchedKey, "cook-base-v4-old");
+    assert.equal(fs.existsSync(cookStorePath(root, "cook-base-v4-new")), false);
+  });
+});
+
+test("#675 persistent root: the cook-time base save goes to the local store, never to the Actions cache", async () => {
+  const { cookStorePath } = await import("../src/lib/cook-local-store.js");
+  await withPersistentRoot(async (root, work) => {
+    const targetDir = path.join(work, "target");
+    const archivePath = path.join(work, "base.tar.zst");
+    fs.mkdirSync(targetDir);
+    fs.writeFileSync(path.join(targetDir, "artifact"), "materialized");
+    let uploads = 0;
+    const result = await saveLayeredCookCache({
+      soldrBinary: "soldr",
+      projectRoot: work,
+      targetDir,
+      exactKey: "cook-base-v4-k",
+      archivePath,
+      layer: "base",
+      zstdLevel: "9",
+      maxFileCount: 10,
+      log: () => {},
+      runSoldrJson: async () => {
+        fs.writeFileSync(archivePath, "fresh closure archive");
+        return { code: 0, stdout: "", stderr: "", payload: { cache_files: 1, archive_bytes: 21 } };
+      },
+      saveReservedCache: async () => {
+        uploads += 1;
+        return { status: "saved", cacheId: 1 };
+      },
+    });
+    assert.equal(result.status, "saved-local");
+    assert.equal(result.fileCount, 1);
+    assert.equal(uploads, 0);
+    assert.equal(fs.readFileSync(cookStorePath(root, "cook-base-v4-k"), "utf8"), "fresh closure archive");
+  });
+});
+
+test("#675 persistent root: the local base save keeps the inventory ceiling (#513)", async () => {
+  const { cookStorePath } = await import("../src/lib/cook-local-store.js");
+  await withPersistentRoot(async (root, work) => {
+    const targetDir = path.join(work, "target");
+    const archivePath = path.join(work, "base.tar.zst");
+    fs.mkdirSync(targetDir);
+    fs.writeFileSync(path.join(targetDir, "artifact"), "materialized");
+    const result = await saveLayeredCookCache({
+      soldrBinary: "soldr",
+      projectRoot: work,
+      targetDir,
+      exactKey: "cook-base-v4-k",
+      archivePath,
+      layer: "base",
+      zstdLevel: "9",
+      maxFileCount: 10,
+      log: () => {},
+      runSoldrJson: async () => {
+        fs.writeFileSync(archivePath, "bloated");
+        return { code: 0, stdout: "", stderr: "", payload: { cache_files: 11 } };
+      },
+    });
+    assert.equal(result.status, "failed");
+    assert.equal(fs.existsSync(cookStorePath(root, "cook-base-v4-k")), false);
+  });
+});
+
+test("#675 cook store keeps the newest entries and replaces atomically", async () => {
+  const { cookStoreGet, cookStorePath, cookStorePut } = await import("../src/lib/cook-local-store.js");
+  const root = mkTmp("cook-store-prune-");
+  try {
+    const src = path.join(root, "src.tar.zst");
+    for (let i = 0; i < 4; i += 1) {
+      fs.writeFileSync(src, `closure ${i}`);
+      assert.equal(await cookStorePut(root, `cook-base-v4-k${i}`, src, 3), `closure ${i}`.length);
+      const old = new Date(Date.now() - (10 - i) * 60_000);
+      fs.utimesSync(cookStorePath(root, `cook-base-v4-k${i}`), old, old);
+    }
+    const left = fs.readdirSync(path.dirname(cookStorePath(root, "x"))).sort();
+    assert.equal(left.length, 3);
+    assert.equal(fs.existsSync(cookStorePath(root, "cook-base-v4-k0")), false, "oldest entry pruned");
+    const dest = path.join(root, "out.tar.zst");
+    assert.equal(await cookStoreGet(root, "cook-base-v4-k3", dest), "closure 3".length);
+    assert.equal(fs.readFileSync(dest, "utf8"), "closure 3");
+    assert.equal(await cookStoreGet(root, "cook-base-v4-missing", dest), 0);
+    assert.ok(left.every((name) => name.endsWith(".tar.zst")), "no temp files left behind");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
