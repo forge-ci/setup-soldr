@@ -203,3 +203,77 @@ function inputBlock(yaml: string, name: string): string {
   const next = rest.slice(1).search(/\n  [a-z][a-z0-9-]*:\n/);
   return next >= 0 ? rest.slice(0, next + 1) : rest;
 }
+
+// ---------------------------------------------------------------------------
+// `zstd-level`: fast compression on self-hosted runners, automatic and
+// overridable. Precedence: input, SETUP_SOLDR_ZSTD_LEVEL, ZSTD_CLEVEL, auto.
+// ---------------------------------------------------------------------------
+
+test("zstd-level auto: self-hosted and persistent-root runners resolve to 1, hosted keeps its defaults", async () => {
+  const { resolveZstdLevel, isSelfHostedRunner } = await import("../src/lib/zstd-level.js");
+  assert.equal(isSelfHostedRunner({ RUNNER_ENVIRONMENT: "github-hosted" }), false);
+  assert.equal(isSelfHostedRunner({ RUNNER_ENVIRONMENT: "self-hosted" }), true);
+  assert.equal(isSelfHostedRunner({ SETUP_SOLDR_PERSISTENT_ROOT: "/var/cache/x" }), true);
+  assert.equal(isSelfHostedRunner({ ACT: "true", RUNNER_ENVIRONMENT: "github-hosted" }), true);
+  const hosted = resolveZstdLevel("auto", { RUNNER_ENVIRONMENT: "github-hosted" });
+  assert.deepEqual([hosted.level, hosted.source], [null, "auto"]);
+  const empty = resolveZstdLevel("", { RUNNER_ENVIRONMENT: "github-hosted" });
+  assert.equal(empty.level, null);
+  const dell = resolveZstdLevel("auto", { RUNNER_ENVIRONMENT: "self-hosted" });
+  assert.deepEqual([dell.level, dell.source], [1, "auto"]);
+  assert.match(dell.reason, /self-hosted/);
+});
+
+test("zstd-level precedence: input, then SETUP_SOLDR_ZSTD_LEVEL, then ZSTD_CLEVEL, then auto", async () => {
+  const { resolveZstdLevel } = await import("../src/lib/zstd-level.js");
+  const env = { RUNNER_ENVIRONMENT: "self-hosted", SETUP_SOLDR_ZSTD_LEVEL: "6", ZSTD_CLEVEL: "12" };
+  assert.deepEqual(Object.values(resolveZstdLevel("9", env)).slice(0, 2), [9, "input"]);
+  assert.deepEqual(Object.values(resolveZstdLevel("auto", env)).slice(0, 2), [6, "SETUP_SOLDR_ZSTD_LEVEL"]);
+  const noSetup = { RUNNER_ENVIRONMENT: "github-hosted", ZSTD_CLEVEL: "12" };
+  assert.deepEqual(Object.values(resolveZstdLevel("auto", noSetup)).slice(0, 2), [12, "ZSTD_CLEVEL"]);
+});
+
+test("zstd-level: invalid values are ignored with a note and fall through safely", async () => {
+  const { resolveZstdLevel } = await import("../src/lib/zstd-level.js");
+  for (const bad of ["0", "20", "-1", "fast", "3.5", "1e2"]) {
+    const r = resolveZstdLevel(bad, { RUNNER_ENVIRONMENT: "github-hosted", SETUP_SOLDR_ZSTD_LEVEL: "junk" });
+    assert.equal(r.level, null, bad);
+    assert.equal(r.source, "auto", bad);
+    assert.equal(r.ignored.length, 2, bad);
+  }
+  const r = resolveZstdLevel(" 19 ", {});
+  assert.equal(r.level, 19);
+});
+
+test("zstd-level exports: the zstd CLI and soldr variables only when a level is resolved", async () => {
+  const { resolveZstdLevel, zstdLevelExports, ZSTD_RESOLVED_ENV } = await import("../src/lib/zstd-level.js");
+  assert.deepEqual(zstdLevelExports(resolveZstdLevel("auto", { RUNNER_ENVIRONMENT: "github-hosted" })), {});
+  assert.deepEqual(zstdLevelExports(resolveZstdLevel("auto", { RUNNER_ENVIRONMENT: "self-hosted" })), {
+    ZSTD_CLEVEL: "1",
+    ZSTD_NBTHREADS: "0",
+    SOLDR_ZSTD_LEVEL: "1",
+    [ZSTD_RESOLVED_ENV]: "1",
+  });
+});
+
+test("zstd-level: a resolved level replaces every zstd profile default; explicit layer inputs still win", async () => {
+  const { ZSTD_RESOLVED_ENV } = await import("../src/lib/zstd-level.js");
+  const env = { [ZSTD_RESOLVED_ENV]: "2" };
+  for (const knob of ["cook-base-zstd-level", "cook-delta-zstd-level", "soldr-mini-zstd-level",
+    "cargo-registry-extras-zstd-level", "target-cache-compress-level", "solo-toolchain-cache-level"] as const) {
+    assert.equal(cacheProfileDefault(knob, false, env), "2", knob);
+    assert.equal(cacheProfileDefault(knob, true, env), "2", knob);
+  }
+  assert.equal(cacheProfileDefault("cache-payload-max-bytes", false, env), "6GiB");
+  assert.equal(cacheProfileDefault("cook-base-zstd-level", false, {}), "9");
+  assert.equal(resolveCacheProfileInput("target-cache-compress-level", "7", false, env), "7");
+  assert.equal(resolveCacheProfileInput("target-cache-compress-level", "", false, env), "2");
+});
+
+test("action.yml: zstd-level defaults to auto and documents the precedence", () => {
+  const yml = fs.readFileSync(path.join(process.cwd(), "action.yml"), "utf8");
+  const block = yml.split(/\n  zstd-level:\n/)[1]?.split(/\n  [a-z0-9-]+:\n/)[0] ?? "";
+  assert.match(block, /default: "auto"/);
+  assert.match(block, /SETUP_SOLDR_ZSTD_LEVEL/);
+  assert.match(block, /ZSTD_CLEVEL/);
+});
