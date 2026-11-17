@@ -19,7 +19,8 @@ import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as cache from "@actions/cache";
-import { remoteCacheBypassed } from "./persistent-root.js";
+import { activePersistentRoot, remoteCacheBypassed } from "./persistent-root.js";
+import { cookStoreGet, cookStorePath, cookStorePut } from "./cook-local-store.js";
 import { compressCache, decompressCache, detectCompressMagic } from "./cache-compress.js";
 import { formatLogLine } from "./log-utils.js";
 import { isReservationConflict, saveReservedCache } from "./two-phase-actions-cache.js";
@@ -195,6 +196,8 @@ export interface CookSaveOpts {
 export interface CookSaveResult {
   status:
     | "saved"
+    /** #675: written to the persistent root's local cook store, not uploaded. */
+    | "saved-local"
     | "skipped-race"
     /**
      * Pre-compress probe via `cache.restoreCache({lookupOnly: true})`
@@ -604,6 +607,45 @@ async function restoreOneLayer(
   return { hit, matchedKey: matched, archivePath, archiveBytes: bytes };
 }
 
+/**
+ * #675: on a persistent root the cook base layer is read through the root's
+ * local store first, then the Actions cache; an exact remote hit is written
+ * back so the next job on this runner never leaves the host. The delta layer
+ * is per-commit and not worth a round trip here (the delta of the commit
+ * before rarely matches this checkout on a busy runner), so it stays off.
+ */
+async function restorePersistentBase(
+  root: string,
+  opts: CookLayeredRestoreOpts,
+  warn: (msg: string) => void,
+  restore: typeof cache.restoreCache,
+): Promise<CookLayerRestoreInfo> {
+  const label = "cook-cache-base";
+  await fsp.rm(opts.baseArchivePath, { force: true });
+  try {
+    const bytes = await cookStoreGet(root, opts.baseKey, opts.baseArchivePath);
+    if (bytes > 0) {
+      opts.log(`${label}: local store hit key=${opts.baseKey} archive=${bytes}B (#675)`);
+      return { hit: true, matchedKey: opts.baseKey, archivePath: opts.baseArchivePath, archiveBytes: bytes };
+    }
+  } catch (err) {
+    warn(`${label}: local store read failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  opts.log(`${label}: local store miss key=${opts.baseKey}; reading the remote cache (#675)`);
+  const remote = await restoreOneLayer(
+    label, opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore,
+  );
+  if (remote.hit) {
+    try {
+      await cookStorePut(root, opts.baseKey, opts.baseArchivePath);
+      opts.log(`${label}: wrote remote hit back to ${cookStorePath(root, opts.baseKey)}`);
+    } catch (err) {
+      warn(`${label}: local store write-back failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+  return remote;
+}
+
 export async function restoreLayeredCookCacheArchives(
   opts: CookLayeredRestoreOpts,
 ): Promise<CookLayeredRestoreResult> {
@@ -627,8 +669,9 @@ export async function restoreLayeredCookCacheArchives(
     archivePath: opts.deltaArchivePath,
     archiveBytes: 0,
   };
-  if (remoteCacheBypassed("cook-cache", opts.log)) {
-    return { base: { hit: false, matchedKey: "", archivePath: opts.baseArchivePath, archiveBytes: 0 }, delta: deltaMiss };
+  const persistentRoot = activePersistentRoot();
+  if (persistentRoot) {
+    return { base: await restorePersistentBase(persistentRoot, opts, warn, restore), delta: deltaMiss };
   }
   if (opts.deltaEnabled === false) {
     opts.log("cook-cache-delta: disabled (cook-delta=false); restoring base layer only");
@@ -970,7 +1013,14 @@ export async function measureDirInventory(
 
 export async function saveLayeredCookCache(opts: CookLayeredSaveOpts): Promise<CookSaveResult> {
   const { soldrBinary, projectRoot, targetDir, exactKey, archivePath, layer, zstdLevel, log } = opts;
-  if (!allowCacheSave(`cook-cache-${layer}`, log)) return { status: "policy-skip" };
+  const persistentRoot = activePersistentRoot();
+  // #675: a persistent root keeps its base layer in the local cook store; the
+  // per-commit delta layer is not kept (see restorePersistentBase).
+  if (persistentRoot && layer === "delta") {
+    allowCacheSave(`cook-cache-${layer}`, log);
+    return { status: "policy-skip" };
+  }
+  if (!persistentRoot && !allowCacheSave(`cook-cache-${layer}`, log)) return { status: "policy-skip" };
   if (!fs.existsSync(targetDir)) return { status: "skipped-missing-target" };
   try {
     if ((await fsp.readdir(targetDir)).length === 0) return { status: "skipped-empty" };
@@ -984,15 +1034,8 @@ export async function saveLayeredCookCache(opts: CookLayeredSaveOpts): Promise<C
   await fsp.rm(archivePath, { force: true });
   const args = ["save", "--cache-dir", targetDir, "--workspace", projectRoot, "--out", archivePath, "--zstd-level", zstdLevel, "--json"];
   if (layer === "delta") args.push("--delta-from-manifest", opts.baseManifestPath as string);
-  const reserveStart = Date.now();
-  const saveReserved = opts.saveReservedCache ?? saveReservedCache;
   const run = opts.runSoldrJson ?? runSoldrJson;
-  const result = await saveReserved({
-    paths: [archivePath],
-    key: exactKey,
-    layer: `cook-cache-${layer}`,
-    log,
-    produce: async () => {
+  const produce = async () => {
       const compressStart = Date.now();
       const soldrSave = await run(soldrBinary, args, projectRoot, log);
       if (soldrSave.code !== 0) throw new Error(`soldr save ${layer} exited ${soldrSave.code}`);
@@ -1037,7 +1080,36 @@ export async function saveLayeredCookCache(opts: CookLayeredSaveOpts): Promise<C
         deletedCacheFiles: report.deletedCacheFiles ?? undefined,
         compressMs: Date.now() - compressStart,
       };
-    },
+  };
+  if (persistentRoot) {
+    try {
+      const archive = await produce();
+      await cookStorePut(persistentRoot, exactKey, archivePath);
+      log(
+        `cook-cache-${layer}: saved to local store ${cookStorePath(persistentRoot, exactKey)} ` +
+          `archive=${archive.archiveBytes}B files=${archive.fileCount ?? "?"} (#675)`,
+      );
+      return {
+        status: "saved-local",
+        archiveBytes: archive.archiveBytes,
+        fileCount: archive.fileCount,
+        sourceFiles: archive.sourceFiles,
+        deletedCacheFiles: archive.deletedCacheFiles,
+        archivePath,
+        compressMs: archive.compressMs,
+      };
+    } catch (err) {
+      return { status: "failed", archivePath, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+  const reserveStart = Date.now();
+  const saveReserved = opts.saveReservedCache ?? saveReservedCache;
+  const result = await saveReserved({
+    paths: [archivePath],
+    key: exactKey,
+    layer: `cook-cache-${layer}`,
+    log,
+    produce,
   });
   const reserveMs = Date.now() - reserveStart;
   if (isReservationConflict(result)) return { status: "skipped-race-precheck", archivePath, reserveMs };

@@ -2083,15 +2083,15 @@ export async function run(): Promise<void> {
           key: saveKey,
           matchedKey: "",
           restoreKeys: [],
-          archiveBytes: saveResult.status === "saved" ? (saveResult.archiveBytes ?? null) : null,
+          archiveBytes: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.archiveBytes ?? null) : null,
           inflatedBytes: null,
-          fileCount: saveResult.status === "saved" ? (saveResult.fileCount ?? null) : null,
+          fileCount: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.fileCount ?? null) : null,
           durationMs: Date.now() - saveStart,
           compressMs: saveResult.compressMs,
           uploadMs: saveResult.uploadMs,
           timestamp: new Date().toISOString(),
         });
-        if (saveResult.status !== "saved") {
+        if (saveResult.status !== "saved" && saveResult.status !== "saved-local") {
           logger.warning(
             `cook-cache-${saveLayer}: early save status=${saveResult.status} ` +
               `error=${saveResult.error ?? "none"}; the post step will retry ` +
@@ -2100,6 +2100,7 @@ export async function run(): Promise<void> {
         }
         const earlyHandled =
           saveResult.status === "saved" ||
+          saveResult.status === "saved-local" ||
           saveResult.status === "skipped-race" ||
           saveResult.status === "skipped-race-precheck";
         core.saveState("cookSavedEarly", earlyHandled ? "true" : "false");

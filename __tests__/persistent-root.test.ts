@@ -262,6 +262,9 @@ test("with a persistent root every save is skipped and every restore bypassed; v
     log: () => undefined,
     restoreCache,
   } as Parameters<typeof restoreCookCache>[0]);
+  assert.equal(calls, 0, "the legacy single cook layer never leaves the runner");
+  // #675: the layered cook base reads through the root's local store; only
+  // a local miss reaches the remote cache, once, for the base layer alone.
   const layered = await restoreLayeredCookCacheArchives({
     baseKey: "b",
     deltaKey: "d",
@@ -270,7 +273,7 @@ test("with a persistent root every save is skipped and every restore bypassed; v
     log: () => undefined,
     restoreCache,
   } as Parameters<typeof restoreLayeredCookCacheArchives>[0]);
-  assert.equal(calls, 0, "no Actions cache request leaves the runner");
+  assert.equal(calls, 1, "one remote base read after a local cook-store miss");
   assert.equal(single.hit, false);
   assert.equal(layered.base.matchedKey, "");
 });
@@ -281,7 +284,7 @@ test("contract: every Actions-cache restore call site is gated or reviewed", () 
   const reviewed: Record<string, string> = {
     "src/main.ts": "restoreCacheSafe and the solo-toolchain probes (solo is forced off) are gated",
     "src/post.ts": "exact-key probes after a save, which allowCacheSave already refused",
-    "src/lib/cook-cache.ts": "restoreCookCache / restoreLayeredCookCacheArchives are gated",
+    "src/lib/cook-cache.ts": "restoreCookCache is gated; restoreLayeredCookCacheArchives reads its local store first and the remote base only on a miss (#675)",
     "src/lib/solo-toolchain-cache.ts": "solo-toolchain-cache is forced off by resolveSetup",
     "src/lib/soldr-mini-cache.ts": "soldr-mini-cache is forced off by resolveSetup",
     "src/lib/verdict-setup.ts": "verdicts are proof of finished work and stay on every profile",
