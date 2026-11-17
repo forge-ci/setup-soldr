@@ -81,6 +81,7 @@ EXPECTED_INPUTS = {
     "prebuild-deps",
     "prebuild-deps-flags",
     "prebuild-deps-recipes",
+    "zstd-level",
     "prebuild-deps-delta-cache",
     "cook-delta",
     "soldr-mini-cache",
@@ -203,6 +204,7 @@ EXPECTED_OUTPUTS = {
     "compile-cache-sessions-total",
     "compile-cache-overall-hit-rate",
     "compile-cache-verification",
+    "zstd-level",
 }
 
 EXPECTED_SOLDR_DEFAULT_VERSION = "0.9.52"
