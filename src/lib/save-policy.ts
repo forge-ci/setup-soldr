@@ -30,6 +30,7 @@ import * as cache from "@actions/cache";
 // re-exported so existing callers keep importing it from here.
 import { isLocalRunner } from "./local-profile.js";
 import { readDependencyLayerSaveGate } from "./failed-job-save.js";
+import { activePersistentRoot } from "./persistent-root.js";
 export { isLocalRunner };
 
 export type SaveCacheMode = "auto" | "true" | "false";
@@ -141,6 +142,10 @@ export function resetSavePolicyLogForTest(): void {
  */
 export function allowCacheSave(layer: string, log: (msg: string) => void = console.log): boolean {
   let decision: SaveDecision = currentSaveDecision();
+  // obs-rust/obs-studio#4954: on a persistent root the files stay on the
+  // runner; uploading them is pure overhead.
+  const persistentRoot = activePersistentRoot();
+  if (persistentRoot) decision = { save: false, mode: decision.mode, reason: `persistent-root ${persistentRoot}` };
   // #626: a cancelled job saves no layer at all (the dependency phase may
   // have been interrupted). A failed job still passes here; output layers
   // apply their own stricter #559 gate in the post step.
@@ -195,6 +200,8 @@ export async function gatedSaveCache(
  * run's event and ref, with `save-cache-remote` still honoured.
  */
 export function allowVerdictSave(log: (msg: string) => void = console.log): boolean {
+  // Verdicts (~230 B) are proof of finished work, not files a persistent
+  // root keeps, so they publish on every profile.
   const decision = currentSaveDecision(process.env, "auto");
   if (decision.save) return true;
   if (!loggedSkips.has("verdict")) {

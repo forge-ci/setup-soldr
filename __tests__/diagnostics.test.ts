@@ -95,6 +95,7 @@ function fixtureRawInputs(): RawInputs {
     targetCacheSaveMinCompiles: "1",
     jobStatus: "",
     saveOnFailure: "",
+    persistentRoot: "",
   };
 }
 

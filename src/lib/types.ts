@@ -153,6 +153,12 @@ export interface RawInputs {
   /** "true" saves build outputs even when the job failed (#559). */
   saveOnFailure: string;
   targetCacheSaveMinCompiles: string;
+  /**
+   * `persistent-root` (obs-rust/obs-studio#4954): ""/auto, off, or a path.
+   * main resolves it (descriptor, runner kind, crash recovery) to an absolute
+   * root or "off" before resolveSetup, which treats only an absolute path as active.
+   */
+  persistentRoot: string;
 }
 
 /**
@@ -313,6 +319,8 @@ export interface ResolveResult {
   // Toolchain
   toolchain: ToolchainSpec;
   rustupStrategy: "managed" | "system" | "explicit";
+  /** Active persistent root (obs-rust/obs-studio#4954); absent on the hosted profile. */
+  persistentRoot?: string;
 
   // Soldr
   soldrRepo: string;

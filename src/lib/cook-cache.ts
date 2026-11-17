@@ -19,6 +19,7 @@ import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as cache from "@actions/cache";
+import { remoteCacheBypassed } from "./persistent-root.js";
 import { compressCache, decompressCache, detectCompressMagic } from "./cache-compress.js";
 import { formatLogLine } from "./log-utils.js";
 import { isReservationConflict, saveReservedCache } from "./two-phase-actions-cache.js";
@@ -498,6 +499,7 @@ export async function restoreCookCache(opts: CookRestoreOpts): Promise<CookResto
   const { exactKey, archivePath, targetDir, longWindow, log } = opts;
   const warn = opts.warn ?? log;
   const restore = opts.restoreCache ?? cache.restoreCache;
+  if (remoteCacheBypassed("cook-cache", log)) return { hit: false, matchedKey: "", archiveBytes: 0 };
   await fsp.mkdir(path.dirname(archivePath), { recursive: true });
   await fsp.rm(archivePath, { force: true });
   let matched: string | undefined;
@@ -625,6 +627,9 @@ export async function restoreLayeredCookCacheArchives(
     archivePath: opts.deltaArchivePath,
     archiveBytes: 0,
   };
+  if (remoteCacheBypassed("cook-cache", opts.log)) {
+    return { base: { hit: false, matchedKey: "", archivePath: opts.baseArchivePath, archiveBytes: 0 }, delta: deltaMiss };
+  }
   if (opts.deltaEnabled === false) {
     opts.log("cook-cache-delta: disabled (cook-delta=false); restoring base layer only");
     const base = await restoreOneLayer(

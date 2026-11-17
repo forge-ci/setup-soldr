@@ -94,5 +94,6 @@ export function readRawInputs(env: Record<string, string | undefined>): RawInput
     targetCacheSaveMinCompiles: get("target-cache-save-min-compiles"),
     jobStatus: get("job-status"),
     saveOnFailure: get("save-on-failure"),
+    persistentRoot: get("persistent-root"),
   };
 }
