@@ -262,6 +262,21 @@ inputs:
       failed or was cancelled (the behaviour before #559). Default "false".
     required: false
     default: "false"
+  zstd-level:
+    description: >
+      zstd level for everything setup-soldr compresses and for later steps.
+      "auto" (default) picks 1 on self-hosted, persistent-root and act
+      runners, whose fast local disks make compression time the cost, and
+      keeps each layer's own level on GitHub-hosted runners. An integer
+      1..19 sets it everywhere. Precedence: this input, then
+      SETUP_SOLDR_ZSTD_LEVEL set in the job, then a pre-set ZSTD_CLEVEL,
+      then auto; an invalid value is ignored with a warning. A resolved
+      level is exported as ZSTD_CLEVEL and ZSTD_NBTHREADS=0 (the zstd CLI
+      and `tar --zstd` honour both) and SOLDR_ZSTD_LEVEL, and it replaces
+      the profile default of every cache layer; an explicit per-layer level
+      input still wins.
+    required: false
+    default: "auto"
   persistent-root:
     description: >
       Self-hosted runners only. A directory on the runner that keeps
@@ -1021,6 +1036,8 @@ outputs:
     description: PEP 517 frontend command for source distribution production when advertised; otherwise empty.
   cache-dir:
     description: Runner-local cache/state root used by the action.
+  zstd-level:
+    description: Resolved zstd-level, or empty when each layer keeps its own default (auto on a GitHub-hosted runner).
   persistent-root:
     description: Active persistent root (see the persistent-root input), or empty on the GitHub Actions cache profile.
   cache-ledger:

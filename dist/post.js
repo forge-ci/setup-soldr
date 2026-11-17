@@ -55385,7 +55385,7 @@ function githubApiUrl(apiPath, env = process.env) {
  * archive written on GitHub and vice versa.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CACHE_PROFILE_KNOBS = void 0;
+exports.ZSTD_RESOLVED_ENV = exports.CACHE_PROFILE_KNOBS = void 0;
 exports.isLocalRunner = isLocalRunner;
 exports.cacheProfileDefault = cacheProfileDefault;
 exports.resolveCacheProfileInput = resolveCacheProfileInput;
@@ -55418,14 +55418,35 @@ const LOCAL_DEFAULTS = {
     "cargo-registry-extras-zstd-level": "1",
 };
 exports.CACHE_PROFILE_KNOBS = Object.keys(GITHUB_DEFAULTS);
-/** The profile default for `knob` on a GitHub (`local=false`) or local runner. */
-function cacheProfileDefault(knob, local) {
+/**
+ * Set by the main step when the `zstd-level` input resolved a level
+ * (`zstd-level.ts`); it replaces every zstd default below.
+ */
+exports.ZSTD_RESOLVED_ENV = "SETUP_SOLDR_ZSTD_LEVEL_RESOLVED";
+const ZSTD_KNOBS = new Set([
+    "target-cache-compress-level",
+    "solo-toolchain-cache-level",
+    "cook-base-zstd-level",
+    "cook-delta-zstd-level",
+    "soldr-mini-zstd-level",
+    "cargo-registry-extras-zstd-level",
+]);
+/**
+ * The profile default for `knob` on a GitHub (`local=false`) or local
+ * runner, or the resolved `zstd-level` for a zstd knob when one is set.
+ */
+function cacheProfileDefault(knob, local, env = process.env) {
+    if (ZSTD_KNOBS.has(knob)) {
+        const resolved = (env[exports.ZSTD_RESOLVED_ENV] ?? "").trim();
+        if (/^\d{1,2}$/.test(resolved) && Number(resolved) >= 1 && Number(resolved) <= 19)
+            return resolved;
+    }
     return (local ? LOCAL_DEFAULTS : GITHUB_DEFAULTS)[knob];
 }
 /** Effective value: the trimmed explicit input, else the profile default. */
-function resolveCacheProfileInput(knob, raw, local) {
+function resolveCacheProfileInput(knob, raw, local, env = process.env) {
     const value = (raw ?? "").trim();
-    return value || cacheProfileDefault(knob, local);
+    return value || cacheProfileDefault(knob, local, env);
 }
 function isNoCap(value) {
     const v = value.trim();
@@ -56548,6 +56569,7 @@ function readRawInputs(env) {
         jobStatus: get("job-status"),
         saveOnFailure: get("save-on-failure"),
         persistentRoot: get("persistent-root"),
+        zstdLevel: get("zstd-level"),
     };
 }
 
