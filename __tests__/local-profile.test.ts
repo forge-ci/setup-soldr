@@ -27,6 +27,9 @@ import { readRawInputs } from "../src/lib/raw-inputs.js";
 import { buildDeferredCookPlan } from "../src/lib/deferred-cook.js";
 
 process.env["SETUP_SOLDR_TEST_IMPORT"] = "1";
+// A job that ran setup-soldr (act, a self-hosted runner) exports its resolved
+// zstd-level; the profile defaults below must not see it.
+delete process.env["SETUP_SOLDR_ZSTD_LEVEL_RESOLVED"];
 
 const GITHUB_ENV: Record<string, string | undefined> = {};
 const ACT_ENV: Record<string, string | undefined> = { ACT: "true" };

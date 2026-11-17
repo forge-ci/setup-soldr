@@ -161,6 +161,8 @@ export interface RawInputs {
    * root or "off" before resolveSetup, which treats only an absolute path as active.
    */
   persistentRoot: string;
+  /** `zstd-level`: auto, or 1..19. */
+  zstdLevel: string;
 }
 
 /**

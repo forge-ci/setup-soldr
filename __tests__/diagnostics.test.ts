@@ -73,6 +73,7 @@ function fixtureRawInputs(): RawInputs {
     prebuildDeps: "soldr-cook",
     prebuildDepsFlags: "--release",
     prebuildDepsRecipes: "",
+    zstdLevel: "auto",
     prebuildDepsDeltaCache: "true",
     cookDelta: "false",
     soldrMiniCache: "true",

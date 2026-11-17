@@ -70,8 +70,34 @@ const LOCAL_DEFAULTS: Readonly<Record<CacheProfileKnob, string>> = {
 
 export const CACHE_PROFILE_KNOBS = Object.keys(GITHUB_DEFAULTS) as CacheProfileKnob[];
 
-/** The profile default for `knob` on a GitHub (`local=false`) or local runner. */
-export function cacheProfileDefault(knob: CacheProfileKnob, local: boolean): string {
+/**
+ * Set by the main step when the `zstd-level` input resolved a level
+ * (`zstd-level.ts`); it replaces every zstd default below.
+ */
+export const ZSTD_RESOLVED_ENV = "SETUP_SOLDR_ZSTD_LEVEL_RESOLVED";
+
+const ZSTD_KNOBS: ReadonlySet<CacheProfileKnob> = new Set([
+  "target-cache-compress-level",
+  "solo-toolchain-cache-level",
+  "cook-base-zstd-level",
+  "cook-delta-zstd-level",
+  "soldr-mini-zstd-level",
+  "cargo-registry-extras-zstd-level",
+]);
+
+/**
+ * The profile default for `knob` on a GitHub (`local=false`) or local
+ * runner, or the resolved `zstd-level` for a zstd knob when one is set.
+ */
+export function cacheProfileDefault(
+  knob: CacheProfileKnob,
+  local: boolean,
+  env: Record<string, string | undefined> = process.env,
+): string {
+  if (ZSTD_KNOBS.has(knob)) {
+    const resolved = (env[ZSTD_RESOLVED_ENV] ?? "").trim();
+    if (/^\d{1,2}$/.test(resolved) && Number(resolved) >= 1 && Number(resolved) <= 19) return resolved;
+  }
   return (local ? LOCAL_DEFAULTS : GITHUB_DEFAULTS)[knob];
 }
 
@@ -80,9 +106,10 @@ export function resolveCacheProfileInput(
   knob: CacheProfileInputKnob,
   raw: string | undefined,
   local: boolean,
+  env: Record<string, string | undefined> = process.env,
 ): string {
   const value = (raw ?? "").trim();
-  return value || cacheProfileDefault(knob, local);
+  return value || cacheProfileDefault(knob, local, env);
 }
 
 export interface CacheProfileSummary {

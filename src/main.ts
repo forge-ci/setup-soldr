@@ -48,6 +48,7 @@ import {
   isLocalRunner,
   resolveCacheProfileInput,
 } from "./lib/local-profile.js";
+import { resolveZstdLevel, zstdLevelExports } from "./lib/zstd-level.js";
 import {
   markPhase,
   finishPhase,
@@ -489,6 +490,24 @@ export async function run(): Promise<void> {
       bootstrap ??= ensureBootstrap(ctx.runnerTemp, bootstrapAssetFor(process.platform, process.arch, detectLibc()), undefined, path.join(toolCache, "bootstrap"), ctx.env["SETUP_SOLDR_BOOTSTRAP_ARCHIVE"]?.trim());
       return bootstrap;
     };
+  }
+  // zstd-level: fast compression on self-hosted runners, exported so later
+  // steps' zstd/tar and soldr writers follow it. Resolved before resolveSetup,
+  // whose layer levels read the exported value.
+  {
+    const zstd = resolveZstdLevel(inputs.zstdLevel, process.env);
+    for (const note of zstd.ignored) logger.warning(`zstd-level: ${note}`);
+    for (const [name, value] of Object.entries(zstdLevelExports(zstd))) core.exportVariable(name, value);
+    const line = zstd.level === null
+      ? `zstd-level: ${zstd.reason} (source ${zstd.source}); nothing exported`
+      : `zstd-level: ${zstd.level} (source ${zstd.source}: ${zstd.reason}); exported ZSTD_CLEVEL, ZSTD_NBTHREADS=0, SOLDR_ZSTD_LEVEL`;
+    logger.log(line);
+    core.setOutput("zstd-level", zstd.level === null ? "" : String(zstd.level));
+    try {
+      if (process.env["GITHUB_STEP_SUMMARY"]) await core.summary.addRaw(`${line}\n`, true).write();
+    } catch {
+      /* the summary is diagnostics only */
+    }
   }
   const result = await resolveSetup(ctx, inputs);
   await applyResolveResult(result);
