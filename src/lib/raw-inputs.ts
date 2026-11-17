@@ -71,6 +71,7 @@ export function readRawInputs(env: Record<string, string | undefined>): RawInput
     cacheEvictionPolicy: get("cache-eviction-policy"),
     prebuildDeps: get("prebuild-deps"),
     prebuildDepsFlags: get("prebuild-deps-flags"),
+    prebuildDepsRecipes: get("prebuild-deps-recipes"),
     prebuildDepsDeltaCache: get("prebuild-deps-delta-cache"),
     cookDelta: get("cook-delta"),
     soldrMiniCache: get("soldr-mini-cache"),

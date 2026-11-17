@@ -80,6 +80,7 @@ EXPECTED_INPUTS = {
     "cache-eviction-policy",
     "prebuild-deps",
     "prebuild-deps-flags",
+    "prebuild-deps-recipes",
     "prebuild-deps-delta-cache",
     "cook-delta",
     "soldr-mini-cache",

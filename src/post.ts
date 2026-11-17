@@ -2473,15 +2473,15 @@ async function runPost(): Promise<void> {
             key: saveKey,
             matchedKey: "",
             restoreKeys: [],
-            archiveBytes: saveResult.status === "saved" ? (saveResult.archiveBytes ?? null) : null,
-            inflatedBytes: saveResult.status === "saved" ? (saveResult.inflatedBytes ?? null) : null,
-            fileCount: saveResult.status === "saved" ? (saveResult.fileCount ?? null) : null,
+            archiveBytes: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.archiveBytes ?? null) : null,
+            inflatedBytes: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.inflatedBytes ?? null) : null,
+            fileCount: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.fileCount ?? null) : null,
             durationMs: Date.now() - cookSaveStart,
             compressMs: saveResult.compressMs,
             uploadMs: saveResult.uploadMs,
             timestamp: new Date().toISOString(),
           });
-          if (saveResult.status !== "saved") {
+          if (saveResult.status !== "saved" && saveResult.status !== "saved-local") {
             log(`cook-cache-${cookSaveLayer}: save status=${saveResult.status} error=${saveResult.error ?? "none"}`);
           }
         } catch (err) {
