@@ -1052,3 +1052,60 @@ test("#675 cook store keeps the newest entries and replaces atomically", async (
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("#675 parseCookRecipes: one recipe per non-blank line, comments dropped, cosmetic flags removed", async () => {
+  const { parseCookRecipes } = await import("../src/lib/cook-cache.js");
+  assert.deepEqual(parseCookRecipes(""), []);
+  assert.deepEqual(
+    parseCookRecipes("--profile dev -- --tests --check\n\n# cross lint\n--profile dev --target aarch64-unknown-linux-gnu -v\n  -p obs-util --profile dev  \n"),
+    [
+      ["--profile", "dev", "--", "--tests", "--check"],
+      ["--profile", "dev", "--target", "aarch64-unknown-linux-gnu"],
+      ["-p", "obs-util", "--profile", "dev"],
+    ],
+  );
+});
+
+test("#675 hashCookRecipes keeps the single-recipe key and keys every extra recipe", async () => {
+  const { hashCookRecipes } = await import("../src/lib/cook-cache.js");
+  const primary = ["--profile", "dev", "--", "--tests"];
+  assert.equal(hashCookRecipes(primary, []), hashCookFlags(primary), "no extra recipes: existing keys unchanged");
+  const a = hashCookRecipes(primary, [["--target", "aarch64-unknown-linux-gnu"]]);
+  const b = hashCookRecipes(primary, [["--target", "x86_64-apple-darwin"]]);
+  const ab = hashCookRecipes(primary, [["--target", "aarch64-unknown-linux-gnu"], ["--target", "x86_64-apple-darwin"]]);
+  assert.notEqual(a, hashCookFlags(primary));
+  assert.notEqual(a, b);
+  assert.notEqual(a, ab);
+  assert.match(a, /^[0-9a-f]{12}$/);
+});
+
+test("#675 runCookRecipes cooks each recipe in order and stops at the first failure", async () => {
+  const { runCookRecipes } = await import("../src/lib/cook-cache.js");
+  const ran: string[] = [];
+  const ok = await runCookRecipes({
+    soldrBinary: "soldr",
+    projectRoot: "/w",
+    recipes: [["--profile", "dev"], ["--target", "t1"], ["--target", "t2"]],
+    log: () => {},
+    run: async (o) => {
+      ran.push(o.flags.join(" "));
+      return { exitCode: 0, ranSeconds: 1.5 };
+    },
+  });
+  assert.deepEqual(ran, ["--profile dev", "--target t1", "--target t2"]);
+  assert.equal(ok.exitCode, 0);
+  assert.equal(ok.ranSeconds, 4.5);
+  ran.length = 0;
+  const failed = await runCookRecipes({
+    soldrBinary: "soldr",
+    projectRoot: "/w",
+    recipes: [["--profile", "dev"], ["--target", "t1"], ["--target", "t2"]],
+    log: () => {},
+    run: async (o) => {
+      ran.push(o.flags.join(" "));
+      return { exitCode: o.flags.includes("t1") ? 101 : 0, ranSeconds: 1 };
+    },
+  });
+  assert.deepEqual(ran, ["--profile dev", "--target t1"]);
+  assert.equal(failed.exitCode, 101);
+});

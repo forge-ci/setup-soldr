@@ -1166,3 +1166,25 @@ export function canonicalizeCookFlags(flags: string[]): string[] {
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// #675: cook recipes. RED stubs.
+// ---------------------------------------------------------------------------
+
+export function parseCookRecipes(_raw: string): string[][] {
+  return [];
+}
+
+export function hashCookRecipes(primary: string[], _extra: string[][]): string {
+  return hashCookFlags(primary);
+}
+
+export async function runCookRecipes(opts: {
+  soldrBinary: string;
+  projectRoot: string;
+  recipes: string[][];
+  log: (msg: string) => void;
+  run?: (opts: CookRunOpts) => Promise<CookRunResult>;
+}): Promise<CookRunResult> {
+  return (opts.run ?? runCook)({ soldrBinary: opts.soldrBinary, projectRoot: opts.projectRoot, flags: opts.recipes[0] ?? [], log: opts.log });
+}
