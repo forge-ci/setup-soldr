@@ -43,6 +43,7 @@ import {
 import { buildOutputs } from "./build-outputs.js";
 import { readRawInputs } from "./raw-inputs.js";
 import { isLocalRunner, resolveCacheProfileInput } from "./local-profile.js";
+import { persistentLayout } from "./persistent-root.js";
 import { timeSubPhase } from "./phase-timing.js";
 import {
   detectUserLinkerEnv,
@@ -603,6 +604,35 @@ export async function resolveSetup(
     // Ordinary cook is stable/build-shaped and cannot warm Dylint's isolated
     // nightly/check-shaped tree. Dylint mode therefore always disables it.
     inputs.prebuildDeps = "none";
+  }
+
+  // ---- persistent root (obs-rust/obs-studio#4954) ----
+  // main has already resolved the input (descriptor, runner kind, crash
+  // recovery); only an absolute path is active here. Every state root moves
+  // under it and the GitHub Actions cache layers whose files now persist are
+  // switched off. build-cache stays on so soldr keeps its zccache wrapper;
+  // its restore and save are bypassed by the restore and save gates.
+  const persistentRootRaw = (inputs.persistentRoot ?? "").trim();
+  const persistentRoot = persistentRootRaw && path.isAbsolute(persistentRootRaw) ? path.resolve(persistentRootRaw) : "";
+  if (persistentRoot) {
+    const layout = persistentLayout(persistentRoot);
+    const forcedOff: string[] = [];
+    const forceOff = (name: string, value: string): string => {
+      if (!isFalsy(value.trim() || "false")) forcedOff.push(name);
+      return "false";
+    };
+    inputs.soloToolchainCache = forceOff("solo-toolchain-cache", inputs.soloToolchainCache);
+    inputs.soldrMiniCache = forceOff("soldr-mini-cache", inputs.soldrMiniCache || "true");
+    inputs.cargoRegistryCache = forceOff("cargo-registry-cache", inputs.cargoRegistryCache);
+    inputs.targetCache = forceOff("target-cache", inputs.targetCache);
+    if (!inputs.cacheDir.trim()) inputs.cacheDir = layout.cacheDir;
+    env["CARGO_HOME"] = layout.cargoHome;
+    env["RUSTUP_HOME"] = layout.rustupHome;
+    log(
+      `persistent-root: ${persistentRoot} (cache-dir=${inputs.cacheDir.trim()} RUSTUP_HOME=${layout.rustupHome} ` +
+        `CARGO_HOME=${layout.cargoHome}); every GitHub Actions cache restore and save is skipped` +
+        (forcedOff.length > 0 ? `; disabled ${forcedOff.join(", ")}` : ""),
+    );
   }
 
   // ---- cache roots ----
@@ -1733,6 +1763,7 @@ export async function resolveSetup(
     soldrBinCachePath,
     toolchain,
     rustupStrategy,
+    ...(persistentRoot ? { persistentRoot } : {}),
     soldrRepo,
     soldrRef,
     soldrSourcePath,

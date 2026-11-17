@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- New `persistent-root` input for self-hosted runners (obs-rust/obs-studio#4954).
+  It keeps `cache-dir`, soldr's zccache, `RUSTUP_HOME` and `CARGO_HOME` under
+  one root and skips every Actions-cache restore and save, the S3 tier and the
+  ancestor lookup. It auto-detects a host descriptor (JSON schema 1 or
+  obs-runner's `.persistent-cache` marker) and is crash safe: a `.clean` marker
+  is removed when a job opens the root and rewritten atomically after the post
+  step syncs; an unclean root is quarantined and rebuilt. New outputs
+  `persistent-root` and `cache-ledger` (per-layer hits, misses, bytes, time and
+  time saved, on every profile).
 - On a local runner, `key: auto` falls back to the newest store of the same
   toolchain/job family when no entry shares the exact identity (#575). The
   identity hashes Cargo.lock, so any lockfile change, even a workspace

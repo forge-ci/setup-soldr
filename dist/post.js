@@ -52388,6 +52388,7 @@ const fsp = __importStar(__nccwpck_require__(51455));
 const path = __importStar(__nccwpck_require__(76760));
 const toolrunner_js_1 = __nccwpck_require__(6665);
 const cache = __importStar(__nccwpck_require__(5116));
+const persistent_root_js_1 = __nccwpck_require__(75163);
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const log_utils_js_1 = __nccwpck_require__(28129);
 const two_phase_actions_cache_js_1 = __nccwpck_require__(27190);
@@ -52645,6 +52646,8 @@ async function restoreCookCache(opts) {
     const { exactKey, archivePath, targetDir, longWindow, log } = opts;
     const warn = opts.warn ?? log;
     const restore = opts.restoreCache ?? cache.restoreCache;
+    if ((0, persistent_root_js_1.remoteCacheBypassed)("cook-cache", log))
+        return { hit: false, matchedKey: "", archiveBytes: 0 };
     await fsp.mkdir(path.dirname(archivePath), { recursive: true });
     await fsp.rm(archivePath, { force: true });
     let matched;
@@ -52758,6 +52761,9 @@ async function restoreLayeredCookCacheArchives(opts) {
         archivePath: opts.deltaArchivePath,
         archiveBytes: 0,
     };
+    if ((0, persistent_root_js_1.remoteCacheBypassed)("cook-cache", opts.log)) {
+        return { base: { hit: false, matchedKey: "", archivePath: opts.baseArchivePath, archiveBytes: 0 }, delta: deltaMiss };
+    }
     if (opts.deltaEnabled === false) {
         opts.log("cook-cache-delta: disabled (cook-delta=false); restoring base layer only");
         const base = await restoreOneLayer("cook-cache-base", opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore);
@@ -55734,6 +55740,455 @@ exports._internal = {
 
 /***/ }),
 
+/***/ 75163:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.STATE_DIR = exports.CLEAN_MARKER = exports.DEFAULT_DESCRIPTOR_PATHS = exports.PERSISTENT_DESCRIPTOR_ENV = exports.PERSISTENT_ROOT_ENV = void 0;
+exports.storeFromDescriptor = storeFromDescriptor;
+exports.slotRoot = slotRoot;
+exports.choosePersistentRoot = choosePersistentRoot;
+exports.writeFileAtomic = writeFileAtomic;
+exports.syncFilesystem = syncFilesystem;
+exports.sessionIdentity = sessionIdentity;
+exports.openPersistentSession = openPersistentSession;
+exports.closePersistentSession = closePersistentSession;
+exports.activePersistentRoot = activePersistentRoot;
+exports.remoteCacheBypassed = remoteCacheBypassed;
+exports.resetPersistentRootLogForTest = resetPersistentRootLogForTest;
+exports.persistentLayout = persistentLayout;
+exports.readLedgerHistory = readLedgerHistory;
+exports.appendLedgerHistory = appendLedgerHistory;
+exports.lastMissDurationMs = lastMissDurationMs;
+exports.preparePersistentRoot = preparePersistentRoot;
+/**
+ * `persistent-root`: keep setup-soldr's state on a self-hosted runner's own
+ * storage instead of round-tripping it through the GitHub Actions cache
+ * (obs-rust/obs-studio#4954, proposal P4).
+ *
+ * On a self-hosted runner with a persistent (or RAM-backed) directory, every
+ * Actions-cache restore and save is pure overhead: the files the cache would
+ * restore are already on the runner. With a persistent root:
+ *
+ * - `cache-dir` (soldr binary, managed state), soldr's zccache directory,
+ *   `RUSTUP_HOME` and `CARGO_HOME` all live under the root;
+ * - every GitHub Actions cache restore and save is skipped (setup, solo
+ *   toolchain, soldr-mini, cargo-registry, build, target, cook, dylint,
+ *   blessed prepare, verdicts), as is the optional S3 tier and the ancestor
+ *   lookup, so the job makes no cache round trip at all;
+ * - the root is crash safe. A session is opened at the start of a job and
+ *   closed only after the post step has stopped the cache daemons and synced
+ *   the filesystem. A root whose last session never closed (power loss, a
+ *   killed runner) is quarantined and rebuilt cold: a cold start costs a
+ *   toolchain download, a truncated rustc costs a false failure.
+ *
+ * The input is `persistent-root`:
+ *
+ * - `""` or `auto` (default): use the host's descriptor when one exists, else
+ *   behave exactly as before;
+ * - `off` / `false` / `none`: never;
+ * - a path: use that directory.
+ *
+ * It applies only on self-hosted runners (`RUNNER_ENVIRONMENT=self-hosted`).
+ * An explicit path on a GitHub-hosted runner is ignored with a warning, and
+ * `SETUP_SOLDR_PROFILE=hosted` (a repository variable, no commit needed) turns
+ * it off everywhere.
+ *
+ * Host descriptor. The first existing file among
+ * `SETUP_SOLDR_PERSISTENT_DESCRIPTOR` or the defaults below. It is either the
+ * JSON host-store descriptor (`{"schema": 1, "store": "/abs/path", ...}`) or a
+ * plain marker file such as obs-runner's `.persistent-cache`, in which case
+ * the store is the marker's directory. The root is the runner's own slot:
+ * `<store>/slots/<RUNNER_NAME>/setup-soldr/<os>-<arch>-u<uid>`. One runner
+ * runs one job at a time, so a slot has one writer; the uid keeps container
+ * jobs (root) and host jobs (the runner user) from sharing files they could
+ * not overwrite.
+ */
+const fs = __importStar(__nccwpck_require__(73024));
+const os = __importStar(__nccwpck_require__(48161));
+const path = __importStar(__nccwpck_require__(76760));
+const node_child_process_1 = __nccwpck_require__(31421);
+/** Exported by main for every later step (and the post step) of the job. */
+exports.PERSISTENT_ROOT_ENV = "SETUP_SOLDR_PERSISTENT_ROOT";
+/** Overrides the descriptor search list (tests, unusual hosts). */
+exports.PERSISTENT_DESCRIPTOR_ENV = "SETUP_SOLDR_PERSISTENT_DESCRIPTOR";
+exports.DEFAULT_DESCRIPTOR_PATHS = [
+    "/var/cache/soldr-store/descriptor.json",
+    "/var/cache/obs-runner/.persistent-cache",
+];
+/** Marker that exists exactly while the root is consistent (no job in it). */
+exports.CLEAN_MARKER = ".clean";
+/** setup-soldr's own bookkeeping inside the root. */
+exports.STATE_DIR = ".setup-soldr";
+const SESSION_FILE = "session.json";
+const LEDGER_FILE = "ledger.json";
+/** A session older than this is stale even if another runner owns it (7 h > any job). */
+const STALE_SESSION_MS = 7 * 3600 * 1000;
+const LEDGER_HISTORY_LIMIT = 200;
+const TRUTHY_OFF = new Set(["off", "false", "0", "no", "none", "disabled"]);
+function defaultReadFile(p) {
+    try {
+        if (!fs.statSync(p).isFile())
+            return null;
+        return fs.readFileSync(p, "utf8");
+    }
+    catch {
+        return null;
+    }
+}
+/** The store directory a descriptor file names, or null if unusable. */
+function storeFromDescriptor(descriptorPath, content) {
+    const trimmed = content.trim();
+    if (trimmed.startsWith("{")) {
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.schema !== 1)
+                return null;
+            if (typeof parsed.store !== "string" || !path.isAbsolute(parsed.store))
+                return null;
+            return path.resolve(parsed.store);
+        }
+        catch {
+            return null;
+        }
+    }
+    // Plain marker (obs-runner's `.persistent-cache` holds the host name).
+    return path.dirname(path.resolve(descriptorPath));
+}
+/** Per-runner, per-platform, per-uid slot under a host store. */
+function slotRoot(store, runnerName, platform, arch, uid) {
+    const safeRunner = runnerName.replace(/[^A-Za-z0-9._-]/g, "_");
+    return path.join(store, "slots", safeRunner, "setup-soldr", `${platform}-${arch}-u${uid}`);
+}
+/**
+ * Pure decision (no writes): which persistent root applies to this job.
+ * Filesystem reads go through `readFile` so tests stay hermetic.
+ */
+function choosePersistentRoot(opts) {
+    const { env } = opts;
+    const raw = (opts.input ?? "").trim();
+    const lowered = raw.toLowerCase();
+    const off = (reason, warning) => ({ root: null, source: null, reason, ...(warning ? { warning } : {}) });
+    if (TRUTHY_OFF.has(lowered))
+        return off(`persistent-root=${raw}`);
+    if ((env["SETUP_SOLDR_PROFILE"] ?? "").trim().toLowerCase() === "hosted") {
+        return off("SETUP_SOLDR_PROFILE=hosted");
+    }
+    const explicit = raw !== "" && lowered !== "auto";
+    const selfHosted = (env["RUNNER_ENVIRONMENT"] ?? "").trim().toLowerCase() === "self-hosted";
+    if (!selfHosted) {
+        return explicit
+            ? off("not a self-hosted runner", `setup-soldr: persistent-root=${raw} ignored: RUNNER_ENVIRONMENT is not self-hosted; using the GitHub Actions cache`)
+            : off("not a self-hosted runner");
+    }
+    if (explicit) {
+        const home = env["HOME"] || env["USERPROFILE"] || os.homedir();
+        const expanded = raw === "~" ? home : raw.startsWith("~/") ? path.join(home, raw.slice(2)) : raw;
+        if (!path.isAbsolute(expanded)) {
+            return off("relative path", `setup-soldr: persistent-root must be an absolute path (got '${raw}'); using the GitHub Actions cache`);
+        }
+        return { root: path.resolve(expanded), source: "input", reason: "persistent-root input" };
+    }
+    const read = opts.readFile ?? defaultReadFile;
+    const override = (env[exports.PERSISTENT_DESCRIPTOR_ENV] ?? "").trim();
+    const candidates = override ? [override] : (opts.descriptorPaths ?? exports.DEFAULT_DESCRIPTOR_PATHS);
+    for (const candidate of candidates) {
+        const content = read(candidate);
+        if (content === null)
+            continue;
+        const store = storeFromDescriptor(candidate, content);
+        if (!store)
+            return off(`unusable descriptor ${candidate}`, `setup-soldr: host descriptor ${candidate} is not schema 1 with an absolute store; using the GitHub Actions cache`);
+        const runner = (env["RUNNER_NAME"] ?? "").trim();
+        if (!runner)
+            return off(`descriptor ${candidate} but no RUNNER_NAME`);
+        const uid = opts.uid ?? (typeof process.getuid === "function" ? process.getuid() : 0);
+        return {
+            root: slotRoot(store, runner, opts.platform ?? process.platform, opts.arch ?? process.arch, uid),
+            source: "descriptor",
+            reason: `host descriptor ${candidate}`,
+        };
+    }
+    return off("no host descriptor");
+}
+// ---------------------------------------------------------------------------
+// Crash safety
+// ---------------------------------------------------------------------------
+/** Write `content` to `file` so a reader sees the old or the new bytes, never a mix. */
+function writeFileAtomic(file, content) {
+    const dir = path.dirname(file);
+    fs.mkdirSync(dir, { recursive: true });
+    const tmp = path.join(dir, `.${path.basename(file)}.${process.pid}.${Date.now()}.tmp`);
+    const fd = fs.openSync(tmp, "w", 0o644);
+    try {
+        fs.writeSync(fd, content);
+        fs.fsyncSync(fd);
+    }
+    finally {
+        fs.closeSync(fd);
+    }
+    fs.renameSync(tmp, file);
+    fsyncDir(dir);
+}
+function fsyncDir(dir) {
+    if (process.platform === "win32")
+        return;
+    try {
+        const fd = fs.openSync(dir, "r");
+        try {
+            fs.fsyncSync(fd);
+        }
+        finally {
+            fs.closeSync(fd);
+        }
+    }
+    catch {
+        // Some filesystems refuse fsync on a directory; the rename is still atomic.
+    }
+}
+function unlinkDurable(file) {
+    try {
+        fs.unlinkSync(file);
+    }
+    catch (err) {
+        if (err.code !== "ENOENT")
+            throw err;
+    }
+    fsyncDir(path.dirname(file));
+}
+/** Flush the filesystem holding `dir` (syncfs), so a later marker cannot outrun the data. */
+function syncFilesystem(dir) {
+    if (process.platform === "win32")
+        return;
+    const result = (0, node_child_process_1.spawnSync)("sync", ["-f", dir], { stdio: "ignore", timeout: 120_000 });
+    if (result.status !== 0)
+        (0, node_child_process_1.spawnSync)("sync", [], { stdio: "ignore", timeout: 120_000 });
+}
+function sessionIdentity(env) {
+    return {
+        runner: (env["RUNNER_NAME"] ?? "").trim(),
+        runId: (env["GITHUB_RUN_ID"] ?? "").trim(),
+        runAttempt: (env["GITHUB_RUN_ATTEMPT"] ?? "").trim(),
+        job: (env["GITHUB_JOB"] ?? "").trim(),
+    };
+}
+function readJson(file) {
+    try {
+        return JSON.parse(fs.readFileSync(file, "utf8"));
+    }
+    catch {
+        return null;
+    }
+}
+function rootEntries(root) {
+    try {
+        return fs.readdirSync(root).filter((name) => name !== exports.STATE_DIR && name !== exports.CLEAN_MARKER);
+    }
+    catch {
+        return [];
+    }
+}
+function sameJob(a, b) {
+    return Boolean(a.runId) && a.runner === b.runner && a.runId === b.runId && a.runAttempt === b.runAttempt && a.job === b.job;
+}
+/**
+ * Open a session on `root`. Removes the clean marker (durably) before any
+ * content is touched, so a crash from here on leaves the root marked unclean.
+ */
+function openPersistentSession(root, identity, opts = {}) {
+    const now = opts.now ?? Date.now;
+    fs.mkdirSync(root, { recursive: true });
+    fs.accessSync(root, fs.constants.W_OK);
+    const stateDir = path.join(root, exports.STATE_DIR);
+    const sessionPath = path.join(stateDir, SESSION_FILE);
+    const cleanPath = path.join(root, exports.CLEAN_MARKER);
+    const previous = readJson(sessionPath);
+    const wasClean = fs.existsSync(cleanPath);
+    const entries = rootEntries(root);
+    let outcome;
+    let detail;
+    const quarantined = [];
+    if (wasClean) {
+        outcome = entries.length === 0 ? "fresh" : "clean";
+        detail = previous ? `last closed by ${previous.runner || "?"} run ${previous.runId || "?"}` : "clean marker present";
+    }
+    else if (entries.length === 0) {
+        outcome = "fresh";
+        detail = "empty root";
+    }
+    else if (previous && sameJob(previous, identity)) {
+        return { outcome: "reentrant", detail: "session already open in this job", quarantined };
+    }
+    else if (previous &&
+        previous.runner &&
+        identity.runner &&
+        previous.runner !== identity.runner &&
+        now() - Date.parse(previous.openedAt) < STALE_SESSION_MS) {
+        return { outcome: "busy", detail: `open session held by runner ${previous.runner} run ${previous.runId}`, quarantined };
+    }
+    else {
+        outcome = "recovered";
+        detail = previous
+            ? `session of ${previous.runner || "?"} run ${previous.runId || "?"} (opened ${previous.openedAt}) never closed`
+            : "content without a clean marker";
+        const quarantine = path.join(stateDir, `quarantine-${now()}-${process.pid}`);
+        fs.mkdirSync(quarantine, { recursive: true });
+        for (const name of entries) {
+            fs.renameSync(path.join(root, name), path.join(quarantine, name));
+            quarantined.push(name);
+        }
+        fsyncDir(root);
+        fs.rmSync(quarantine, { recursive: true, force: true });
+    }
+    // Remove leftovers of quarantines that a crash interrupted.
+    try {
+        for (const name of fs.readdirSync(stateDir)) {
+            if (name.startsWith("quarantine-"))
+                fs.rmSync(path.join(stateDir, name), { recursive: true, force: true });
+        }
+    }
+    catch {
+        // stateDir may not exist yet.
+    }
+    const record = { schema: 1, ...identity, pid: process.pid, openedAt: new Date(now()).toISOString() };
+    writeFileAtomic(sessionPath, `${JSON.stringify(record)}\n`);
+    unlinkDurable(cleanPath);
+    return { outcome, detail, quarantined };
+}
+/**
+ * Close the session: flush the filesystem, then write the clean marker
+ * atomically. Call only after every writer into the root (cache daemons
+ * included) has stopped, and only when the setup completed.
+ */
+function closePersistentSession(root, opts = {}) {
+    (opts.sync ?? syncFilesystem)(root);
+    const marker = { schema: 1, closedAt: new Date((opts.now ?? Date.now)()).toISOString() };
+    writeFileAtomic(path.join(root, exports.CLEAN_MARKER), `${JSON.stringify(marker)}\n`);
+}
+// ---------------------------------------------------------------------------
+// Gates read by every cache layer
+// ---------------------------------------------------------------------------
+/** The active persistent root for this job, or "" (read from the exported env). */
+function activePersistentRoot(env = process.env) {
+    return (env[exports.PERSISTENT_ROOT_ENV] ?? "").trim();
+}
+const loggedBypass = new Set();
+/**
+ * THE restore gate. True when `layer` must not touch the GitHub Actions
+ * cache (or S3) because its files persist on this runner. Logs one line per
+ * layer.
+ */
+function remoteCacheBypassed(layer, log = console.log, env = process.env) {
+    const root = activePersistentRoot(env);
+    if (!root)
+        return false;
+    if (!loggedBypass.has(layer)) {
+        loggedBypass.add(layer);
+        log(`${layer}: GitHub Actions cache skipped: persistent-root ${root}`);
+    }
+    return true;
+}
+/** Test hook. */
+function resetPersistentRootLogForTest() {
+    loggedBypass.clear();
+}
+function persistentLayout(root) {
+    return {
+        cacheDir: path.join(root, "setup-soldr"),
+        rustupHome: path.join(root, "rustup"),
+        cargoHome: path.join(root, "cargo"),
+    };
+}
+function readLedgerHistory(root) {
+    const parsed = readJson(path.join(root, exports.STATE_DIR, LEDGER_FILE));
+    return Array.isArray(parsed?.entries) ? parsed.entries : [];
+}
+function appendLedgerHistory(root, entry) {
+    const entries = [...readLedgerHistory(root), entry].slice(-LEDGER_HISTORY_LIMIT);
+    writeFileAtomic(path.join(root, exports.STATE_DIR, LEDGER_FILE), `${JSON.stringify({ schema: 1, entries })}\n`);
+}
+/** Duration of the most recent miss of `layer`, the cost a hit avoided. */
+function lastMissDurationMs(history, layer) {
+    for (let i = history.length - 1; i >= 0; i -= 1) {
+        const hit = history[i].layers.find((l) => l.layer === layer && l.status === "miss" && typeof l.durationMs === "number");
+        if (hit)
+            return hit.durationMs;
+    }
+    return null;
+}
+/**
+ * Resolve the input and open the session. Every failure degrades to the
+ * hosted profile with a warning: a persistent root is an optimization and
+ * must never fail a job.
+ */
+function preparePersistentRoot(opts) {
+    const choice = (opts.choose ?? choosePersistentRoot)({ input: opts.input, env: opts.env });
+    if (!choice.root) {
+        if (choice.warning)
+            opts.warn(choice.warning);
+        else if ((opts.input ?? "").trim())
+            opts.log(`persistent-root: off (${choice.reason})`);
+        return { root: null, choice, session: null };
+    }
+    if (opts.dryRun)
+        return { root: choice.root, choice, session: null };
+    let session;
+    try {
+        session = openPersistentSession(choice.root, sessionIdentity(opts.env));
+    }
+    catch (err) {
+        opts.warn(`setup-soldr: persistent-root ${choice.root} unusable (${err instanceof Error ? err.message : String(err)}); using the GitHub Actions cache`);
+        return { root: null, choice, session: null };
+    }
+    if (session.outcome === "busy") {
+        opts.warn(`setup-soldr: persistent-root ${choice.root} is in use (${session.detail}); using the GitHub Actions cache for this job`);
+        return { root: null, choice, session };
+    }
+    if (session.outcome === "recovered") {
+        opts.warn(`setup-soldr: persistent-root ${choice.root}: ${session.detail}; removed ${session.quarantined.join(", ")} and starting cold`);
+    }
+    opts.log(`persistent-root: ${choice.root} from ${choice.reason}; session ${session.outcome} (${session.detail})`);
+    return { root: choice.root, choice, session };
+}
+
+
+/***/ }),
+
 /***/ 52183:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -55834,6 +56289,7 @@ function readRawInputs(env) {
         targetCacheSaveMinCompiles: get("target-cache-save-min-compiles"),
         jobStatus: get("job-status"),
         saveOnFailure: get("save-on-failure"),
+        persistentRoot: get("persistent-root"),
     };
 }
 
@@ -56705,6 +57161,7 @@ const cache = __importStar(__nccwpck_require__(5116));
 const local_profile_js_1 = __nccwpck_require__(29720);
 Object.defineProperty(exports, "isLocalRunner", ({ enumerable: true, get: function () { return local_profile_js_1.isLocalRunner; } }));
 const failed_job_save_js_1 = __nccwpck_require__(48188);
+const persistent_root_js_1 = __nccwpck_require__(75163);
 /** Status string layers report when the policy suppressed an upload. */
 exports.POLICY_SKIP_STATUS = "policy-skip";
 /**
@@ -56796,6 +57253,11 @@ function resetSavePolicyLogForTest() {
  */
 function allowCacheSave(layer, log = console.log) {
     let decision = currentSaveDecision();
+    // obs-rust/obs-studio#4954: on a persistent root the files stay on the
+    // runner; uploading them is pure overhead.
+    const persistentRoot = (0, persistent_root_js_1.activePersistentRoot)();
+    if (persistentRoot)
+        decision = { save: false, mode: decision.mode, reason: `persistent-root ${persistentRoot}` };
     // #626: a cancelled job saves no layer at all (the dependency phase may
     // have been interrupted). A failed job still passes here; output layers
     // apply their own stricter #559 gate in the post step.
@@ -56842,6 +57304,8 @@ async function gatedSaveCache(layer, paths, key, log, backend) {
  * run's event and ref, with `save-cache-remote` still honoured.
  */
 function allowVerdictSave(log = console.log) {
+    // Verdicts (~230 B) are proof of finished work, not files a persistent
+    // root keeps, so they publish on every profile.
     const decision = currentSaveDecision(process.env, "auto");
     if (decision.save)
         return true;
@@ -61081,6 +61545,7 @@ exports.buildFinalCacheSummary = buildFinalCacheSummary;
 exports.formatFinalCacheSummaryMarkdown = formatFinalCacheSummaryMarkdown;
 exports.setMultiSessionOutputs = setMultiSessionOutputs;
 exports.run = run;
+exports.closePersistentRootIfComplete = closePersistentRootIfComplete;
 const fs = __importStar(__nccwpck_require__(73024));
 const path = __importStar(__nccwpck_require__(76760));
 const node_child_process_1 = __nccwpck_require__(31421);
@@ -61111,6 +61576,7 @@ const ancestor_cache_github_js_1 = __nccwpck_require__(457);
 const ancestor_cache_js_1 = __nccwpck_require__(7853);
 const local_profile_js_1 = __nccwpck_require__(29720);
 const save_policy_js_1 = __nccwpck_require__(98097);
+const persistent_root_js_1 = __nccwpck_require__(75163);
 const s3_cache_js_1 = __nccwpck_require__(68810);
 const cache_eviction_js_1 = __nccwpck_require__(15795);
 const yank_audit_js_1 = __nccwpck_require__(23140);
@@ -62193,7 +62659,37 @@ async function emitInsightsAnnotationsAndTrace(opts) {
         log(`compile-cache-stats: chrome-trace artifact upload failed: ${err instanceof Error ? err.message : String(err)}`);
     }
 }
+/**
+ * Post step. On a persistent root (obs-rust/obs-studio#4954) the session is
+ * closed last: every cache daemon has stopped by then, the filesystem is
+ * synced, and only then is the clean marker written. A setup that did not
+ * complete leaves the root marked unclean, so the next job rebuilds it.
+ */
 async function run() {
+    try {
+        await runPost();
+    }
+    finally {
+        closePersistentRootIfComplete((msg) => core.info(msg), (msg) => core.warning(msg));
+    }
+}
+function closePersistentRootIfComplete(log, warn, getState = (name) => core.getState(name)) {
+    const root = getState("persistentRoot");
+    if (!root)
+        return;
+    if (getState("persistentMainComplete") !== "true") {
+        warn(`setup-soldr: persistent-root ${root} left unclean: setup did not complete; the next job rebuilds it`);
+        return;
+    }
+    try {
+        (0, persistent_root_js_1.closePersistentSession)(root);
+        log(`persistent-root: ${root} synced and marked clean`);
+    }
+    catch (err) {
+        warn(`setup-soldr: persistent-root ${root} could not be marked clean (${err instanceof Error ? err.message : String(err)}); the next job rebuilds it`);
+    }
+}
+async function runPost() {
     const logger = (0, log_utils_js_1.createLogger)(process.env);
     const log = (msg) => logger.log(msg);
     const state = core.getState("resolveResult");
@@ -63543,7 +64039,10 @@ async function run() {
             "aggressive": "aggressive",
         };
         const policy = policyMap[policyRaw] ?? "disabled";
-        if (policy !== "disabled") {
+        if (policy !== "disabled" && (0, persistent_root_js_1.activePersistentRoot)()) {
+            log("cache-eviction: skipped: persistent-root writes no Actions cache entries");
+        }
+        else if (policy !== "disabled") {
             const githubRepository = (process.env["GITHUB_REPOSITORY"] ?? "").trim();
             const [owner, repo] = githubRepository.split("/");
             const token = (process.env["GITHUB_TOKEN"] ?? "").trim() ||

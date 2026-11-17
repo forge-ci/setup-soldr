@@ -462,6 +462,7 @@ preferred for new workflows.
 | `build-cache-save-min-compiles` | Delta-aware build-cache save gate. Default `1`: when a cache was restored and the session compiled nothing new (zccache misses below this count), skip re-saving the build-cache so a fallback-key hit doesn't re-upload a duplicate multi-GiB payload. Raise to also skip tiny deltas; set `0` to always save. Never gates a cold seed. |
 | `job-status` | Pass `${{ job.status }}` (re-evaluated for the post step; an action default cannot read `job`). When it is `failure` or `cancelled`, build-cache, target-cache and the cook delta are not saved, so a failed build's partial store cannot poison its key (#559). On `failure` the dependency layers (cook base, cargo registry, toolchain) still save; on `cancelled` nothing saves (#626). |
 | `save-on-failure` | `true` saves every layer, build outputs included, even when the job failed or was cancelled. Default `false`. |
+| `persistent-root` | Self-hosted only. Keep setup-soldr's state on the runner and skip every Actions-cache round trip; see [Persistent root on self-hosted runners](#persistent-root-on-self-hosted-runners). Default `""` (auto: use the host descriptor if present). |
 | `seed-isolated-build-cache` | Optional newline/comma-separated isolated `SOLDR_CACHE_DIR` roots to pre-seed from the restored build-cache (issue #240). Copies only the content-addressed zccache artifact store (no logs/sockets/live daemon state) into `<root>/cache/zccache`, so a daemon-isolated coverage/integration phase starts warm instead of cold. Default empty (no seeding). |
 | `verify-compile-cache` | Guard against silently-bypassed compile caching. `off` (default) no check; `warn` emits a warning when a job expected to use zccache reports `hits + misses == 0`; `error`/`true` fails the post step. Names the likely bypass (RUSTC_WRAPPER, SOLDR_CACHE_DIR, ZCCACHE_CACHE_DIR, shims) and sets the `compile-cache-verification` output. Legitimate no-compile / passthrough / build-cache-off jobs are skipped, never failed. |
 | `zccache-seed-strict` | When `true`, setup fails if setup-soldr cannot seed older soldr releases' pinned zccache install from a vendored or managed release source. Default `false` keeps the seed best-effort and allows soldr's normal managed fallback path. Embedded-zccache soldr releases skip this seed because no external zccache install is needed. Enable this in repos where a later `cargo install zccache` fallback is unacceptable on older soldr pins. |
@@ -509,6 +510,8 @@ preferred for new workflows.
 | `soldr-version` | Installed Soldr version reported by `soldr version --json`. |
 | `verdict-lazy` | `true` when the verdict ledger skipped the toolchain and build caches because every check this job runs already passed with these inputs. |
 | `cache-dir` | Action-managed runner-local cache/state root. |
+| `persistent-root` | Active persistent root, or empty on the Actions-cache profile. |
+| `cache-ledger` | Per-job cache ledger (JSON): per layer `hit`/`partial`/`miss`, bytes, duration and time saved, plus totals. |
 | `setup-duration-seconds` | Total wall-clock time spent inside the setup-soldr action. |
 | `setup-phase-summary` | JSON timing summary for the main setup phases and cache restore statuses. |
 | `cache-hit` | Whether the action restored an exact cache hit. |
@@ -1143,6 +1146,37 @@ set `SETUP_SOLDR_BOOTSTRAP_ARCHIVE` to the absolute path of the matching host
 archive from the [Soldr 0.9.41 release](https://github.com/forge-ci/soldr/releases/tag/v0.9.41).
 The action checks the pinned digest before extraction and rejects a mismatched
 archive; the requested final Soldr version remains independently selected.
+
+### Persistent root on self-hosted runners
+
+On a self-hosted runner whose disk (or tmpfs) outlives the job, the Actions
+cache only moves files that are already there. `persistent-root` keeps them:
+
+```yaml
+- uses: zackees/setup-soldr@<sha>
+  with:
+    persistent-root: /var/cache/my-runner/setup-soldr   # or "" to auto-detect
+```
+
+- `cache-dir`, soldr's zccache directory, `RUSTUP_HOME` and `CARGO_HOME` move
+  under the root. Every Actions-cache restore and save (setup, solo-toolchain,
+  soldr-mini, cargo-registry, build, target, cook, dylint, blessed prepare),
+  the S3 tier, the ancestor lookup and repo-level eviction are skipped.
+  Verdicts still publish.
+- Auto-detection (the default) reads `SETUP_SOLDR_PERSISTENT_DESCRIPTOR`,
+  `/var/cache/soldr-store/descriptor.json` (`{"schema": 1, "store": "/abs"}`)
+  or a plain marker such as `/var/cache/obs-runner/.persistent-cache` (store =
+  its directory). The root is `<store>/slots/<RUNNER_NAME>/setup-soldr/<os>-<arch>-u<uid>`:
+  one runner runs one job at a time, and the uid keeps container and host jobs apart.
+- Crash safe: opening a root removes its `.clean` marker durably; the post step
+  writes it back (atomically, after stopping the cache daemons and `sync -f`)
+  only when setup completed. A root left unclean by its own runner is
+  quarantined and rebuilt cold; one another runner holds open is left alone
+  and the job uses the Actions cache.
+- Ignored on GitHub-hosted runners. `SETUP_SOLDR_PROFILE=hosted` (for example
+  a repository variable) turns it off everywhere; `persistent-root: off` per step.
+- The `cache-ledger` output records each layer's status, bytes and duration;
+  a hit is credited with the duration of that layer's last miss on the same root.
 
 ## Development
 

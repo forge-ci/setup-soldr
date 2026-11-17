@@ -17,6 +17,23 @@ import {
   restoreFamily as s3RestoreFamily,
 } from "./lib/s3-cache.js";
 import * as cache from "@actions/cache";
+import {
+  PERSISTENT_ROOT_ENV,
+  appendLedgerHistory,
+  lastMissDurationMs,
+  preparePersistentRoot,
+  readLedgerHistory,
+  remoteCacheBypassed,
+} from "./lib/persistent-root.js";
+import {
+  describeLedger,
+  ledgerLayersFromRestores,
+  persistentLayerStatus,
+  probeDir,
+  summarizeLedger,
+  type DirProbe,
+  type LedgerLayer,
+} from "./lib/cache-ledger.js";
 import * as exec from "@actions/exec";
 import { createLogger } from "./lib/log-utils.js";
 import { autoKeyEnabled } from "./lib/ancestor-cache.js";
@@ -424,6 +441,10 @@ async function restoreCacheSafe(
   if (paths.length === 0 || !key) {
     return { hit: false, matchedKey: "" };
   }
+  // obs-rust/obs-studio#4954: the files persist on this runner.
+  if (remoteCacheBypassed(`actions-cache key ${key}`, (msg) => logger.log(msg))) {
+    return { hit: false, matchedKey: "" };
+  }
   try {
     const matched = await cache.restoreCache(paths, key, restoreKeys);
     return { hit: matched === key, matchedKey: matched ?? "" };
@@ -442,6 +463,24 @@ export async function run(): Promise<void> {
   // ---- resolve ----
   await markPhase("resolve");
   const inputs = readRawInputs(process.env);
+  // ---- persistent root (obs-rust/obs-studio#4954) ----
+  // Resolved before resolveSetup so every state root lands under it, and the
+  // session is open (crash recovery done) before anything reads the root.
+  const persistent = preparePersistentRoot({
+    input: inputs.persistentRoot,
+    env: process.env,
+    dryRun: TRUTHY.has((process.env["SETUP_SOLDR_DRY_RUN"] ?? "").trim().toLowerCase()),
+    log: (msg) => logger.log(msg),
+    warn: (msg) => logger.warning(msg),
+  });
+  inputs.persistentRoot = persistent.root ?? "off";
+  if (persistent.root) {
+    // The gates in every cache layer, the cook action and the post step read it.
+    core.exportVariable(PERSISTENT_ROOT_ENV, persistent.root);
+  } else {
+    delete process.env[PERSISTENT_ROOT_ENV];
+  }
+  core.setOutput("persistent-root", persistent.root ?? "");
   if (setupEnabled(inputs.enable)) {
     let bootstrap: Promise<string> | undefined;
     ctx.getBootstrapSoldr = () => {
@@ -495,7 +534,21 @@ export async function run(): Promise<void> {
 
   // Persist resolve state for the post-job step.
   core.saveState("resolveResult", JSON.stringify(result));
+  core.saveState("persistentRoot", persistent.root ?? "");
+  core.saveState("persistentMainComplete", "false");
   core.saveState("buildCacheMode", result.buildCache.mode);
+  // Ledger probes: what the persistent root held before this job touched it.
+  const ledgerDirs = {
+    soldr: path.dirname(result.soldrPath),
+    "rust-toolchain": path.join(result.rustupHome, "toolchains"),
+    "cargo-home": path.join(result.cargoHome, "registry"),
+    zccache: result.buildCache.path,
+  } as const;
+  const ledgerBefore: Record<string, DirProbe> | null = persistent.root
+    ? Object.fromEntries(Object.entries(ledgerDirs).map(([k, d]) => [k, probeDir(d)]))
+    : null;
+  let toolchainPhaseMs: number | null = null;
+  let installPhaseMs: number | null = null;
   core.saveState("logging", logging ? "true" : "false");
   core.saveState("preserveSourceMtimes", isTruthy(inputs.preserveSourceMtimes) ? "true" : "false");
 
@@ -648,6 +701,7 @@ export async function run(): Promise<void> {
   await finishPhase("verdict-preflight");
   if (verdict.lazy) {
     await finishLazySetup({ result, logger });
+    core.saveState("persistentMainComplete", "true");
     await finishPhase("action");
     return;
   }
@@ -754,7 +808,7 @@ export async function run(): Promise<void> {
     let selectedKey = "";
     let localAncestorKey = false;
     let selectionTelemetry: AncestorTelemetry | null = null;
-    if (autoKeyEnabled(inputs.key, inputs.autoKey)) {
+    if (autoKeyEnabled(inputs.key, inputs.autoKey) && !result.persistentRoot) {
       try {
         const fine = shortJsonHash({
           legacyKey, mode: result.buildCache.mode,
@@ -805,8 +859,8 @@ export async function run(): Promise<void> {
     // set). An S3 or L2-seed hit writes archivePath directly and skips the
     // actions/cache lookup; a miss falls through to it unchanged.
     let restore: { hit: boolean; matchedKey: string } = { hit: false, matchedKey: "" };
-    const s3 = s3ConfigFromEnv(process.env);
-    const s3Off = s3 ? null : s3OffNotice(process.env);
+    const s3 = result.persistentRoot ? null : s3ConfigFromEnv(process.env);
+    const s3Off = s3 || result.persistentRoot ? null : s3OffNotice(process.env);
     if (s3Off?.level === "warning") core.warning(s3Off.message);
     else if (s3Off) logger.log(s3Off.message);
     if (s3) {
@@ -1614,7 +1668,7 @@ export async function run(): Promise<void> {
   } else {
     logger.log("toolchain: solo-toolchain-cache off — skipping toolchain snapshots (#525)");
   }
-  await finishPhase("toolchain");
+  toolchainPhaseMs = Math.round((await finishPhase("toolchain")) * 1000);
 
   // ---- install soldr ----
   // Restore soldr-mini-cache synchronously so the install dir is quiescent
@@ -1622,7 +1676,7 @@ export async function run(): Promise<void> {
   await markPhase("install");
   await installSoldr();
   await verdictAfterInstall(verdict, { soldrPath: result.soldrPath, workspace: result.workspace, log: (m) => logger.log(m) });
-  await finishPhase("install");
+  installPhaseMs = Math.round((await finishPhase("install")) * 1000);
 
   // ---- zccache-seed ----
   // Pin setup-soldr's zccache before user workflow steps. The pinned
@@ -2276,6 +2330,51 @@ export async function run(): Promise<void> {
     "cook",
   ]);
   if (setupPhaseSummary) core.info(setupPhaseSummary);
+
+  // ---- cache ledger (obs-rust/obs-studio#4954) ----
+  try {
+    let layers: LedgerLayer[];
+    if (persistent.root && ledgerBefore) {
+      const history = readLedgerHistory(persistent.root);
+      const durations: Record<string, number | null> = {
+        soldr: installPhaseMs,
+        "rust-toolchain": toolchainPhaseMs,
+        "cargo-home": null,
+        zccache: null,
+      };
+      layers = Object.entries(ledgerDirs).map(([layer, dir]) => {
+        const before = ledgerBefore[layer]!;
+        const after = probeDir(dir);
+        const status = persistentLayerStatus(before, after);
+        const durationMs = durations[layer] ?? null;
+        return {
+          layer,
+          status,
+          bytes: after.bytes,
+          durationMs,
+          savedMs: status === "hit" ? lastMissDurationMs(history, layer) : null,
+        };
+      });
+      appendLedgerHistory(persistent.root, {
+        at: new Date().toISOString(),
+        runId: process.env["GITHUB_RUN_ID"] ?? "",
+        layers: layers.map((l) => ({ layer: l.layer, status: l.status, durationMs: l.durationMs })),
+      });
+    } else {
+      layers = ledgerLayersFromRestores(statsCollector.snapshot());
+    }
+    const ledger = summarizeLedger(
+      persistent.root ? "persistent-root" : isLocalRunner(process.env) ? "local" : "hosted",
+      persistent.root,
+      persistent.session?.outcome ?? null,
+      layers,
+    );
+    core.setOutput("cache-ledger", JSON.stringify(ledger));
+    core.info(describeLedger(ledger));
+  } catch (err) {
+    logger.log(`cache-ledger: failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  core.saveState("persistentMainComplete", "true");
 
   await finishPhase("action");
 

@@ -60,6 +60,7 @@ import { CLEAN_SAVE_MARKER, type CleanSaveProof } from "./lib/ancestor-cache-git
 import { parseAncestorKey } from "./lib/ancestor-cache.js";
 import { cacheProfileDefault, isLocalRunner, resolveCacheProfileInput } from "./lib/local-profile.js";
 import { allowCacheSave, gatedSaveCache } from "./lib/save-policy.js";
+import { activePersistentRoot, closePersistentSession } from "./lib/persistent-root.js";
 import {
   allowS3Save,
   configFromEnv as s3ConfigFromEnv,
@@ -1404,7 +1405,40 @@ async function emitInsightsAnnotationsAndTrace(opts: {
   }
 }
 
+/**
+ * Post step. On a persistent root (obs-rust/obs-studio#4954) the session is
+ * closed last: every cache daemon has stopped by then, the filesystem is
+ * synced, and only then is the clean marker written. A setup that did not
+ * complete leaves the root marked unclean, so the next job rebuilds it.
+ */
 export async function run(): Promise<void> {
+  try {
+    await runPost();
+  } finally {
+    closePersistentRootIfComplete((msg) => core.info(msg), (msg) => core.warning(msg));
+  }
+}
+
+export function closePersistentRootIfComplete(
+  log: (msg: string) => void,
+  warn: (msg: string) => void,
+  getState: (name: string) => string = (name) => core.getState(name),
+): void {
+  const root = getState("persistentRoot");
+  if (!root) return;
+  if (getState("persistentMainComplete") !== "true") {
+    warn(`setup-soldr: persistent-root ${root} left unclean: setup did not complete; the next job rebuilds it`);
+    return;
+  }
+  try {
+    closePersistentSession(root);
+    log(`persistent-root: ${root} synced and marked clean`);
+  } catch (err) {
+    warn(`setup-soldr: persistent-root ${root} could not be marked clean (${err instanceof Error ? err.message : String(err)}); the next job rebuilds it`);
+  }
+}
+
+async function runPost(): Promise<void> {
   const logger = createLogger(process.env);
   const log = (msg: string): void => logger.log(msg);
   const state = core.getState("resolveResult");
@@ -2860,7 +2894,9 @@ export async function run(): Promise<void> {
       "aggressive": "aggressive",
     };
     const policy = policyMap[policyRaw] ?? "disabled";
-    if (policy !== "disabled") {
+    if (policy !== "disabled" && activePersistentRoot()) {
+      log("cache-eviction: skipped: persistent-root writes no Actions cache entries");
+    } else if (policy !== "disabled") {
       const githubRepository = (process.env["GITHUB_REPOSITORY"] ?? "").trim();
       const [owner, repo] = githubRepository.split("/");
       const token = (process.env["GITHUB_TOKEN"] ?? "").trim() ||

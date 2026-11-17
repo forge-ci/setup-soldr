@@ -21,7 +21,8 @@
       "__tests__/diagnostics.test.ts",
       "__tests__/log-utils.test.ts",
       "__tests__/phase-timing.test.ts",
-      "__tests__/run-pipe.test.ts"
+      "__tests__/run-pipe.test.ts",
+      "__tests__/persistent-root.test.ts"
     ],
     "contract": [
       "__tests__/dylint-contract.test.ts",
@@ -143,6 +144,8 @@
         "src/lib/cook-cache.ts",
         "src/lib/save-policy.ts",
         "src/lib/local-profile.ts",
+        "src/lib/persistent-root.ts",
+        "src/lib/cache-ledger.ts",
         "src/lib/failed-job-save.ts",
         "src/lib/solo-*.ts",
         "src/lib/toolchain-snapshot.ts",
