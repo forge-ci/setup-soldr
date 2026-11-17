@@ -52382,6 +52382,9 @@ exports.measureDirInventory = measureDirInventory;
 exports.saveLayeredCookCache = saveLayeredCookCache;
 exports.parseCookFlags = parseCookFlags;
 exports.canonicalizeCookFlags = canonicalizeCookFlags;
+exports.parseCookRecipes = parseCookRecipes;
+exports.hashCookRecipes = hashCookRecipes;
+exports.runCookRecipes = runCookRecipes;
 const node_crypto_1 = __nccwpck_require__(77598);
 const fs = __importStar(__nccwpck_require__(73024));
 const fsp = __importStar(__nccwpck_require__(51455));
@@ -52389,6 +52392,7 @@ const path = __importStar(__nccwpck_require__(76760));
 const toolrunner_js_1 = __nccwpck_require__(6665);
 const cache = __importStar(__nccwpck_require__(5116));
 const persistent_root_js_1 = __nccwpck_require__(75163);
+const cook_local_store_js_1 = __nccwpck_require__(15509);
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const log_utils_js_1 = __nccwpck_require__(28129);
 const two_phase_actions_cache_js_1 = __nccwpck_require__(27190);
@@ -52740,6 +52744,39 @@ async function restoreOneLayer(label, key, archivePath, restoreKeys, log, warn, 
     log(`${label}: restored matched=${matched} exact=${hit} archive=${bytes}B`);
     return { hit, matchedKey: matched, archivePath, archiveBytes: bytes };
 }
+/**
+ * #675: on a persistent root the cook base layer is read through the root's
+ * local store first, then the Actions cache; an exact remote hit is written
+ * back so the next job on this runner never leaves the host. The delta layer
+ * is per-commit and not worth a round trip here (the delta of the commit
+ * before rarely matches this checkout on a busy runner), so it stays off.
+ */
+async function restorePersistentBase(root, opts, warn, restore) {
+    const label = "cook-cache-base";
+    await fsp.rm(opts.baseArchivePath, { force: true });
+    try {
+        const bytes = await (0, cook_local_store_js_1.cookStoreGet)(root, opts.baseKey, opts.baseArchivePath);
+        if (bytes > 0) {
+            opts.log(`${label}: local store hit key=${opts.baseKey} archive=${bytes}B (#675)`);
+            return { hit: true, matchedKey: opts.baseKey, archivePath: opts.baseArchivePath, archiveBytes: bytes };
+        }
+    }
+    catch (err) {
+        warn(`${label}: local store read failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    opts.log(`${label}: local store miss key=${opts.baseKey}; reading the remote cache (#675)`);
+    const remote = await restoreOneLayer(label, opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore);
+    if (remote.hit) {
+        try {
+            await (0, cook_local_store_js_1.cookStorePut)(root, opts.baseKey, opts.baseArchivePath);
+            opts.log(`${label}: wrote remote hit back to ${(0, cook_local_store_js_1.cookStorePath)(root, opts.baseKey)}`);
+        }
+        catch (err) {
+            warn(`${label}: local store write-back failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+    }
+    return remote;
+}
 async function restoreLayeredCookCacheArchives(opts) {
     const restore = opts.restoreCache ?? cache.restoreCache;
     const warn = opts.warn ?? opts.log;
@@ -52761,8 +52798,9 @@ async function restoreLayeredCookCacheArchives(opts) {
         archivePath: opts.deltaArchivePath,
         archiveBytes: 0,
     };
-    if ((0, persistent_root_js_1.remoteCacheBypassed)("cook-cache", opts.log)) {
-        return { base: { hit: false, matchedKey: "", archivePath: opts.baseArchivePath, archiveBytes: 0 }, delta: deltaMiss };
+    const persistentRoot = (0, persistent_root_js_1.activePersistentRoot)();
+    if (persistentRoot) {
+        return { base: await restorePersistentBase(persistentRoot, opts, warn, restore), delta: deltaMiss };
     }
     if (opts.deltaEnabled === false) {
         opts.log("cook-cache-delta: disabled (cook-delta=false); restoring base layer only");
@@ -53056,7 +53094,14 @@ async function measureDirInventory(dir) {
 }
 async function saveLayeredCookCache(opts) {
     const { soldrBinary, projectRoot, targetDir, exactKey, archivePath, layer, zstdLevel, log } = opts;
-    if (!(0, save_policy_js_1.allowCacheSave)(`cook-cache-${layer}`, log))
+    const persistentRoot = (0, persistent_root_js_1.activePersistentRoot)();
+    // #675: a persistent root keeps its base layer in the local cook store; the
+    // per-commit delta layer is not kept (see restorePersistentBase).
+    if (persistentRoot && layer === "delta") {
+        (0, save_policy_js_1.allowCacheSave)(`cook-cache-${layer}`, log);
+        return { status: "policy-skip" };
+    }
+    if (!persistentRoot && !(0, save_policy_js_1.allowCacheSave)(`cook-cache-${layer}`, log))
         return { status: "policy-skip" };
     if (!fs.existsSync(targetDir))
         return { status: "skipped-missing-target" };
@@ -53075,54 +53120,75 @@ async function saveLayeredCookCache(opts) {
     const args = ["save", "--cache-dir", targetDir, "--workspace", projectRoot, "--out", archivePath, "--zstd-level", zstdLevel, "--json"];
     if (layer === "delta")
         args.push("--delta-from-manifest", opts.baseManifestPath);
+    const run = opts.runSoldrJson ?? runSoldrJson;
+    const produce = async () => {
+        const compressStart = Date.now();
+        const soldrSave = await run(soldrBinary, args, projectRoot, log);
+        if (soldrSave.code !== 0)
+            throw new Error(`soldr save ${layer} exited ${soldrSave.code}`);
+        const report = saveReport(soldrSave.payload);
+        // #513: the cook-time inventory is the upload ceiling. A deferred save
+        // that outgrew it captured post-cook mutation (first-party build
+        // output) — refusing here keeps that out of the immutable exact key.
+        if (opts.maxFileCount !== undefined &&
+            report.cacheFiles !== null &&
+            report.cacheFiles > opts.maxFileCount) {
+            throw new Error(`cook-cache-${layer}: refusing to upload ${report.cacheFiles} files — exceeds the ` +
+                `cook-time inventory ceiling of ${opts.maxFileCount} (#513); post-cook mutation ` +
+                `entered the capture window for key=${exactKey}`);
+        }
+        // A successful Soldr exit and a non-empty Actions-cache wrapper do not
+        // prove that the inner archive is usable. Validate the serialized file
+        // itself before upload so an immutable exact key cannot be poisoned.
+        let archiveBytes;
+        try {
+            archiveBytes = (await fsp.stat(archivePath)).size;
+        }
+        catch {
+            throw new Error(`cook-cache-${layer}: refusing to upload archive that does not exist for ` +
+                `key=${exactKey} path=${archivePath}; immutable cache entries cannot be repaired in place`);
+        }
+        if (archiveBytes === 0) {
+            throw new Error(`cook-cache-${layer}: refusing to upload archive with zero bytes for ` +
+                `key=${exactKey} path=${archivePath}; immutable cache entries cannot be repaired in place`);
+        }
+        return {
+            archivePath,
+            archiveBytes,
+            fileCount: report.cacheFiles ?? undefined,
+            sourceFiles: report.sourceFiles ?? undefined,
+            deletedCacheFiles: report.deletedCacheFiles ?? undefined,
+            compressMs: Date.now() - compressStart,
+        };
+    };
+    if (persistentRoot) {
+        try {
+            const archive = await produce();
+            await (0, cook_local_store_js_1.cookStorePut)(persistentRoot, exactKey, archivePath);
+            log(`cook-cache-${layer}: saved to local store ${(0, cook_local_store_js_1.cookStorePath)(persistentRoot, exactKey)} ` +
+                `archive=${archive.archiveBytes}B files=${archive.fileCount ?? "?"} (#675)`);
+            return {
+                status: "saved-local",
+                archiveBytes: archive.archiveBytes,
+                fileCount: archive.fileCount,
+                sourceFiles: archive.sourceFiles,
+                deletedCacheFiles: archive.deletedCacheFiles,
+                archivePath,
+                compressMs: archive.compressMs,
+            };
+        }
+        catch (err) {
+            return { status: "failed", archivePath, error: err instanceof Error ? err.message : String(err) };
+        }
+    }
     const reserveStart = Date.now();
     const saveReserved = opts.saveReservedCache ?? two_phase_actions_cache_js_1.saveReservedCache;
-    const run = opts.runSoldrJson ?? runSoldrJson;
     const result = await saveReserved({
         paths: [archivePath],
         key: exactKey,
         layer: `cook-cache-${layer}`,
         log,
-        produce: async () => {
-            const compressStart = Date.now();
-            const soldrSave = await run(soldrBinary, args, projectRoot, log);
-            if (soldrSave.code !== 0)
-                throw new Error(`soldr save ${layer} exited ${soldrSave.code}`);
-            const report = saveReport(soldrSave.payload);
-            // #513: the cook-time inventory is the upload ceiling. A deferred save
-            // that outgrew it captured post-cook mutation (first-party build
-            // output) — refusing here keeps that out of the immutable exact key.
-            if (opts.maxFileCount !== undefined &&
-                report.cacheFiles !== null &&
-                report.cacheFiles > opts.maxFileCount) {
-                throw new Error(`cook-cache-${layer}: refusing to upload ${report.cacheFiles} files — exceeds the ` +
-                    `cook-time inventory ceiling of ${opts.maxFileCount} (#513); post-cook mutation ` +
-                    `entered the capture window for key=${exactKey}`);
-            }
-            // A successful Soldr exit and a non-empty Actions-cache wrapper do not
-            // prove that the inner archive is usable. Validate the serialized file
-            // itself before upload so an immutable exact key cannot be poisoned.
-            let archiveBytes;
-            try {
-                archiveBytes = (await fsp.stat(archivePath)).size;
-            }
-            catch {
-                throw new Error(`cook-cache-${layer}: refusing to upload archive that does not exist for ` +
-                    `key=${exactKey} path=${archivePath}; immutable cache entries cannot be repaired in place`);
-            }
-            if (archiveBytes === 0) {
-                throw new Error(`cook-cache-${layer}: refusing to upload archive with zero bytes for ` +
-                    `key=${exactKey} path=${archivePath}; immutable cache entries cannot be repaired in place`);
-            }
-            return {
-                archivePath,
-                archiveBytes,
-                fileCount: report.cacheFiles ?? undefined,
-                sourceFiles: report.sourceFiles ?? undefined,
-                deletedCacheFiles: report.deletedCacheFiles ?? undefined,
-                compressMs: Date.now() - compressStart,
-            };
-        },
+        produce,
     });
     const reserveMs = Date.now() - reserveStart;
     if ((0, two_phase_actions_cache_js_1.isReservationConflict)(result))
@@ -53178,6 +53244,197 @@ function canonicalizeCookFlags(flags) {
         out.push(f);
     }
     return out;
+}
+// ---------------------------------------------------------------------------
+// #675: cook recipes. One `soldr cook` per unit set a job compiles: the
+// primary `prebuild-deps-flags` recipe plus one per line of
+// `prebuild-deps-recipes` (clippy/check units, `-p` feature sets, each cross
+// triple). They cook into the same target/ and are captured as ONE closure
+// under ONE key, so a restore is still a single `soldr load`.
+// ---------------------------------------------------------------------------
+/** One recipe per non-blank, non-`#` line, cosmetic flags removed. */
+function parseCookRecipes(raw) {
+    return raw
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !line.startsWith("#"))
+        .map((line) => canonicalizeCookFlags(parseCookFlags(line)))
+        .filter((flags) => flags.length > 0);
+}
+/**
+ * The flags component of the cook key. Without extra recipes it is exactly
+ * `hashCookFlags(primary)`, so existing keys stay valid; with extras it is a
+ * 12-hex digest over every recipe in order (order decides which units the
+ * later cooks reuse, so it is part of the identity).
+ */
+function hashCookRecipes(primary, extra) {
+    if (extra.length === 0)
+        return hashCookFlags(primary);
+    const h = (0, node_crypto_1.createHash)("sha256");
+    for (const recipe of [primary, ...extra]) {
+        h.update(hashCookFlags(recipe));
+        h.update("\n");
+    }
+    return h.digest("hex").slice(0, 12);
+}
+/** Cook every recipe in order; stop at the first failure (a partial closure must not be saved). */
+async function runCookRecipes(opts) {
+    const run = opts.run ?? runCook;
+    let ranSeconds = 0;
+    for (const [index, flags] of opts.recipes.entries()) {
+        if (opts.recipes.length > 1)
+            opts.log(`cook: recipe ${index + 1}/${opts.recipes.length}: ${flags.join(" ")}`);
+        const res = await run({ soldrBinary: opts.soldrBinary, projectRoot: opts.projectRoot, flags, log: opts.log });
+        ranSeconds += res.ranSeconds;
+        if (res.exitCode !== 0) {
+            if (opts.recipes.length > 1)
+                opts.log(`cook: recipe ${index + 1} failed; the closure is incomplete and will not be saved`);
+            return { exitCode: res.exitCode, ranSeconds };
+        }
+    }
+    return { exitCode: 0, ranSeconds };
+}
+
+
+/***/ }),
+
+/***/ 15509:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.COOK_STORE_KEEP = exports.COOK_STORE_DIR = void 0;
+exports.cookStoreDir = cookStoreDir;
+exports.cookStorePath = cookStorePath;
+exports.cookStoreGet = cookStoreGet;
+exports.cookStorePut = cookStorePut;
+/**
+ * forge-ci/setup-soldr#675: the cook (dependency rematerialization) store of
+ * a persistent root.
+ *
+ * A persistent root keeps target/ as per-job scratch, so the cooked
+ * dependency closure has to come back each job from somewhere. The store
+ * keeps the exact `soldr save` archive of each cook layer under
+ * `<root>/cook-store/<key>.tar.zst`; restore copies it out and runs the
+ * normal `soldr load`, which replays the freshness metadata (mtimes,
+ * fingerprints) that a raw directory copy would get wrong. Read-through
+ * order: this store, then the Actions cache, writing an exact remote hit
+ * back here.
+ *
+ * Entries are content-keyed and immutable: put writes a temp file and
+ * renames it into place, so a crashed job never leaves a torn entry under a
+ * real key. The store keeps the newest `keep` entries (by mtime; get bumps
+ * it), which bounds it to a few closures per root.
+ */
+const fsp = __importStar(__nccwpck_require__(51455));
+const path = __importStar(__nccwpck_require__(76760));
+exports.COOK_STORE_DIR = "cook-store";
+/** Entries kept per root: the current key plus a few recipe/lockfile neighbours. */
+exports.COOK_STORE_KEEP = 4;
+const SUFFIX = ".tar.zst";
+function cookStoreDir(root) {
+    return path.join(root, exports.COOK_STORE_DIR);
+}
+function cookStorePath(root, key) {
+    return path.join(cookStoreDir(root), `${key.replace(/[^A-Za-z0-9._-]/g, "_")}${SUFFIX}`);
+}
+/** Copy the entry for `key` to `dest`. Returns its size, or 0 on a miss. */
+async function cookStoreGet(root, key, dest) {
+    const src = cookStorePath(root, key);
+    let size;
+    try {
+        size = (await fsp.stat(src)).size;
+    }
+    catch {
+        return 0;
+    }
+    if (size === 0)
+        return 0;
+    await fsp.mkdir(path.dirname(dest), { recursive: true });
+    await fsp.copyFile(src, dest);
+    const now = new Date();
+    await fsp.utimes(src, now, now).catch(() => { });
+    return size;
+}
+/** Store `src` under `key`, then prune to `keep` entries. Returns the stored size, or 0. */
+async function cookStorePut(root, key, src, keep = exports.COOK_STORE_KEEP) {
+    let size;
+    try {
+        size = (await fsp.stat(src)).size;
+    }
+    catch {
+        return 0;
+    }
+    if (size === 0)
+        return 0;
+    const dir = cookStoreDir(root);
+    await fsp.mkdir(dir, { recursive: true });
+    const dest = cookStorePath(root, key);
+    const tmp = `${dest}.tmp-${process.pid}-${Date.now()}`;
+    try {
+        await fsp.copyFile(src, tmp);
+        await fsp.rename(tmp, dest);
+    }
+    catch (err) {
+        await fsp.rm(tmp, { force: true });
+        throw err;
+    }
+    await pruneCookStore(dir, keep);
+    return size;
+}
+async function pruneCookStore(dir, keep) {
+    const names = await fsp.readdir(dir).catch(() => []);
+    const entries = [];
+    for (const name of names) {
+        const file = path.join(dir, name);
+        const st = await fsp.stat(file).catch(() => null);
+        if (!st?.isFile())
+            continue;
+        if (!name.endsWith(SUFFIX)) {
+            // A temp file from a job that died between copy and rename.
+            if (Date.now() - st.mtimeMs > 3_600_000)
+                await fsp.rm(file, { force: true });
+            continue;
+        }
+        entries.push({ file, mtimeMs: st.mtimeMs });
+    }
+    entries.sort((a, b) => b.mtimeMs - a.mtimeMs);
+    for (const stale of entries.slice(Math.max(keep, 1)))
+        await fsp.rm(stale.file, { force: true });
 }
 
 
@@ -56266,6 +56523,7 @@ function readRawInputs(env) {
         cacheEvictionPolicy: get("cache-eviction-policy"),
         prebuildDeps: get("prebuild-deps"),
         prebuildDepsFlags: get("prebuild-deps-flags"),
+        prebuildDepsRecipes: get("prebuild-deps-recipes"),
         prebuildDepsDeltaCache: get("prebuild-deps-delta-cache"),
         cookDelta: get("cook-delta"),
         soldrMiniCache: get("soldr-mini-cache"),
@@ -63629,15 +63887,15 @@ async function runPost() {
                         key: saveKey,
                         matchedKey: "",
                         restoreKeys: [],
-                        archiveBytes: saveResult.status === "saved" ? (saveResult.archiveBytes ?? null) : null,
-                        inflatedBytes: saveResult.status === "saved" ? (saveResult.inflatedBytes ?? null) : null,
-                        fileCount: saveResult.status === "saved" ? (saveResult.fileCount ?? null) : null,
+                        archiveBytes: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.archiveBytes ?? null) : null,
+                        inflatedBytes: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.inflatedBytes ?? null) : null,
+                        fileCount: (saveResult.status === "saved" || saveResult.status === "saved-local") ? (saveResult.fileCount ?? null) : null,
                         durationMs: Date.now() - cookSaveStart,
                         compressMs: saveResult.compressMs,
                         uploadMs: saveResult.uploadMs,
                         timestamp: new Date().toISOString(),
                     });
-                    if (saveResult.status !== "saved") {
+                    if (saveResult.status !== "saved" && saveResult.status !== "saved-local") {
                         log(`cook-cache-${cookSaveLayer}: save status=${saveResult.status} error=${saveResult.error ?? "none"}`);
                     }
                 }

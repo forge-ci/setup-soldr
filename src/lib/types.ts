@@ -128,6 +128,8 @@ export interface RawInputs {
   cacheEvictionPolicy: string;
   prebuildDeps: string;
   prebuildDepsFlags: string;
+  /** #675: extra cook recipes, one `soldr cook` flag line each. */
+  prebuildDepsRecipes: string;
   prebuildDepsDeltaCache: string;
   cookDelta: string;
   soldrMiniCache: string;

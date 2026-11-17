@@ -104,17 +104,18 @@ import {
   buildCookDeltaCacheRestorePrefix,
   decideCookGate,
   hashCookBuildShape,
-  hashCookFlags,
   canonicalizeCookFlags,
   loadLayeredCookCache,
   layeredCookBaseReady,
   layeredCookDeltaReady,
   measureDirInventory,
   parseCookFlags,
+  parseCookRecipes,
+  hashCookRecipes,
+  runCookRecipes,
   restoreCookCache,
   restoreLayeredCookCacheArchives,
   selectCookSaveLayer,
-  runCook,
   saveLayeredCookCache,
   supportsLayeredCookCache,
 } from "./lib/cook-cache.js";
@@ -1234,6 +1235,7 @@ export async function run(): Promise<void> {
   });
   const cookActive = cookGate.enabled && result.enabled;
   let cookFlags: string[] = [];
+  let cookRecipes: string[][] = [];
   let cookKey = "";
   let cookBaseKey = "";
   let cookDeltaKey = "";
@@ -1275,7 +1277,12 @@ export async function run(): Promise<void> {
   const cookSkippedDueToTargetHit = cookActive && targetCacheLockMatch;
   if (cookActive && !cookSkippedDueToTargetHit) {
     cookFlags = canonicalizeCookFlags(parseCookFlags(inputs.prebuildDepsFlags));
-    const flagsHash = hashCookFlags(cookFlags);
+    const cookExtraRecipes = parseCookRecipes(inputs.prebuildDepsRecipes);
+    cookRecipes = [cookFlags, ...cookExtraRecipes];
+    const flagsHash = hashCookRecipes(cookFlags, cookExtraRecipes);
+    if (cookExtraRecipes.length > 0) {
+      logger.log(`cook: ${cookRecipes.length} recipes (#675): ${cookRecipes.map((r) => `[${r.join(" ")}]`).join(" ")} flags-hash=${flagsHash}`);
+    }
     const lockHash = result.targetCache.lockfileHash || "no-lock";
     const cookKeyParts = {
       runnerOs: ctx.runnerOs.toLowerCase() || process.platform,
@@ -1965,10 +1972,10 @@ export async function run(): Promise<void> {
     });
     let cookRan = false;
     if (!deltaReady) {
-      const runRes = await runCook({
+      const runRes = await runCookRecipes({
         soldrBinary: result.soldrPath,
         projectRoot: cookProjectRoot,
-        flags: cookFlags,
+        recipes: cookRecipes,
         log: (msg) => logger.log(msg),
       });
       cookRan = runRes.exitCode === 0;
@@ -2133,10 +2140,10 @@ export async function run(): Promise<void> {
     });
     let cookRan = false;
     if (!restore.hit) {
-      const runRes = await runCook({
+      const runRes = await runCookRecipes({
         soldrBinary: result.soldrPath,
         projectRoot: cookProjectRoot,
-        flags: cookFlags,
+        recipes: cookRecipes,
         log: (msg) => logger.log(msg),
       });
       cookRan = runRes.exitCode === 0;

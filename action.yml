@@ -884,6 +884,21 @@ inputs:
       compiles".
     required: false
     default: "--release"
+  prebuild-deps-recipes:
+    description: >
+      Extra cook recipes, one per line, each the flags of one more
+      `soldr cook` run after the `prebuild-deps-flags` recipe (#675).
+      List one recipe per unit set the job compiles that the primary
+      recipe misses, for example clippy/check units
+      ("--profile dev -- --tests --check"), a `-p` feature set
+      ("-p my-crate --profile dev -- --tests") or a cross triple
+      ("--profile dev --target aarch64-unknown-linux-gnu"). All recipes
+      cook into the same target/ and are cached as one closure whose key
+      covers every recipe in order; a failing recipe means nothing is
+      saved. Blank lines and lines starting with # are ignored. Empty
+      (default) keeps the single-recipe key unchanged.
+    required: false
+    default: ""
   prebuild-deps-delta-cache:
     description: >
       When "true" (default), setup-soldr uses soldr's protobuf-backed

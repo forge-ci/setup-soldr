@@ -468,6 +468,7 @@ preferred for new workflows.
 | `zccache-seed-strict` | When `true`, setup fails if setup-soldr cannot seed older soldr releases' pinned zccache install from a vendored or managed release source. Default `false` keeps the seed best-effort and allows soldr's normal managed fallback path. Embedded-zccache soldr releases skip this seed because no external zccache install is needed. Enable this in repos where a later `cargo install zccache` fallback is unacceptable on older soldr pins. |
 | `prebuild-deps` | Dependency prebuild mode. Default `soldr-cook` runs `soldr cook` and restores/saves a long-enduring dependency cache; its required Cargo registry/git source closure is paired automatically unless `cargo-registry-cache: false` is explicit. Set to `none` to skip. `cargo-chef` is accepted as a legacy alias. |
 | `prebuild-deps-flags` | Flags forwarded to `soldr cook`; default `--release`. Material flags are hashed into the cook cache key. |
+| `prebuild-deps-recipes` | Extra cook recipes, one `soldr cook` flag line each, cooked after `prebuild-deps-flags` into the same closure; see [Match cook to what your job actually compiles](#match-cook-to-what-your-job-actually-compiles). Default `""`. |
 | `prebuild-deps-delta-cache` | Default `true`. With soldr `>=0.7.38`, restore/save the cook cache as a protobuf-backed base layer plus a smaller commit/build-shape delta layer. Set to `false` to use the legacy single cook archive. |
 | `cook-delta` | Default `false` (#528). Controls only the `cook-delta-v3-*` layer stacked on the base. With `false`, the `cook-base-v4-*` archive is still restored and saved (per `save-cache`), but no delta is restored or saved. Set `true` for the previous base+delta behavior. Also accepted by the `cook/` sub-action. |
 | `target-dir` | Cargo target directory used by soldr when constructing the Rust artifact cache plan. |
@@ -645,6 +646,22 @@ spends wall-clock time and uploads artifacts the job rebuilds from scratch:
   because the rustc release is part of the key.
 - **Emit kind.** `check`-style metadata compiles and full codegen builds are
   keyed separately.
+
+One job often compiles several unit sets: clippy/check metadata, a `-p`
+feature set, a cross triple. List one recipe per extra set in
+`prebuild-deps-recipes`; each line is one more `soldr cook` run into the same
+target/, and the whole closure is cached under one key that covers every
+recipe:
+
+```yaml
+    prebuild-deps-flags: "--profile dev -- --tests"
+    prebuild-deps-recipes: |
+      --profile dev -- --tests --check
+      --profile dev --target aarch64-unknown-linux-gnu
+```
+
+A failing recipe means nothing is saved, so a partial closure never lands
+under the full key.
 
 `prebuild-deps: none` disables **cook only** — it does *not* disable
 `build-cache`, which is the cross-run save-state for your job's own compiles
@@ -1160,9 +1177,16 @@ cache only moves files that are already there. `persistent-root` keeps them:
 
 - `cache-dir`, soldr's zccache directory, `RUSTUP_HOME` and `CARGO_HOME` move
   under the root. Every Actions-cache restore and save (setup, solo-toolchain,
-  soldr-mini, cargo-registry, build, target, cook, dylint, blessed prepare),
+  soldr-mini, cargo-registry, build, target, dylint, blessed prepare),
   the S3 tier, the ancestor lookup and repo-level eviction are skipped.
   Verdicts still publish.
+- The cook base layer is the exception (#675): target/ stays per-job scratch,
+  and the cooked dependency closure comes back each job from the root's
+  `cook-store/` (the newest 4 exact archives). On a local miss, a cold or
+  quarantined root included, the base layer is read once from the Actions
+  cache and an exact hit is written back; a cook that ran saves to the store,
+  never uploads. `soldr load` rematerializes the closure into target/ with its
+  freshness metadata. The per-commit delta layer is off on a root.
 - Auto-detection (the default) reads `SETUP_SOLDR_PERSISTENT_DESCRIPTOR`,
   `/var/cache/soldr-store/descriptor.json` (`{"schema": 1, "store": "/abs"}`)
   or a plain marker such as `/var/cache/obs-runner/.persistent-cache` (store =

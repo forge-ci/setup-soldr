@@ -1168,17 +1168,40 @@ export function canonicalizeCookFlags(flags: string[]): string[] {
 }
 
 // ---------------------------------------------------------------------------
-// #675: cook recipes. RED stubs.
+// #675: cook recipes. One `soldr cook` per unit set a job compiles: the
+// primary `prebuild-deps-flags` recipe plus one per line of
+// `prebuild-deps-recipes` (clippy/check units, `-p` feature sets, each cross
+// triple). They cook into the same target/ and are captured as ONE closure
+// under ONE key, so a restore is still a single `soldr load`.
 // ---------------------------------------------------------------------------
 
-export function parseCookRecipes(_raw: string): string[][] {
-  return [];
+/** One recipe per non-blank, non-`#` line, cosmetic flags removed. */
+export function parseCookRecipes(raw: string): string[][] {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith("#"))
+    .map((line) => canonicalizeCookFlags(parseCookFlags(line)))
+    .filter((flags) => flags.length > 0);
 }
 
-export function hashCookRecipes(primary: string[], _extra: string[][]): string {
-  return hashCookFlags(primary);
+/**
+ * The flags component of the cook key. Without extra recipes it is exactly
+ * `hashCookFlags(primary)`, so existing keys stay valid; with extras it is a
+ * 12-hex digest over every recipe in order (order decides which units the
+ * later cooks reuse, so it is part of the identity).
+ */
+export function hashCookRecipes(primary: string[], extra: string[][]): string {
+  if (extra.length === 0) return hashCookFlags(primary);
+  const h = createHash("sha256");
+  for (const recipe of [primary, ...extra]) {
+    h.update(hashCookFlags(recipe));
+    h.update("\n");
+  }
+  return h.digest("hex").slice(0, 12);
 }
 
+/** Cook every recipe in order; stop at the first failure (a partial closure must not be saved). */
 export async function runCookRecipes(opts: {
   soldrBinary: string;
   projectRoot: string;
@@ -1186,5 +1209,16 @@ export async function runCookRecipes(opts: {
   log: (msg: string) => void;
   run?: (opts: CookRunOpts) => Promise<CookRunResult>;
 }): Promise<CookRunResult> {
-  return (opts.run ?? runCook)({ soldrBinary: opts.soldrBinary, projectRoot: opts.projectRoot, flags: opts.recipes[0] ?? [], log: opts.log });
+  const run = opts.run ?? runCook;
+  let ranSeconds = 0;
+  for (const [index, flags] of opts.recipes.entries()) {
+    if (opts.recipes.length > 1) opts.log(`cook: recipe ${index + 1}/${opts.recipes.length}: ${flags.join(" ")}`);
+    const res = await run({ soldrBinary: opts.soldrBinary, projectRoot: opts.projectRoot, flags, log: opts.log });
+    ranSeconds += res.ranSeconds;
+    if (res.exitCode !== 0) {
+      if (opts.recipes.length > 1) opts.log(`cook: recipe ${index + 1} failed; the closure is incomplete and will not be saved`);
+      return { exitCode: res.exitCode, ranSeconds };
+    }
+  }
+  return { exitCode: 0, ranSeconds };
 }
