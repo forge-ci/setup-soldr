@@ -677,6 +677,49 @@ test("dylint-output-cache key and restore-keys change when the dylint toolchain 
   );
 });
 
+test("dylint-output-cache key and restore-keys change when the resolved soldr version changes (setup-soldr#678)", async () => {
+  // setup-soldr#678: soldr 0.9.51 -> 0.9.53 changed the lint-library store
+  // layout under target/dylint. With the soldr version absent from the key,
+  // every run after the upgrade exact-hit the entry the old soldr wrote,
+  // rebuilt from scratch, and then skipped the save because the hit was
+  // exact, so the stale entry was never replaced. Identical inputs under a
+  // different soldr must resolve to a different key, and the restore-keys
+  // prefix must not fall back across that boundary either.
+  const ctxRoot = makeWorkspace({ lockfileContents: "# lockfile A\n" });
+  const extraEnv = { INPUT_DYLINT: "true", INPUT_TOOLCHAIN: "1.94.1" };
+  const oldSoldr = await resolveDylintOutputCache(
+    ctxRoot,
+    { ...extraEnv, INPUT_VERSION: "0.9.51" },
+    DYLINT_OUTPUT_NIGHTLY_A,
+  );
+  const newSoldr = await resolveDylintOutputCache(
+    ctxRoot,
+    { ...extraEnv, INPUT_VERSION: "0.9.53" },
+    DYLINT_OUTPUT_NIGHTLY_A,
+  );
+  const sameSoldr = await resolveDylintOutputCache(
+    ctxRoot,
+    { ...extraEnv, INPUT_VERSION: "v0.9.53" },
+    DYLINT_OUTPUT_NIGHTLY_A,
+  );
+  assert.notEqual(
+    oldSoldr.dylintCache.outputKey,
+    newSoldr.dylintCache.outputKey,
+    "a soldr upgrade must invalidate the exact dylint-output-cache key",
+  );
+  assert.notEqual(
+    oldSoldr.dylintCache.outputRestoreKeys[0]!,
+    newSoldr.dylintCache.outputRestoreKeys[0]!,
+    "restore-keys must never cross a soldr version change",
+  );
+  assert.equal(
+    newSoldr.dylintCache.outputKey,
+    sameSoldr.dylintCache.outputKey,
+    "the same resolved soldr version must keep the key stable",
+  );
+  assert.match(newSoldr.dylintCache.outputKey, /^setup-soldr-dylint-output-v2-/);
+});
+
 test("dylint-output-cache key and restore-keys change when workspace/lint-library manifests change", async () => {
   const ctxRoot = makeWorkspace({
     lockfileContents: "# lockfile A\n",

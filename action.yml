@@ -1156,7 +1156,7 @@ outputs:
   dylint-output-cache-hit:
     description: Whether the isolated Dylint project-output cache restored an exact key.
   dylint-output-cache-key:
-    description: Exact isolated Dylint project-output cache key.
+    description: Exact isolated Dylint project-output cache key. Includes the resolved soldr identity, so a soldr upgrade starts a new generation (#678).
   dylint-output-cache-paths:
     description: Newline-delimited Dylint plugin and workspace output paths.
   dylint-output-cache-restore-status:
