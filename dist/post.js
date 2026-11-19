@@ -51914,10 +51914,14 @@ function decideCacheSaveGate(input, gateName) {
     if (input.minCompiles <= 0)
         return { skip: false, reason: "" };
     // A run whose Dylint output came from cache did little compilation, so its
-    // store is thin even when nothing was restored (the cold-seed exemption
-    // below would otherwise upload it). Skip; a run that misses the output
-    // cache compiles for real and seeds the layer.
-    if (input.dylintOutputRestored) {
+    // store is thin when nothing was restored (the cold-seed exemption below
+    // would otherwise upload it). Skip; a run that misses the output cache
+    // compiles for real and seeds the layer. When this layer WAS restored, the
+    // store is the restored entry plus this run's compiles -- a superset, not
+    // thin -- so the normal min-compiles gate decides (FastLED/fbuild run
+    // 44501733207: 242 new compiles were dropped every run, so the misses
+    // never stopped recurring).
+    if (input.dylintOutputRestored && !input.restored) {
         return {
             skip: true,
             reason: `dylint-output-cache was restored, so this run's store is thin (${input.newCompiles ?? "unknown"} new compile(s)); a thin save would evict the real entry`,

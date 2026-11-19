@@ -902,11 +902,15 @@ layer is actually paying off:
   (exact or fallback key), Dylint skips almost all rustc work, so the
   build-cache and target-cache stores hold only the few crates it re-checked
   (measured on zccache: ~294 MB vs the real ~1.2 GB, 644 vs 2648 rustc-cache
-  hits on the next run). Those saves are skipped even on a cold seed, because a
-  thin entry would win the key and, under Bosn's 8 GiB per-repository act-cache
-  LRU cap, evict the real one; the next run that misses the output cache
-  compiles for real and seeds the layer. `build-cache-save-min-compiles: 0`
-  (or `target-cache-save-min-compiles: 0`) still forces the save.
+  hits on the next run). When that layer was not itself restored, the save is
+  skipped even on a cold seed, because a thin entry would win the key and,
+  under Bosn's 8 GiB per-repository act-cache LRU cap, evict the real one; the
+  next run that misses the output cache compiles for real and seeds the layer.
+  When the build/target cache *was* restored, its store is the restored entry
+  plus this run's compiles (a superset, not thin), so the normal
+  `*-save-min-compiles` gate decides: new compiles save, none skip. An exact
+  hit still never re-saves. `build-cache-save-min-compiles: 0` (or
+  `target-cache-save-min-compiles: 0`) still forces the save.
 
 ## Release-grade usage: encrypted cache
 
