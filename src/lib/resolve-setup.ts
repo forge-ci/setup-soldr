@@ -1318,7 +1318,17 @@ export async function resolveSetup(
   // recheck but found unchanged. A crate that hit a Dylint `deny` lint never
   // produced a check-pass artifact to restore, so a prior failure can never
   // be replayed as a pass by a warm cache.
+  //
+  // setup-soldr#678: `soldr` is the resolved soldr identity (repo, ref,
+  // source identity, resolved version; the same `soldrDigest` the build
+  // cache carries). Soldr owns the layout and keys of the lint-library store
+  // under `target/dylint`: 0.9.51 -> 0.9.53 changed both. Without it here,
+  // every run after an upgrade exact-hit the entry the old soldr wrote,
+  // rebuilt everything, then skipped the save because the hit was exact --
+  // the stale entry was never replaced. It sits in the non-lock hash so the
+  // restore-keys prefix cannot fall back across a soldr change either.
   const dylintOutputNonLockInputs = {
+    soldr: soldrDigest,
     compiler_identity: dylintCacheIdentity,
     driver_revision: dylintDriverRev,
     cargo_config: cargoConfigHashValue,

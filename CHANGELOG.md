@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- The `dylint-output-cache` key now includes the resolved soldr identity
+  (#678). Soldr owns the lint-library store layout under `target/dylint`, and
+  0.9.51 -> 0.9.53 changed it. Without the version in the key, every run
+  after the upgrade exact-hit the entry the old soldr wrote, rebuilt it all,
+  then skipped the save because the hit was exact, so the stale entry was
+  never replaced until someone deleted it by hand. The soldr identity sits in
+  the non-Cargo.lock hash, so the `restore-keys` prefix cannot fall back
+  across a soldr change either. Expect one cold Dylint run per soldr bump.
 - New `persistent-root` input for self-hosted runners (obs-rust/obs-studio#4954).
   It keeps `cache-dir`, soldr's zccache, `RUSTUP_HOME` and `CARGO_HOME` under
   one root and skips every Actions-cache restore and save, the S3 tier and the
