@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The Dylint thin-store rule now skips a build-cache or target-cache save
+  only when that layer was not restored. A restored store plus this run's
+  compiles is a superset, not thin, but the save was skipped whenever
+  `dylint-output-cache` hit. In FastLED/fbuild run 44501733207 that dropped
+  242 new compiles. Now the normal `build-cache-save-min-compiles` /
+  `target-cache-save-min-compiles` gate decides. An exact build-cache hit
+  still never re-saves (keys are immutable).
 - The `dylint-output-cache` key now includes the resolved soldr identity
   (#678). Soldr owns the lint-library store layout under `target/dylint`, and
   0.9.51 -> 0.9.53 changed it. Without the version in the key, every run

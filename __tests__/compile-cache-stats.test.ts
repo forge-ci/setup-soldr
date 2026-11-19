@@ -1398,15 +1398,38 @@ test("dylint thin store: output-cache hit + cold build-cache + thin compile skip
   const r = decideBuildCacheSave({ restored: false, newCompiles: 229, minCompiles: 1, dylintOutputRestored: true });
   assert.equal(r.skip, true);
   assert.match(r.reason, /dylint-output-cache was restored/);
-  // Same with a fallback build-cache restore and with an unknown count.
-  assert.equal(decideBuildCacheSave({ restored: true, newCompiles: 229, minCompiles: 1, dylintOutputRestored: true }).skip, true);
+  // Same with an unknown count: nothing was restored, so the store is thin.
   assert.equal(decideBuildCacheSave({ restored: false, newCompiles: null, minCompiles: 1, dylintOutputRestored: true }).skip, true);
+});
+
+test("dylint thin store: a restored build-cache is a superset, so the normal min-compiles gate decides", async () => {
+  // FastLED/fbuild run 44501733207: dylint-output-cache restored AND the
+  // build cache restored, 242 new compiles. The store is the restored entry
+  // plus those compiles -- not thin -- yet the old gate skipped the save on
+  // dylintOutputRestored alone, so the misses recurred on every run.
+  const { decideBuildCacheSave } = await gateMod();
+  const real = decideBuildCacheSave({ restored: true, newCompiles: 242, minCompiles: 1, dylintOutputRestored: true });
+  assert.equal(real.skip, false, "restored store + real new compiles must save");
+  assert.equal(real.reason, "");
+  const nothing = decideBuildCacheSave({ restored: true, newCompiles: 0, minCompiles: 1, dylintOutputRestored: true });
+  assert.equal(nothing.skip, true, "restored store + zero new compiles must still skip");
+  assert.match(nothing.reason, /0 new compile\(s\) < build-cache-save-min-compiles=1/);
+  assert.doesNotMatch(nothing.reason, /dylint-output-cache/);
+  // A raised threshold still applies to the restored case.
+  assert.equal(decideBuildCacheSave({ restored: true, newCompiles: 5, minCompiles: 10, dylintOutputRestored: true }).skip, true);
 });
 
 test("dylint thin store: target-cache save is gated the same way", async () => {
   const { decideTargetCacheSave } = await gateMod();
   const r = decideTargetCacheSave({ restored: false, newCompiles: 229, minCompiles: 1, dylintOutputRestored: true });
   assert.equal(r.skip, true);
+  assert.match(r.reason, /dylint-output-cache was restored/);
+  // A restored target tree is a superset too: real compiles save, none skip
+  // under the target-cache-named threshold.
+  assert.equal(decideTargetCacheSave({ restored: true, newCompiles: 242, minCompiles: 1, dylintOutputRestored: true }).skip, false);
+  const nothing = decideTargetCacheSave({ restored: true, newCompiles: 0, minCompiles: 1, dylintOutputRestored: true });
+  assert.equal(nothing.skip, true);
+  assert.match(nothing.reason, /target-cache-save-min-compiles=1/);
 });
 
 test("dylint thin store: real compilation (output-cache miss) still saves, and min-compiles=0 force-saves", async () => {
