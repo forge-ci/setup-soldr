@@ -39,7 +39,14 @@ import { createLogger } from "./lib/log-utils.js";
 import { autoKeyEnabled } from "./lib/ancestor-cache.js";
 import { ancestorTelemetry, publishBuildCachePlan, type AncestorTelemetry } from "./lib/ancestor-cache-telemetry.js";
 import { planAncestorRestore, planLocalAncestorRestore } from "./lib/ancestor-cache-github.js";
-import { cargoConfigHash, shortJsonHash, targetEnvHash, workspaceManifestHash } from "./lib/cache-keys.js";
+import {
+  buildCacheRestoreRequest,
+  cargoConfigHash,
+  isWarmBuildCacheMatch,
+  shortJsonHash,
+  targetEnvHash,
+  workspaceManifestHash,
+} from "./lib/cache-keys.js";
 import { readRawInputs, resolveSetup, applyResolveResult, setupEnabled } from "./lib/resolve-setup.js";
 import { bootstrapAssetFor, ensureBootstrap } from "./lib/bootstrap-soldr.js";
 import {
@@ -879,19 +886,27 @@ export async function run(): Promise<void> {
       restore = { hit: false, matchedKey: s3Restore.matchedKey };
     }
     if (!restore.matchedKey) {
-      restore = await restoreCacheSafe(
-        [archivePath],
-        selectedKey || (localAncestorKey ? result.buildCache.key : legacyKey),
-        selectedKey ? [] : restoreKeys,
-        logger,
-      );
+      // setup-soldr#682: the legacy key is commit-free, so ask for its newest
+      // generation first; the bare key and the job fallback follow.
+      const legacyRequest = buildCacheRestoreRequest(legacyKey, restoreKeys);
+      if (selectedKey) {
+        restore = await restoreCacheSafe([archivePath], selectedKey, [], logger);
+      } else if (localAncestorKey) {
+        restore = await restoreCacheSafe([archivePath], result.buildCache.key, restoreKeys, logger);
+      } else {
+        restore = await restoreCacheSafe([archivePath], legacyRequest.primaryKey, legacyRequest.restoreKeys, logger);
+      }
       if (selectedKey && restore.matchedKey !== selectedKey) {
-        restore = await restoreCacheSafe([archivePath], legacyKey, restoreKeys, logger);
+        restore = await restoreCacheSafe([archivePath], legacyRequest.primaryKey, legacyRequest.restoreKeys, logger);
       }
     }
-    // A donor hit is a starting point; only this source's exact write key may
-    // suppress a post-phase save under the existing delta/CACHE-008 gates.
-    restore.hit = restore.matchedKey === result.buildCache.key;
+    // A donor hit is a starting point; only this source's exact write key, or
+    // one of its generations (#682), is warm. Post saves a warm store as a new
+    // generation when the session still compiled, never under the bare key.
+    restore.hit = isWarmBuildCacheMatch(restore.matchedKey, result.buildCache.key);
+    if (restore.matchedKey && restore.matchedKey !== result.buildCache.key && restore.hit) {
+      logger.log(`build-cache: restored generation ${restore.matchedKey}`);
+    }
     let buildArchiveBytes: number | null = null;
     let buildInflatedBytes: number | null = null;
     let buildFileCount: number | null = null;

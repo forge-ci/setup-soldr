@@ -108,3 +108,88 @@ test("no token means no sweep", async () => {
     }
   }
 });
+
+// ---------------------------------------------------------------------------
+// setup-soldr#682 — after saving a build-cache generation, delete the older
+// generations of the same exact key (never the bare key, never other jobs).
+// ---------------------------------------------------------------------------
+
+test("#682 build-cache generation sweep deletes only older generations of this key", async () => {
+  const { sweepSupersededBuildCacheGenerations } = await import("../src/lib/cache-supersede.js");
+  const exact = "setup-soldr-buildcache-v3-linux-x64-d-sfx-lock-ssoldr";
+  const keep = `${exact}-g900`;
+  const entries: SupersededEntry[] = [
+    { id: 1, key: exact, size_in_bytes: 10 },
+    { id: 2, key: `${exact}-g800`, size_in_bytes: 20 },
+    { id: 3, key: `${exact}-g850-2`, size_in_bytes: 30 },
+    { id: 4, key: keep, size_in_bytes: 40 },
+  ];
+  const prefixes: string[] = [];
+  const deleted: number[] = [];
+  const warnings: string[] = [];
+  const result = await sweepSupersededBuildCacheGenerations({
+    exactKey: exact,
+    keepKey: keep,
+    log: () => {},
+    warn: (m) => warnings.push(m),
+    owner: "o",
+    repo: "r",
+    token: "t",
+    listCachesByPrefix: async (prefix) => {
+      prefixes.push(prefix);
+      return entries.filter((e) => e.key.startsWith(prefix));
+    },
+    deleteCacheById: async (id) => {
+      deleted.push(id);
+    },
+  });
+  assert.deepEqual(prefixes, [`${exact}-g`]);
+  assert.deepEqual(deleted.sort(), [2, 3]);
+  assert.equal(result.deleted, 2);
+  assert.equal(result.bytes, 50);
+  assert.deepEqual(warnings, []);
+});
+
+test("#682 build-cache generation sweep degrades to a warning without actions: write", async () => {
+  const { sweepSupersededBuildCacheGenerations } = await import("../src/lib/cache-supersede.js");
+  const exact = "setup-soldr-buildcache-v3-linux-x64-d-sfx-lock-ssoldr";
+  const warnings: string[] = [];
+  const result = await sweepSupersededBuildCacheGenerations({
+    exactKey: exact,
+    keepKey: `${exact}-g900`,
+    log: () => {},
+    warn: (m) => warnings.push(m),
+    owner: "o",
+    repo: "r",
+    token: "t",
+    listCachesByPrefix: async () => [{ id: 2, key: `${exact}-g800`, size_in_bytes: 20 }],
+    deleteCacheById: async () => {
+      throw new Error("Resource not accessible by integration (403)");
+    },
+  });
+  assert.equal(result.failed, 1);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0]!, /actions: write/);
+});
+
+test("#682 build-cache generation sweep refuses a keep key outside the generation family", async () => {
+  const { sweepSupersededBuildCacheGenerations } = await import("../src/lib/cache-supersede.js");
+  const exact = "setup-soldr-buildcache-v3-linux-x64-d-sfx-lock-ssoldr";
+  let listed = false;
+  const result = await sweepSupersededBuildCacheGenerations({
+    exactKey: exact,
+    keepKey: exact,
+    log: () => {},
+    warn: () => {},
+    owner: "o",
+    repo: "r",
+    token: "t",
+    listCachesByPrefix: async () => {
+      listed = true;
+      return [];
+    },
+    deleteCacheById: async () => {},
+  });
+  assert.equal(listed, false);
+  assert.equal(result.deleted, 0);
+});

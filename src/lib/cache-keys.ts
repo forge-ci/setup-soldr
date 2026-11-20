@@ -532,3 +532,55 @@ export function pathForOutput(workspace: string, p: string | null): string {
   }
   return rel;
 }
+
+// ---- build-cache generations (setup-soldr#682) ----
+//
+// The build-cache exact key is commit-free (setup-soldr#237), so an exact hit
+// used to freeze the first writer's zccache store until the lockfile,
+// toolchain or soldr changed: every crate edited since then missed on every
+// run. A warm run that still compiled now saves `<exact>-g<run_id>[-<attempt>]`,
+// and restore asks for `<exact>-g` first. That primary key never exists
+// literally, so GitHub prefix-matches it and returns the newest generation;
+// the bare exact key stays the fallback.
+
+const GENERATION_SUFFIX = /^\d+(?:-\d+)?$/;
+
+/** Restore prefix that matches every generation of `exactKey`. */
+export function buildCacheGenerationPrefix(exactKey: string): string {
+  return `${exactKey}-g`;
+}
+
+/**
+ * Generation key for this run, or null when there is no numeric run id (a
+ * local runner has no Actions cache generation to write). Attempt 1 (or an
+ * unset attempt) is omitted so a re-run attempt gets its own key.
+ */
+export function buildCacheGenerationKey(exactKey: string, runId: string, runAttempt: string): string | null {
+  const id = runId.trim();
+  if (!/^\d+$/.test(id)) return null;
+  const attempt = runAttempt.trim();
+  const attemptSuffix = /^\d+$/.test(attempt) && attempt !== "1" ? `-${attempt}` : "";
+  return `${buildCacheGenerationPrefix(exactKey)}${id}${attemptSuffix}`;
+}
+
+/** True when `matchedKey` is a generation written by `buildCacheGenerationKey`. */
+export function isBuildCacheGenerationOf(matchedKey: string, exactKey: string): boolean {
+  const prefix = buildCacheGenerationPrefix(exactKey);
+  return matchedKey.startsWith(prefix) && GENERATION_SUFFIX.test(matchedKey.slice(prefix.length));
+}
+
+/** Exact or generation match: the restored store is this key's own lineage. */
+export function isWarmBuildCacheMatch(matchedKey: string, exactKey: string): boolean {
+  return matchedKey.length > 0 && (matchedKey === exactKey || isBuildCacheGenerationOf(matchedKey, exactKey));
+}
+
+/** Primary key and restore-keys for an `@actions/cache` build-cache restore. */
+export function buildCacheRestoreRequest(
+  exactKey: string,
+  fallbackRestoreKeys: readonly string[],
+): { primaryKey: string; restoreKeys: string[] } {
+  return {
+    primaryKey: buildCacheGenerationPrefix(exactKey),
+    restoreKeys: [exactKey, ...fallbackRestoreKeys],
+  };
+}

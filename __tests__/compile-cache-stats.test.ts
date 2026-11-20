@@ -1441,3 +1441,84 @@ test("dylint thin store: real compilation (output-cache miss) still saves, and m
   // explicit opt-out of the gate still saves a thin store
   assert.equal(decideBuildCacheSave({ restored: false, newCompiles: 229, minCompiles: 0, dylintOutputRestored: true }).skip, false);
 });
+
+// ---------------------------------------------------------------------------
+// setup-soldr#682 — a warm (exact or generation) build-cache restore that still
+// compiled saves a new generation instead of `exact-hit-skip`.
+// ---------------------------------------------------------------------------
+
+const EXACT_682 = "setup-soldr-buildcache-v3-linux-x64-d-sfx-lock-ssoldr";
+
+interface GenerationPlanModule {
+  planBuildCacheSaveKey: (input: {
+    exactKey: string;
+    matchedKey: string;
+    newCompiles: number | null;
+    minCompiles: number;
+    runId: string;
+    runAttempt: string;
+  }) => { key: string; generation: boolean } | { skip: string };
+}
+
+async function genMod(): Promise<GenerationPlanModule> {
+  return (await import("../src/lib/compile-cache-stats.js")) as unknown as GenerationPlanModule;
+}
+
+test("#682 exact hit with new compiles saves a generation", async () => {
+  const { planBuildCacheSaveKey } = await genMod();
+  assert.deepEqual(
+    planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey: EXACT_682, newCompiles: 62, minCompiles: 1, runId: "777", runAttempt: "1" }),
+    { key: `${EXACT_682}-g777`, generation: true },
+  );
+});
+
+test("#682 exact hit without new compiles is still an exact-hit skip", async () => {
+  const { planBuildCacheSaveKey } = await genMod();
+  for (const newCompiles of [0, null]) {
+    const r = planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey: EXACT_682, newCompiles, minCompiles: 1, runId: "777", runAttempt: "1" });
+    assert.ok("skip" in r, `newCompiles=${newCompiles} must skip`);
+  }
+  // `build-cache-save-min-compiles: 0` forces cold saves, but a warm
+  // generation with zero new compiles would be a byte-identical re-upload.
+  const zero = planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey: EXACT_682, newCompiles: 0, minCompiles: 0, runId: "777", runAttempt: "1" });
+  assert.ok("skip" in zero);
+  const below = planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey: EXACT_682, newCompiles: 4, minCompiles: 5, runId: "777", runAttempt: "1" });
+  assert.ok("skip" in below);
+  assert.match((below as { skip: string }).skip, /4 new compile/);
+});
+
+test("#682 a generation restore is warm and saves the next generation", async () => {
+  const { planBuildCacheSaveKey } = await genMod();
+  assert.deepEqual(
+    planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey: `${EXACT_682}-g700`, newCompiles: 33, minCompiles: 1, runId: "777", runAttempt: "2" }),
+    { key: `${EXACT_682}-g777-2`, generation: true },
+  );
+  const idle = planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey: `${EXACT_682}-g700`, newCompiles: 0, minCompiles: 1, runId: "777", runAttempt: "1" });
+  assert.ok("skip" in idle);
+});
+
+test("#682 cold or fallback restores keep saving the bare exact key", async () => {
+  const { planBuildCacheSaveKey } = await genMod();
+  for (const matchedKey of ["", "setup-soldr-buildcache-v3-linux-x64-d-sfx-oldlock-ssoldr"]) {
+    assert.deepEqual(
+      planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey, newCompiles: 500, minCompiles: 1, runId: "777", runAttempt: "1" }),
+      { key: EXACT_682, generation: false },
+    );
+  }
+});
+
+test("#682 a warm restore without a run id cannot write a generation", async () => {
+  const { planBuildCacheSaveKey } = await genMod();
+  const r = planBuildCacheSaveKey({ exactKey: EXACT_682, matchedKey: EXACT_682, newCompiles: 62, minCompiles: 1, runId: "", runAttempt: "" });
+  assert.ok("skip" in r);
+  assert.match((r as { skip: string }).skip, /GITHUB_RUN_ID/);
+});
+
+test("#682 #681 thin cold seed is still skipped by the gate before any generation", async () => {
+  const { decideBuildCacheSave } = await gateMod();
+  // Not restored + Dylint output restored: thin store, never saved.
+  assert.equal(decideBuildCacheSave({ restored: false, newCompiles: 400, minCompiles: 1, dylintOutputRestored: true }).skip, true);
+  // Warm restore + Dylint output restored: the store is a superset, so the
+  // count decides and planBuildCacheSaveKey turns it into a generation.
+  assert.equal(decideBuildCacheSave({ restored: true, newCompiles: 62, minCompiles: 1, dylintOutputRestored: true }).skip, false);
+});

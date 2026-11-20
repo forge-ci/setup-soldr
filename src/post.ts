@@ -43,6 +43,7 @@ import {
 import { createLogger } from "./lib/log-utils.js";
 import { shutdownCacheDaemons } from "./lib/shutdown-cache.js";
 import { StatsCollector } from "./lib/stats-collector.js";
+import { sweepSupersededBuildCacheGenerations } from "./lib/cache-supersede.js";
 import {
   aggregateSessions,
   collectArchivedSessionStats,
@@ -51,6 +52,7 @@ import {
   detectCookReuseMismatch,
   parseMinCompiles,
   parseVerifyCompileCacheMode,
+  planBuildCacheSaveKey,
   renderInsights,
   renderMultiSessionRollup,
   verifyCompileCacheActivity,
@@ -1624,19 +1626,31 @@ async function runPost(): Promise<void> {
   // already restored — the restored entry already holds everything, so
   // re-saving under a fallback key just uploads a duplicate multi-GiB payload.
   // #559: a job that failed or was cancelled saves no build outputs; its
-  // store may be partial, and an exact-hit key is never re-saved.
+  // store may be partial, and a warm hit only ever saves a new generation (#682).
   const buildOutputGate = readBuildOutputSaveGate(process.env);
   const buildSaveStart = Date.now();
   const buildCacheRestored = buildCacheMatched.trim().length > 0;
   const buildDeltaMisses = restoreState.buildCacheEnabled
     ? computeJobNewCompiles(result.buildCache.path, readBuildCacheBaselineMs())
     : null;
+  const buildMinCompiles = parseMinCompiles(rawInputs.buildCacheSaveMinCompiles);
   const buildSaveGate = decideBuildCacheSave({
     restored: buildCacheRestored,
     newCompiles: buildDeltaMisses,
-    minCompiles: parseMinCompiles(rawInputs.buildCacheSaveMinCompiles),
+    minCompiles: buildMinCompiles,
     dylintOutputRestored: dylintOutputCacheRestored(),
   });
+  // setup-soldr#682: a warm (exact or generation) restore that still compiled
+  // saves a new generation; a cold or donor restore saves the bare key.
+  const buildSaveKeyPlan = planBuildCacheSaveKey({
+    exactKey: result.buildCache.key,
+    matchedKey: buildCacheMatched.trim(),
+    newCompiles: buildDeltaMisses,
+    minCompiles: buildMinCompiles,
+    runId: process.env["GITHUB_RUN_ID"] ?? "",
+    runAttempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "",
+  });
+  const buildSaveKey = "key" in buildSaveKeyPlan ? buildSaveKeyPlan.key : result.buildCache.key;
   let buildSave: CacheSaveResultWithStats;
   if (!restoreState.buildCacheEnabled) {
     buildSave = Object.assign(disabledSave(), {
@@ -1665,12 +1679,25 @@ async function runPost(): Promise<void> {
       },
       { archiveBytes: null, inflatedBytes: null, fileCount: null, payload: null },
     );
+  } else if ("skip" in buildSaveKeyPlan) {
+    log(`build-cache: skipping save — ${buildSaveKeyPlan.skip}`);
+    buildSave = Object.assign(
+      {
+        status: "exact-hit-skip" as const,
+        cache_dir: result.buildCache.path,
+        skip_reason: buildSaveKeyPlan.skip,
+      },
+      { archiveBytes: null, inflatedBytes: null, fileCount: null, payload: null },
+    );
   } else {
+    if (buildSaveKeyPlan.generation) {
+      log(`build-cache: warm hit on ${buildCacheMatched} compiled ${buildDeltaMisses} new unit(s); saving generation ${buildSaveKey}`);
+    }
     buildSave = await saveOne({
       cacheDir: result.buildCache.path,
       codec: result.targetCacheCompress,
       level: result.targetCacheCompressLevel,
-      key: result.buildCache.key,
+      key: buildSaveKey,
       matchedKey: buildCacheMatched,
       label: "build-cache",
       debug: debugMode,
@@ -1678,6 +1705,15 @@ async function runPost(): Promise<void> {
       payloadProfile: "zccache-build-cache",
       payloadPolicy,
     });
+    if (buildSaveKeyPlan.generation && buildSave.status === "saved") {
+      await sweepSupersededBuildCacheGenerations({
+        exactKey: result.buildCache.key,
+        keepKey: buildSaveKey,
+        log,
+        warn: (msg) => core.warning(msg),
+        token: (process.env["GITHUB_TOKEN"] ?? "").trim() || (process.env["INPUT_TOKEN"] ?? "").trim(),
+      });
+    }
   }
   // Publish provenance only after the real upload has a positive cache ID
   // and the existing failed-job, dependency-yank, and payload gates passed.
@@ -1703,7 +1739,7 @@ async function runPost(): Promise<void> {
   // only count actual uploads.
   postCollector.record({
     label: "build-cache", operation: "save", hit: false,
-    key: result.buildCache.key, matchedKey: buildCacheMatched, restoreKeys: [],
+    key: buildSaveKey, matchedKey: buildCacheMatched, restoreKeys: [],
     status: buildSave.status,
     archiveBytes: buildSave.status === "saved" || buildSave.status === "oversize-skip" ? buildSave.archiveBytes : null,
     inflatedBytes: buildSave.status === "saved" || buildSave.status === "oversize-skip" ? buildSave.inflatedBytes : null,
