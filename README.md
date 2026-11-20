@@ -916,9 +916,11 @@ layer is actually paying off:
   lockfile, toolchain or soldr changed. A warm restore (the exact key, or one
   of its generations) whose session still compiled at least
   `max(1, build-cache-save-min-compiles)` units now saves
-  `<exact-key>-g<GITHUB_RUN_ID>[-<attempt>]`. `<exact-key>-g` is the first
-  restore key (GitHub prefix-matches restore keys, never the primary key), so
-  the newest generation wins and the bare key stays the fallback.
+  `<exact-key>-g<GITHUB_RUN_ID>[-<attempt>]`. Restore looks up `<exact-key>-g`
+  on its own first, so the newest generation wins; only when no generation
+  exists does a second lookup try the bare key and the job fallback. (GitHub
+  exact-matches every key in a lookup before any prefix match, so the bare key
+  cannot share the generation lookup.)
   After a generation saves, older generations of the same key are deleted
   (needs `permissions: actions: write`; without it the post step warns and
   GitHub's LRU eventually evicts them; `NO_CACHE_SUPERSEDE=1` turns the sweep
