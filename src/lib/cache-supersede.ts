@@ -22,6 +22,8 @@
 
 import * as github from "@actions/github";
 
+import { buildCacheGenerationPrefix, isBuildCacheGenerationOf } from "./cache-keys.js";
+
 export interface SupersededEntry {
   id: number;
   key: string;
@@ -155,4 +157,48 @@ export async function deleteSupersededFamilyEntries(
     );
   }
   return { deleted, failed, bytes };
+}
+
+export interface BuildCacheGenerationSweepOptions
+  extends Omit<SupersedeOptions, "keepKey" | "familyPrefix"> {
+  /** The bare build-cache exact key whose generations are swept. */
+  exactKey: string;
+  /** The generation this run just saved. */
+  keepKey: string;
+  /** Surfaces a sweep that could not finish (usually no `actions: write`). */
+  warn: (msg: string) => void;
+}
+
+/**
+ * Delete older build-cache generations of `exactKey` after `keepKey` saved
+ * (setup-soldr#682), reusing the cook layer's supersede sweep. Only keys under
+ * `<exactKey>-g` are touched: the bare exact key stays as the fallback, and
+ * other jobs' keys never share the prefix. Best effort -- a sweep that cannot
+ * list or delete becomes a warning, never a failed job.
+ */
+export async function sweepSupersededBuildCacheGenerations(
+  opts: BuildCacheGenerationSweepOptions,
+): Promise<SupersedeResult> {
+  const { exactKey, keepKey, warn, ...rest } = opts;
+  if (!isBuildCacheGenerationOf(keepKey, exactKey)) {
+    return { deleted: 0, failed: 0, bytes: 0, reason: "keep key is not a generation" };
+  }
+  let result: SupersedeResult;
+  try {
+    result = await deleteSupersededFamilyEntries({
+      ...rest,
+      keepKey,
+      familyPrefix: buildCacheGenerationPrefix(exactKey),
+    });
+  } catch (error) {
+    result = { deleted: 0, failed: 0, bytes: 0, reason: error instanceof Error ? error.message : String(error) };
+  }
+  if (result.failed > 0 || (result.reason && result.reason !== "disabled by NO_CACHE_SUPERSEDE")) {
+    warn(
+      `build-cache: could not delete superseded generations of ${exactKey} ` +
+        `(deleted=${result.deleted} failed=${result.failed}${result.reason ? ` reason=${result.reason}` : ""}); ` +
+        `grant the workflow 'permissions: actions: write' so older generations do not hold cache budget until LRU eviction`,
+    );
+  }
+  return result;
 }

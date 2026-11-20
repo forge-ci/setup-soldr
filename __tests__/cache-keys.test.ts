@@ -558,3 +558,50 @@ test("crossToolCacheKeyFor: sanitizes host/target fragments (no path separators 
   assert.ok(!key.includes(" "), `key must not contain whitespace: ${key}`);
   assert.ok(!key.includes("/"), `key must not contain path separators: ${key}`);
 });
+
+// ---------------------------------------------------------------------------
+// setup-soldr#682 — build-cache generations. The exact key is commit-free, so
+// an exact hit used to freeze the first writer's zccache store forever. A warm
+// run that still compiled saves `<exact>-g<run_id>[-<attempt>]`, and restore
+// asks for `<exact>-g` first so the newest generation beats the bare key.
+// ---------------------------------------------------------------------------
+
+const GEN_EXACT = "setup-soldr-buildcache-v3-linux-x64-0427cc69b060d1bd-dylint-unified-v2-514fdd037a76e524-s57d57d7814452b77";
+
+test("#682 generation prefix and key shape", async () => {
+  const { buildCacheGenerationPrefix, buildCacheGenerationKey } = await import("../src/lib/cache-keys.js");
+  assert.equal(buildCacheGenerationPrefix(GEN_EXACT), `${GEN_EXACT}-g`);
+  assert.equal(buildCacheGenerationKey(GEN_EXACT, "44501733207", "1"), `${GEN_EXACT}-g44501733207`);
+  assert.equal(buildCacheGenerationKey(GEN_EXACT, "44501733207", ""), `${GEN_EXACT}-g44501733207`);
+  assert.equal(buildCacheGenerationKey(GEN_EXACT, "44501733207", "3"), `${GEN_EXACT}-g44501733207-3`);
+  // No run id (local runner, act): there is no generation to write.
+  assert.equal(buildCacheGenerationKey(GEN_EXACT, "", "1"), null);
+  assert.equal(buildCacheGenerationKey(GEN_EXACT, "not-a-run", "1"), null);
+});
+
+test("#682 generation and warm-match recognition", async () => {
+  const { isBuildCacheGenerationOf, isWarmBuildCacheMatch } = await import("../src/lib/cache-keys.js");
+  assert.equal(isBuildCacheGenerationOf(`${GEN_EXACT}-g123`, GEN_EXACT), true);
+  assert.equal(isBuildCacheGenerationOf(`${GEN_EXACT}-g123-2`, GEN_EXACT), true);
+  assert.equal(isBuildCacheGenerationOf(GEN_EXACT, GEN_EXACT), false);
+  assert.equal(isBuildCacheGenerationOf(`${GEN_EXACT}-g`, GEN_EXACT), false);
+  assert.equal(isBuildCacheGenerationOf(`${GEN_EXACT}-gabc`, GEN_EXACT), false);
+  assert.equal(isBuildCacheGenerationOf(`${GEN_EXACT}-extra-g123`, GEN_EXACT), false);
+  assert.equal(isBuildCacheGenerationOf("", GEN_EXACT), false);
+  assert.equal(isWarmBuildCacheMatch(GEN_EXACT, GEN_EXACT), true);
+  assert.equal(isWarmBuildCacheMatch(`${GEN_EXACT}-g9`, GEN_EXACT), true);
+  // A lockfile-prefix fallback is a donor, not warm.
+  assert.equal(isWarmBuildCacheMatch(GEN_EXACT.replace("514fdd037a76e524", "0000000000000000"), GEN_EXACT), false);
+  assert.equal(isWarmBuildCacheMatch("", GEN_EXACT), false);
+});
+
+test("#682 restore asks for the newest generation before the bare exact key", async () => {
+  const { buildCacheRestoreRequest } = await import("../src/lib/cache-keys.js");
+  const jobPrefix = "setup-soldr-buildcache-v3-linux-x64-0427cc69b060d1bd-dylint-unified-v2-";
+  const req = buildCacheRestoreRequest(GEN_EXACT, [jobPrefix]);
+  // The primary key never exists literally, so GitHub prefix-matches it and
+  // returns the newest generation; the bare key and the job fallback follow.
+  assert.equal(req.primaryKey, `${GEN_EXACT}-g`);
+  assert.deepEqual(req.restoreKeys, [GEN_EXACT, jobPrefix]);
+  assert.deepEqual(buildCacheRestoreRequest(GEN_EXACT, []).restoreKeys, [GEN_EXACT]);
+});

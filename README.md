@@ -909,8 +909,20 @@ layer is actually paying off:
   When the build/target cache *was* restored, its store is the restored entry
   plus this run's compiles (a superset, not thin), so the normal
   `*-save-min-compiles` gate decides: new compiles save, none skip. An exact
-  hit still never re-saves. `build-cache-save-min-compiles: 0` (or
+  target-cache hit still never re-saves. `build-cache-save-min-compiles: 0` (or
   `target-cache-save-min-compiles: 0`) still forces the save.
+- **Build-cache generations (#682).** The build-cache key is commit-free, so an
+  exact hit used to freeze the first writer's zccache store until the
+  lockfile, toolchain or soldr changed. A warm restore (the exact key, or one
+  of its generations) whose session still compiled at least
+  `max(1, build-cache-save-min-compiles)` units now saves
+  `<exact-key>-g<GITHUB_RUN_ID>[-<attempt>]`. Restore asks for `<exact-key>-g`
+  first, so the newest generation wins and the bare key stays the fallback.
+  After a generation saves, older generations of the same key are deleted
+  (needs `permissions: actions: write`; without it the post step warns and
+  GitHub's LRU eventually evicts them; `NO_CACHE_SUPERSEDE=1` turns the sweep
+  off). A cold or fallback restore still saves the bare key, and the
+  thin-store rule above still applies before any of this.
 
 ## Release-grade usage: encrypted cache
 

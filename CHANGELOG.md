@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- An exact build-cache hit that still compiled now saves a new generation
+  instead of `exact-hit-skip` (#682). The key is commit-free, so the first
+  writer's zccache store used to be frozen until the lockfile, toolchain or
+  soldr changed, and every crate edited since then missed on every run
+  (FastLED/fbuild's Dylint missed 62/33/33 units per pass). A warm restore
+  whose session compiled at least `max(1, build-cache-save-min-compiles)`
+  units saves `<exact-key>-g<GITHUB_RUN_ID>[-<attempt>]`; restore asks for
+  `<exact-key>-g` before the bare key, so the newest generation wins. A
+  generation restore counts as warm (`build-cache-hit: true`). After the save,
+  older generations of the same key are deleted with the cook layer's
+  supersede sweep; without `actions: write` that becomes a warning. Cold and
+  fallback restores still save the bare key, and the #681 thin-store rule
+  still refuses a thin cold seed.
 - macOS: `soldr cargo clippy` works again after a workflow installs Rust with
   clippy before setup-soldr (#683). When macOS swaps in the private
   `RUSTUP_HOME` (#105), the managed toolchain now also gets the tool

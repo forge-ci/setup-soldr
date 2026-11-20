@@ -31,6 +31,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+import { buildCacheGenerationKey, isWarmBuildCacheMatch } from "./cache-keys.js";
+
 interface MissReason {
   category?: string;
   file?: string;
@@ -783,4 +785,50 @@ export function decideBuildCacheSave(input: BuildCacheSaveGateInput): BuildCache
  */
 export function decideTargetCacheSave(input: BuildCacheSaveGateInput): BuildCacheSaveGate {
   return decideCacheSaveGate(input, "target-cache-save-min-compiles");
+}
+
+export interface BuildCacheSaveKeyInput {
+  /** The build-cache exact key (commit-free, setup-soldr#237). */
+  exactKey: string;
+  /** Key the restore matched; empty on a miss. */
+  matchedKey: string;
+  /** zccache compilations recorded this session; null when unknown. */
+  newCompiles: number | null;
+  /** `build-cache-save-min-compiles`. */
+  minCompiles: number;
+  /** `GITHUB_RUN_ID` / `GITHUB_RUN_ATTEMPT`. */
+  runId: string;
+  runAttempt: string;
+}
+
+/**
+ * Pick the key a build-cache save writes, or why it skips (setup-soldr#682).
+ * Runs after `decideBuildCacheSave`, so the #681 thin-store rule has already
+ * refused a cold seed; this only decides where a warm store goes.
+ *
+ * A cold or donor (fallback) restore saves the bare exact key, as before. A
+ * warm restore -- the exact key or one of its generations -- used to be an
+ * `exact-hit-skip`, which froze the first writer's store; it now saves a new
+ * generation when the session compiled at least `max(1, minCompiles)` units.
+ * Zero compiles, or an unknown count, means the restored store already holds
+ * everything, so re-uploading it would only duplicate the entry.
+ */
+export function planBuildCacheSaveKey(
+  input: BuildCacheSaveKeyInput,
+): { key: string; generation: boolean } | { skip: string } {
+  if (!isWarmBuildCacheMatch(input.matchedKey, input.exactKey)) {
+    return { key: input.exactKey, generation: false };
+  }
+  const threshold = Math.max(1, input.minCompiles);
+  if (input.newCompiles === null) {
+    return { skip: `warm hit on ${input.matchedKey}; new-compile count unknown` };
+  }
+  if (input.newCompiles < threshold) {
+    return { skip: `warm hit on ${input.matchedKey}; ${input.newCompiles} new compile(s) < ${threshold}` };
+  }
+  const key = buildCacheGenerationKey(input.exactKey, input.runId, input.runAttempt);
+  if (key === null) {
+    return { skip: `warm hit on ${input.matchedKey}; no GITHUB_RUN_ID to name a new generation` };
+  }
+  return { key, generation: true };
 }

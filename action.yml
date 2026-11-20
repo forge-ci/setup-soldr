@@ -238,6 +238,9 @@ inputs:
       floor). Raise it (e.g. "10") to also skip tiny deltas, or set "0" to
       disable the gate and always save. Never gates a cold seed (no restore)
       or an unreadable compile count, so a real cache is always seedable.
+      A warm restore (the exact key or one of its generations) that compiled
+      at least max(1, this) units saves a new `<key>-g<run_id>` generation
+      instead of skipping, so the store keeps up with edited crates (#682).
       Per-phase save timings (compress vs upload) are logged regardless.
     required: false
     default: "1"

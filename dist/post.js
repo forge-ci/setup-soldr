@@ -50785,6 +50785,550 @@ async function evictIfOverBudget(policy, deps) {
 
 /***/ }),
 
+/***/ 15606:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// Cache key derivation helpers. Owned by Agent 1.
+//
+// Port of resolve_setup.py:
+//   - _workspace_manifest_hash()
+//   - _cargo_config_hash()
+//   - _target_env_hash()
+//   - _short_json_hash()
+//   - _short_file_hash()
+//   - _sanitize_fragment()
+//   - normalize_build_cache_mode()
+//   - normalize_target_cache_profile()
+//   - normalize_target_cache_bool()
+//   - normalize_target_cache_compress()
+//   - normalize_target_cache_compress_level()
+//   - _target_cache_soft_budget()
+//   - _setup_cache_paths(), _setup_cache_layout()
+//   - resolve_lockfile_path()
+//
+// All cache key derivation must be byte-identical to the Python output to
+// avoid invalidating warm caches on existing consumer workflows.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.shortJsonHash = shortJsonHash;
+exports.canonicalJsonStringify = canonicalJsonStringify;
+exports.shortFileHash = shortFileHash;
+exports.shortFileHashSync = shortFileHashSync;
+exports.sanitizeFragment = sanitizeFragment;
+exports.normalizeTargetCacheProfile = normalizeTargetCacheProfile;
+exports.normalizeTargetCacheBool = normalizeTargetCacheBool;
+exports.normalizeLegacyTargetCacheMode = normalizeLegacyTargetCacheMode;
+exports.normalizeBuildCacheMode = normalizeBuildCacheMode;
+exports.normalizeTargetCacheCompress = normalizeTargetCacheCompress;
+exports.normalizeTargetCacheCompressLevel = normalizeTargetCacheCompressLevel;
+exports.targetCacheSoftBudget = targetCacheSoftBudget;
+exports.workspaceManifestHash = workspaceManifestHash;
+exports.cargoConfigHash = cargoConfigHash;
+exports.targetEnvHash = targetEnvHash;
+exports.resolveLockfilePath = resolveLockfilePath;
+exports.setupCachePaths = setupCachePaths;
+exports.setupCacheLayout = setupCacheLayout;
+exports.crossToolCacheKeyFor = crossToolCacheKeyFor;
+exports.pathForOutput = pathForOutput;
+exports.buildCacheGenerationPrefix = buildCacheGenerationPrefix;
+exports.buildCacheGenerationKey = buildCacheGenerationKey;
+exports.isBuildCacheGenerationOf = isBuildCacheGenerationOf;
+exports.isWarmBuildCacheMatch = isWarmBuildCacheMatch;
+exports.buildCacheRestoreRequest = buildCacheRestoreRequest;
+const node_crypto_1 = __nccwpck_require__(77598);
+const fs = __importStar(__nccwpck_require__(73024));
+const path = __importStar(__nccwpck_require__(76760));
+const TARGET_CACHE_PROFILES = ["thin-v1", "thin-v2", "thin-v3"];
+const TARGET_CACHE_BOOL_TRUE = new Set(["true", "1", "yes", "on"]);
+const TARGET_CACHE_BOOL_FALSE = new Set(["false", "0", "no", "off"]);
+const TARGET_CACHE_COMPRESS_CODECS = ["auto", "zstd", "none"];
+const TARGET_CACHE_COMPRESS_DEFAULT = "zstd";
+const TARGET_CACHE_COMPRESS_LEVEL_DEFAULT = "3";
+const TARGET_CACHE_COMPRESS_LEVEL_MIN = 1;
+const TARGET_CACHE_COMPRESS_LEVEL_MAX = 22;
+const MIB = 1024 * 1024;
+const GIB = 1024 * MIB;
+const TARGET_CACHE_SOFT_BUDGETS = {
+    once: [1024 * 1024 * 1024, 8_000],
+    thin: [512 * 1024 * 1024, 4_000],
+    full: [2 * GIB, 12_000],
+};
+const IGNORED_MANIFEST_DIRS = new Set([
+    ".git",
+    "target",
+    ".soldr",
+    "node_modules",
+    "_vender",
+]);
+// --------------------- core hashing helpers ---------------------
+/**
+ * sha256 -> first 16 hex chars over the Python-equivalent
+ * json.dumps(value, sort_keys=True, separators=(',', ':')) bytes.
+ */
+function shortJsonHash(value) {
+    const serialized = canonicalJsonStringify(value);
+    return (0, node_crypto_1.createHash)("sha256").update(serialized, "utf8").digest("hex").slice(0, 16);
+}
+/**
+ * Deterministic JSON.stringify equivalent to Python's
+ * json.dumps(sort_keys=True, separators=(',', ':')).
+ *
+ * Sorts object keys recursively at every level. Note: arrays preserve order.
+ * Booleans/null encode as "true"/"false"/"null". Numbers encode like Python's
+ * default json output for the integer cases we care about.
+ */
+function canonicalJsonStringify(value) {
+    return stringify(value);
+}
+function stringify(value) {
+    if (value === null || value === undefined) {
+        return "null";
+    }
+    if (typeof value === "string") {
+        return JSON.stringify(value);
+    }
+    if (typeof value === "number") {
+        if (!Number.isFinite(value)) {
+            // Python json by default refuses NaN/Infinity; we mirror by emitting null.
+            return "null";
+        }
+        return JSON.stringify(value);
+    }
+    if (typeof value === "boolean") {
+        return value ? "true" : "false";
+    }
+    if (Array.isArray(value)) {
+        const parts = value.map((item) => stringify(item));
+        return `[${parts.join(",")}]`;
+    }
+    if (typeof value === "object") {
+        const obj = value;
+        const keys = Object.keys(obj).sort();
+        const parts = keys.map((key) => `${JSON.stringify(key)}:${stringify(obj[key])}`);
+        return `{${parts.join(",")}}`;
+    }
+    // Fallback: stringify other primitives via JSON.
+    return JSON.stringify(value);
+}
+/**
+ * sha256 -> first 16 hex over the file contents, or the `missing` sentinel
+ * when the file does not exist.
+ */
+async function shortFileHash(filePath, missing) {
+    try {
+        const contents = await fs.promises.readFile(filePath);
+        return (0, node_crypto_1.createHash)("sha256").update(contents).digest("hex").slice(0, 16);
+    }
+    catch (err) {
+        if (err.code === "ENOENT") {
+            return missing;
+        }
+        throw err;
+    }
+}
+/** Synchronous variant used internally by `workspaceManifestHash`. */
+function shortFileHashSync(filePath, missing) {
+    try {
+        const contents = fs.readFileSync(filePath);
+        return (0, node_crypto_1.createHash)("sha256").update(contents).digest("hex").slice(0, 16);
+    }
+    catch (err) {
+        if (err.code === "ENOENT") {
+            return missing;
+        }
+        throw err;
+    }
+}
+// --------------------- fragment / normalize helpers ---------------------
+function sanitizeFragment(value) {
+    const replaced = value.replace(/[^A-Za-z0-9._-]+/g, "-");
+    const stripped = replaced.replace(/^-+/, "").replace(/-+$/, "");
+    return stripped || "default";
+}
+function normalizeTargetCacheProfile(value) {
+    const profile = value.trim().toLowerCase();
+    if (!profile) {
+        return "thin-v1";
+    }
+    if (!TARGET_CACHE_PROFILES.includes(profile)) {
+        throw new Error(`invalid target-cache-profile '${value}'; expected thin-v1, thin-v2, or thin-v3`);
+    }
+    return profile;
+}
+function normalizeTargetCacheBool(inputName, value) {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) {
+        return null;
+    }
+    if (TARGET_CACHE_BOOL_TRUE.has(normalized)) {
+        return "true";
+    }
+    if (TARGET_CACHE_BOOL_FALSE.has(normalized)) {
+        return "false";
+    }
+    throw new Error(`invalid ${inputName} '${value}'; expected true, false, 1, 0, yes, no, on, or off`);
+}
+function normalizeLegacyTargetCacheMode(value, log) {
+    const mode = value.trim().toLowerCase();
+    if (!mode) {
+        return "";
+    }
+    if (mode === "hot") {
+        log?.("target-cache-mode 'hot' is deprecated; using build-cache-mode 'thin'.");
+        return "thin";
+    }
+    if (!["thin", "full", "off"].includes(mode)) {
+        throw new Error(`invalid target-cache-mode '${value}'; expected thin, full, or off`);
+    }
+    return mode;
+}
+function normalizeBuildCacheMode(value, legacyTargetMode, allowLegacyTranslation, log) {
+    const explicitMode = value.trim().toLowerCase();
+    // When the caller opts into target-cache without an explicit mode
+    // (allowLegacyTranslation is the "target-cache requested + no explicit
+    // build-cache-mode" signal from resolve-setup), default to the bounded
+    // "thin" shape rather than the heavier "once" rust-plan bundle. The
+    // resolved mode is unused when target-cache is off, so keeping "once" as
+    // the no-target-cache default preserves the SETUP_SOLDR_BUILD_CACHE_MODE
+    // env value for downstream tools that read it. (#251)
+    const mode = explicitMode || (allowLegacyTranslation ? "thin" : "once");
+    if (!["once", "thin", "full"].includes(mode)) {
+        throw new Error(`invalid build-cache-mode '${value}'; expected once, thin, or full`);
+    }
+    const legacyMode = normalizeLegacyTargetCacheMode(legacyTargetMode, log);
+    if (allowLegacyTranslation &&
+        !explicitMode &&
+        (legacyMode === "thin" || legacyMode === "full")) {
+        log?.(`target-cache-mode '${legacyMode}' is deprecated; translating to build-cache-mode '${legacyMode}'.`);
+        return legacyMode;
+    }
+    return mode;
+}
+function normalizeTargetCacheCompress(value) {
+    const codec = value.trim().toLowerCase();
+    if (!codec) {
+        return TARGET_CACHE_COMPRESS_DEFAULT;
+    }
+    if (!TARGET_CACHE_COMPRESS_CODECS.includes(codec)) {
+        const expected = TARGET_CACHE_COMPRESS_CODECS.join(", ");
+        throw new Error(`invalid target-cache-compress '${value}'; expected ${expected}`);
+    }
+    return codec;
+}
+function normalizeTargetCacheCompressLevel(value) {
+    const raw = value.trim();
+    if (!raw) {
+        return TARGET_CACHE_COMPRESS_LEVEL_DEFAULT;
+    }
+    // Mirror Python int() semantics: accept optional leading sign, decimal digits only.
+    if (!/^[+-]?\d+$/.test(raw)) {
+        throw new Error(`invalid target-cache-compress-level '${value}'; expected integer between ${TARGET_CACHE_COMPRESS_LEVEL_MIN} and ${TARGET_CACHE_COMPRESS_LEVEL_MAX}`);
+    }
+    const level = Number(raw);
+    if (!Number.isInteger(level) ||
+        level < TARGET_CACHE_COMPRESS_LEVEL_MIN ||
+        level > TARGET_CACHE_COMPRESS_LEVEL_MAX) {
+        throw new Error(`invalid target-cache-compress-level '${value}'; expected integer between ${TARGET_CACHE_COMPRESS_LEVEL_MIN} and ${TARGET_CACHE_COMPRESS_LEVEL_MAX}`);
+    }
+    return String(level);
+}
+function targetCacheSoftBudget(targetCacheEnabled, buildCacheMode) {
+    if (!targetCacheEnabled) {
+        return ["", ""];
+    }
+    const budget = TARGET_CACHE_SOFT_BUDGETS[buildCacheMode];
+    if (!budget) {
+        throw new Error(`internal: unknown build-cache-mode '${buildCacheMode}' for budget lookup`);
+    }
+    return [String(budget[0]), String(budget[1])];
+}
+// --------------------- workspace / config / env hashes ---------------------
+function* walkCargoManifests(workspace) {
+    // Mirror Path.rglob("Cargo.toml") with the same ignored-dirs filter.
+    const stack = [workspace];
+    while (stack.length > 0) {
+        const current = stack.pop();
+        if (current === undefined)
+            break;
+        let entries;
+        try {
+            entries = fs.readdirSync(current, { withFileTypes: true });
+        }
+        catch {
+            continue;
+        }
+        // Sort so traversal order is deterministic; the final list is sorted
+        // again by relative path before hashing.
+        entries.sort((a, b) => a.name.localeCompare(b.name));
+        for (const entry of entries) {
+            const full = path.join(current, entry.name);
+            if (entry.isDirectory()) {
+                if (IGNORED_MANIFEST_DIRS.has(entry.name)) {
+                    continue;
+                }
+                stack.push(full);
+            }
+            else if (entry.isFile() && entry.name === "Cargo.toml") {
+                yield full;
+            }
+        }
+    }
+}
+function toPosixRelative(workspace, absolute) {
+    const rel = path.relative(workspace, absolute);
+    return rel.split(path.sep).join("/");
+}
+function hasIgnoredPart(rel) {
+    for (const part of rel.split("/")) {
+        if (IGNORED_MANIFEST_DIRS.has(part))
+            return true;
+    }
+    return false;
+}
+async function workspaceManifestHash(workspace) {
+    const hasher = (0, node_crypto_1.createHash)("sha256");
+    const relatives = [];
+    for (const abs of walkCargoManifests(workspace)) {
+        const rel = toPosixRelative(workspace, abs);
+        if (hasIgnoredPart(rel))
+            continue;
+        relatives.push({ rel, abs });
+    }
+    // Python sorts the iterable from rglob; Path objects sort by their string
+    // form (POSIX-style on Linux). To match, sort by the POSIX relative path.
+    relatives.sort((a, b) => (a.rel < b.rel ? -1 : a.rel > b.rel ? 1 : 0));
+    if (relatives.length === 0) {
+        return "no-manifest";
+    }
+    for (const { rel, abs } of relatives) {
+        hasher.update(Buffer.from(rel, "utf8"));
+        hasher.update(Buffer.from([0]));
+        const contents = await fs.promises.readFile(abs);
+        hasher.update(contents);
+        hasher.update(Buffer.from([0]));
+    }
+    return hasher.digest("hex").slice(0, 16);
+}
+async function cargoConfigHash(workspace) {
+    const hasher = (0, node_crypto_1.createHash)("sha256");
+    let matched = false;
+    for (const relative of [".cargo/config.toml", ".cargo/config"]) {
+        const abs = path.join(workspace, ...relative.split("/"));
+        if (fs.existsSync(abs)) {
+            matched = true;
+            hasher.update(Buffer.from(relative, "utf8"));
+            hasher.update(Buffer.from([0]));
+            const contents = await fs.promises.readFile(abs);
+            hasher.update(contents);
+            hasher.update(Buffer.from([0]));
+        }
+    }
+    return matched ? hasher.digest("hex").slice(0, 16) : "no-config";
+}
+function targetEnvHash(env) {
+    const relevant = {};
+    for (const [name, value] of Object.entries(env)) {
+        if (value === undefined)
+            continue;
+        if (name === "CARGO_BUILD_TARGET" ||
+            name === "CARGO_ENCODED_RUSTFLAGS" ||
+            name === "CARGO_TARGET_DIR" ||
+            name === "RUSTFLAGS" ||
+            (name.startsWith("CARGO_TARGET_") && name.endsWith("_RUSTFLAGS"))) {
+            relevant[name] = value;
+        }
+    }
+    return shortJsonHash(relevant);
+}
+// --------------------- lockfile resolution ---------------------
+function expanduser(p) {
+    if (p.startsWith("~")) {
+        const home = process.env["HOME"] || process.env["USERPROFILE"] || "";
+        if (p === "~")
+            return home;
+        if (p.startsWith("~/") || p.startsWith("~\\")) {
+            return path.join(home, p.slice(2));
+        }
+    }
+    return p;
+}
+function resolveWorkspacePath(workspace, value) {
+    const cleaned = value.trim();
+    if (!cleaned) {
+        return null;
+    }
+    let p = expanduser(cleaned);
+    if (!path.isAbsolute(p)) {
+        p = path.join(workspace, p);
+    }
+    return path.resolve(p);
+}
+function resolveLockfilePath(workspace, targetCachePath, lockfileInput) {
+    const explicit = resolveWorkspacePath(workspace, lockfileInput);
+    if (explicit !== null) {
+        return explicit;
+    }
+    const candidates = [
+        path.join(path.dirname(targetCachePath), "Cargo.lock"),
+        path.join(workspace, "Cargo.lock"),
+    ];
+    for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+            return path.resolve(candidate);
+        }
+    }
+    // Python: return the *first* candidate (parent of target dir + Cargo.lock).
+    return path.resolve(candidates[0]);
+}
+// --------------------- setup cache layout ---------------------
+function isPathInside(parent, child) {
+    // Compare resolved paths to determine containment.
+    const rel = path.relative(parent, child);
+    if (rel === "")
+        return true;
+    if (rel.startsWith(".."))
+        return false;
+    if (path.isAbsolute(rel))
+        return false;
+    return true;
+}
+function setupCachePaths(setupCachePath, binDir, soldrBinCachePath, rustupHome) {
+    const paths = [binDir, soldrBinCachePath];
+    // setup-soldr#102: always cache `~/.rustup/update-hashes/<channel>-<host>`.
+    // These are ~64-byte manifest hashes that let `rustup update` short-circuit
+    // without a dist-server roundtrip. The dir is tiny (KB range) and the
+    // latency win is large, so we include it even on the `system` rustup layout
+    // where the toolchains/ tree itself is shared with the runner image and
+    // deliberately excluded. (Toolchains/settings.toml stay gated on
+    // rustupHome being inside setupCachePath — those payloads are large and
+    // only owned by the managed rustup layout.)
+    paths.push(path.join(rustupHome, "update-hashes"));
+    if (!isPathInside(setupCachePath, rustupHome)) {
+        return paths.join("\n");
+    }
+    paths.push(path.join(rustupHome, "settings.toml"));
+    paths.push(path.join(rustupHome, "toolchains"));
+    return paths.join("\n");
+}
+function setupCacheLayout(setupCachePath, rustupHome) {
+    return isPathInside(setupCachePath, rustupHome)
+        ? "bin+soldr-bin+rustup"
+        : "bin+soldr-bin";
+}
+/**
+ * Derive the cache key for one (host, target) cross-compile lane.
+ *
+ * Shape: `tool-<host>-<target>-<toolsHash>-soldr<soldrVer>` where
+ * `<toolsHash>` is a short content-addressable hash over the sorted
+ * tool-name -> version map. The hash keeps the key length bounded and
+ * canonical regardless of how many tools the lane includes.
+ */
+function crossToolCacheKeyFor(input) {
+    const host = sanitizeFragment(input.host.trim());
+    const target = sanitizeFragment(input.target.trim());
+    const soldrVer = sanitizeFragment((input.soldrVer || "").trim().replace(/^v/, "") || "unresolved");
+    // Canonicalize the toolVersions map: sort keys, drop empty values so the
+    // sparse-spec invariant in the test "omits irrelevant tools" holds.
+    const tools = {};
+    for (const [k, v] of Object.entries(input.toolVersions)) {
+        if (!k || !v)
+            continue;
+        tools[k.trim()] = String(v).trim();
+    }
+    const toolsHash = shortJsonHash(tools);
+    return `tool-${host}-${target}-${toolsHash}-soldr${soldrVer}`;
+}
+/** Produce a path-style output: workspace-relative when inside workspace, else absolute. */
+function pathForOutput(workspace, p) {
+    if (p === null)
+        return "";
+    const rel = path.relative(workspace, p);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) {
+        return p;
+    }
+    return rel;
+}
+// ---- build-cache generations (setup-soldr#682) ----
+//
+// The build-cache exact key is commit-free (setup-soldr#237), so an exact hit
+// used to freeze the first writer's zccache store until the lockfile,
+// toolchain or soldr changed: every crate edited since then missed on every
+// run. A warm run that still compiled now saves `<exact>-g<run_id>[-<attempt>]`,
+// and restore asks for `<exact>-g` first. That primary key never exists
+// literally, so GitHub prefix-matches it and returns the newest generation;
+// the bare exact key stays the fallback.
+const GENERATION_SUFFIX = /^\d+(?:-\d+)?$/;
+/** Restore prefix that matches every generation of `exactKey`. */
+function buildCacheGenerationPrefix(exactKey) {
+    return `${exactKey}-g`;
+}
+/**
+ * Generation key for this run, or null when there is no numeric run id (a
+ * local runner has no Actions cache generation to write). Attempt 1 (or an
+ * unset attempt) is omitted so a re-run attempt gets its own key.
+ */
+function buildCacheGenerationKey(exactKey, runId, runAttempt) {
+    const id = runId.trim();
+    if (!/^\d+$/.test(id))
+        return null;
+    const attempt = runAttempt.trim();
+    const attemptSuffix = /^\d+$/.test(attempt) && attempt !== "1" ? `-${attempt}` : "";
+    return `${buildCacheGenerationPrefix(exactKey)}${id}${attemptSuffix}`;
+}
+/** True when `matchedKey` is a generation written by `buildCacheGenerationKey`. */
+function isBuildCacheGenerationOf(matchedKey, exactKey) {
+    const prefix = buildCacheGenerationPrefix(exactKey);
+    return matchedKey.startsWith(prefix) && GENERATION_SUFFIX.test(matchedKey.slice(prefix.length));
+}
+/** Exact or generation match: the restored store is this key's own lineage. */
+function isWarmBuildCacheMatch(matchedKey, exactKey) {
+    return matchedKey.length > 0 && (matchedKey === exactKey || isBuildCacheGenerationOf(matchedKey, exactKey));
+}
+/** Primary key and restore-keys for an `@actions/cache` build-cache restore. */
+function buildCacheRestoreRequest(exactKey, fallbackRestoreKeys) {
+    return {
+        primaryKey: buildCacheGenerationPrefix(exactKey),
+        restoreKeys: [exactKey, ...fallbackRestoreKeys],
+    };
+}
+
+
+/***/ }),
+
 /***/ 84412:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -50848,7 +51392,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.familyPrefixOfBaseKey = familyPrefixOfBaseKey;
 exports.supersedeDisabled = supersedeDisabled;
 exports.deleteSupersededFamilyEntries = deleteSupersededFamilyEntries;
+exports.sweepSupersededBuildCacheGenerations = sweepSupersededBuildCacheGenerations;
 const github = __importStar(__nccwpck_require__(93228));
+const cache_keys_js_1 = __nccwpck_require__(15606);
 /**
  * The family prefix of a base-layer key.
  *
@@ -50942,6 +51488,36 @@ async function deleteSupersededFamilyEntries(opts) {
         opts.log(`cache-supersede: deleted ${deleted} superseded ${prefix} entr${deleted === 1 ? "y" : "ies"} (${bytes} bytes) after saving ${opts.keepKey}`);
     }
     return { deleted, failed, bytes };
+}
+/**
+ * Delete older build-cache generations of `exactKey` after `keepKey` saved
+ * (setup-soldr#682), reusing the cook layer's supersede sweep. Only keys under
+ * `<exactKey>-g` are touched: the bare exact key stays as the fallback, and
+ * other jobs' keys never share the prefix. Best effort -- a sweep that cannot
+ * list or delete becomes a warning, never a failed job.
+ */
+async function sweepSupersededBuildCacheGenerations(opts) {
+    const { exactKey, keepKey, warn, ...rest } = opts;
+    if (!(0, cache_keys_js_1.isBuildCacheGenerationOf)(keepKey, exactKey)) {
+        return { deleted: 0, failed: 0, bytes: 0, reason: "keep key is not a generation" };
+    }
+    let result;
+    try {
+        result = await deleteSupersededFamilyEntries({
+            ...rest,
+            keepKey,
+            familyPrefix: (0, cache_keys_js_1.buildCacheGenerationPrefix)(exactKey),
+        });
+    }
+    catch (error) {
+        result = { deleted: 0, failed: 0, bytes: 0, reason: error instanceof Error ? error.message : String(error) };
+    }
+    if (result.failed > 0 || (result.reason && result.reason !== "disabled by NO_CACHE_SUPERSEDE")) {
+        warn(`build-cache: could not delete superseded generations of ${exactKey} ` +
+            `(deleted=${result.deleted} failed=${result.failed}${result.reason ? ` reason=${result.reason}` : ""}); ` +
+            `grant the workflow 'permissions: actions: write' so older generations do not hold cache budget until LRU eviction`);
+    }
+    return result;
 }
 
 
@@ -51410,8 +51986,10 @@ exports.verifyCompileCacheActivity = verifyCompileCacheActivity;
 exports.parseMinCompiles = parseMinCompiles;
 exports.decideBuildCacheSave = decideBuildCacheSave;
 exports.decideTargetCacheSave = decideTargetCacheSave;
+exports.planBuildCacheSaveKey = planBuildCacheSaveKey;
 const fs = __importStar(__nccwpck_require__(73024));
 const path = __importStar(__nccwpck_require__(76760));
+const cache_keys_js_1 = __nccwpck_require__(15606);
 /** Markdown table cell escaping — keeps the table grid intact. */
 function cell(value) {
     return value.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
@@ -51953,6 +52531,35 @@ function decideBuildCacheSave(input) {
  */
 function decideTargetCacheSave(input) {
     return decideCacheSaveGate(input, "target-cache-save-min-compiles");
+}
+/**
+ * Pick the key a build-cache save writes, or why it skips (setup-soldr#682).
+ * Runs after `decideBuildCacheSave`, so the #681 thin-store rule has already
+ * refused a cold seed; this only decides where a warm store goes.
+ *
+ * A cold or donor (fallback) restore saves the bare exact key, as before. A
+ * warm restore -- the exact key or one of its generations -- used to be an
+ * `exact-hit-skip`, which froze the first writer's store; it now saves a new
+ * generation when the session compiled at least `max(1, minCompiles)` units.
+ * Zero compiles, or an unknown count, means the restored store already holds
+ * everything, so re-uploading it would only duplicate the entry.
+ */
+function planBuildCacheSaveKey(input) {
+    if (!(0, cache_keys_js_1.isWarmBuildCacheMatch)(input.matchedKey, input.exactKey)) {
+        return { key: input.exactKey, generation: false };
+    }
+    const threshold = Math.max(1, input.minCompiles);
+    if (input.newCompiles === null) {
+        return { skip: `warm hit on ${input.matchedKey}; new-compile count unknown` };
+    }
+    if (input.newCompiles < threshold) {
+        return { skip: `warm hit on ${input.matchedKey}; ${input.newCompiles} new compile(s) < ${threshold}` };
+    }
+    const key = (0, cache_keys_js_1.buildCacheGenerationKey)(input.exactKey, input.runId, input.runAttempt);
+    if (key === null) {
+        return { skip: `warm hit on ${input.matchedKey}; no GITHUB_RUN_ID to name a new generation` };
+    }
+    return { key, generation: true };
 }
 
 
@@ -62143,6 +62750,7 @@ const cargo_registry_archive_js_1 = __nccwpck_require__(43408);
 const log_utils_js_1 = __nccwpck_require__(28129);
 const shutdown_cache_js_1 = __nccwpck_require__(35326);
 const stats_collector_js_1 = __nccwpck_require__(51002);
+const cache_supersede_js_1 = __nccwpck_require__(84412);
 const compile_cache_stats_js_1 = __nccwpck_require__(63355);
 const diagnostics_js_1 = __nccwpck_require__(92587);
 const raw_inputs_js_1 = __nccwpck_require__(52183);
@@ -63438,19 +64046,31 @@ async function runPost() {
     // already restored — the restored entry already holds everything, so
     // re-saving under a fallback key just uploads a duplicate multi-GiB payload.
     // #559: a job that failed or was cancelled saves no build outputs; its
-    // store may be partial, and an exact-hit key is never re-saved.
+    // store may be partial, and a warm hit only ever saves a new generation (#682).
     const buildOutputGate = (0, failed_job_save_js_1.readBuildOutputSaveGate)(process.env);
     const buildSaveStart = Date.now();
     const buildCacheRestored = buildCacheMatched.trim().length > 0;
     const buildDeltaMisses = restoreState.buildCacheEnabled
         ? computeJobNewCompiles(result.buildCache.path, readBuildCacheBaselineMs())
         : null;
+    const buildMinCompiles = (0, compile_cache_stats_js_1.parseMinCompiles)(rawInputs.buildCacheSaveMinCompiles);
     const buildSaveGate = (0, compile_cache_stats_js_1.decideBuildCacheSave)({
         restored: buildCacheRestored,
         newCompiles: buildDeltaMisses,
-        minCompiles: (0, compile_cache_stats_js_1.parseMinCompiles)(rawInputs.buildCacheSaveMinCompiles),
+        minCompiles: buildMinCompiles,
         dylintOutputRestored: dylintOutputCacheRestored(),
     });
+    // setup-soldr#682: a warm (exact or generation) restore that still compiled
+    // saves a new generation; a cold or donor restore saves the bare key.
+    const buildSaveKeyPlan = (0, compile_cache_stats_js_1.planBuildCacheSaveKey)({
+        exactKey: result.buildCache.key,
+        matchedKey: buildCacheMatched.trim(),
+        newCompiles: buildDeltaMisses,
+        minCompiles: buildMinCompiles,
+        runId: process.env["GITHUB_RUN_ID"] ?? "",
+        runAttempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "",
+    });
+    const buildSaveKey = "key" in buildSaveKeyPlan ? buildSaveKeyPlan.key : result.buildCache.key;
     let buildSave;
     if (!restoreState.buildCacheEnabled) {
         buildSave = Object.assign(disabledSave(), {
@@ -63476,12 +64096,23 @@ async function runPost() {
             skip_reason: buildSaveGate.reason,
         }, { archiveBytes: null, inflatedBytes: null, fileCount: null, payload: null });
     }
+    else if ("skip" in buildSaveKeyPlan) {
+        log(`build-cache: skipping save — ${buildSaveKeyPlan.skip}`);
+        buildSave = Object.assign({
+            status: "exact-hit-skip",
+            cache_dir: result.buildCache.path,
+            skip_reason: buildSaveKeyPlan.skip,
+        }, { archiveBytes: null, inflatedBytes: null, fileCount: null, payload: null });
+    }
     else {
+        if (buildSaveKeyPlan.generation) {
+            log(`build-cache: warm hit on ${buildCacheMatched} compiled ${buildDeltaMisses} new unit(s); saving generation ${buildSaveKey}`);
+        }
         buildSave = await saveOne({
             cacheDir: result.buildCache.path,
             codec: result.targetCacheCompress,
             level: result.targetCacheCompressLevel,
-            key: result.buildCache.key,
+            key: buildSaveKey,
             matchedKey: buildCacheMatched,
             label: "build-cache",
             debug: debugMode,
@@ -63489,6 +64120,15 @@ async function runPost() {
             payloadProfile: "zccache-build-cache",
             payloadPolicy,
         });
+        if (buildSaveKeyPlan.generation && buildSave.status === "saved") {
+            await (0, cache_supersede_js_1.sweepSupersededBuildCacheGenerations)({
+                exactKey: result.buildCache.key,
+                keepKey: buildSaveKey,
+                log,
+                warn: (msg) => core.warning(msg),
+                token: (process.env["GITHUB_TOKEN"] ?? "").trim() || (process.env["INPUT_TOKEN"] ?? "").trim(),
+            });
+        }
     }
     // Publish provenance only after the real upload has a positive cache ID
     // and the existing failed-job, dependency-yank, and payload gates passed.
@@ -63515,7 +64155,7 @@ async function runPost() {
     // only count actual uploads.
     postCollector.record({
         label: "build-cache", operation: "save", hit: false,
-        key: result.buildCache.key, matchedKey: buildCacheMatched, restoreKeys: [],
+        key: buildSaveKey, matchedKey: buildCacheMatched, restoreKeys: [],
         status: buildSave.status,
         archiveBytes: buildSave.status === "saved" || buildSave.status === "oversize-skip" ? buildSave.archiveBytes : null,
         inflatedBytes: buildSave.status === "saved" || buildSave.status === "oversize-skip" ? buildSave.inflatedBytes : null,
