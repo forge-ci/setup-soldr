@@ -23,7 +23,7 @@ import { ToolRunner } from "@actions/exec/lib/toolrunner.js";
 import * as github from "@actions/github";
 import { compressCache, decompressCache, detectCompressMagic } from "./cache-compress.js";
 import { allowCacheSave, gatedSaveCache } from "./save-policy.js";
-import type { SnapshotDiff } from "./toolchain-snapshot.js";
+import { diffSnapshots, type Snapshot, type SnapshotDiff, type SnapshotEntry } from "./toolchain-snapshot.js";
 
 /**
  * The two live roots whose deltas this cache layer tracks. The string keys
@@ -303,6 +303,85 @@ function findRootTag(absRoot: string, rootMap: RootMap): RootTag | null {
 
 async function ensureDir(p: string): Promise<void> {
   await fsp.mkdir(p, { recursive: true });
+}
+
+/** Serialize the setup-time tree of the managed toolchains root for the post step. */
+export function serializeSetupTree(snapshot: Snapshot, toolchainsRoot: string): string {
+  const entries = [...snapshot.entries.values()].filter((entry) => entry.root === toolchainsRoot);
+  return JSON.stringify({ schema: 1, root: toolchainsRoot, entries });
+}
+
+export function parseSetupTree(text: string): { root: string; snapshot: Snapshot } | null {
+  try {
+    const parsed = JSON.parse(text) as { schema?: number; root?: string; entries?: SnapshotEntry[] };
+    if (parsed.schema !== 1 || typeof parsed.root !== "string" || !Array.isArray(parsed.entries)) return null;
+    const entries = new Map<string, SnapshotEntry>();
+    for (const entry of parsed.entries) entries.set(`${entry.root}#${entry.relpath}`, entry);
+    return { root: parsed.root, snapshot: { entries } };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The save-diff manifest is computed when setup finishes, but the post step
+ * stages those paths with their contents at job end. A later step that
+ * changes the toolchain (soldr's first-use `rustup component add clippy`,
+ * a workflow's own `rustup component add`) rewrites rustup's metadata
+ * (`lib/rustlib/components`) while its new files are not in the manifest.
+ * Saving that combination poisons the entry: rustup then believes clippy is
+ * installed but has no cargo-clippy. Fold every late change inside the
+ * toolchain directories the manifest already saves into the save set so the
+ * archive matches the metadata it carries.
+ */
+export function reconcileLateToolchainChanges(opts: {
+  added: SnapshotEntry[];
+  changed: { before: SnapshotEntry; after: SnapshotEntry }[];
+  setupTree: Snapshot;
+  current: Snapshot;
+  toolchainsRoot: string;
+}): {
+  added: SnapshotEntry[];
+  changed: { before: SnapshotEntry; after: SnapshotEntry }[];
+  late: { added: number; changed: number; removed: number };
+} {
+  const { toolchainsRoot } = opts;
+  const key = (entry: SnapshotEntry): string => `${entry.root}#${entry.relpath}`;
+  const toolchainDir = (entry: SnapshotEntry): string => entry.relpath.split("/", 1)[0] ?? "";
+  const saved = new Set(
+    [...opts.added, ...opts.changed.map((change) => change.after)]
+      .filter((entry) => entry.root === toolchainsRoot)
+      .map(toolchainDir)
+      .filter(Boolean),
+  );
+  const inScope = (entry: SnapshotEntry): boolean => entry.root === toolchainsRoot && saved.has(toolchainDir(entry));
+  const drift = diffSnapshots(opts.setupTree, opts.current);
+  const lateAdded = drift.added.filter(inScope);
+  const lateChanged = drift.changed.filter((change) => inScope(change.after));
+  const lateRemoved = new Set(drift.removed.filter(inScope).map(key));
+  const added = opts.added.filter((entry) => !lateRemoved.has(key(entry)));
+  const changed = opts.changed.filter((change) => !lateRemoved.has(key(change.after)));
+  const addedIndex = new Map(added.map((entry, index) => [key(entry), index]));
+  const changedIndex = new Map(changed.map((change, index) => [key(change.after), index]));
+  for (const entry of lateAdded) {
+    if (!addedIndex.has(key(entry))) {
+      addedIndex.set(key(entry), added.length);
+      added.push(entry);
+    }
+  }
+  for (const change of lateChanged) {
+    const k = key(change.after);
+    const a = addedIndex.get(k);
+    const c = changedIndex.get(k);
+    if (a !== undefined) added[a] = change.after;
+    else if (c !== undefined) changed[c] = { before: changed[c]!.before, after: change.after };
+    else changed.push(change);
+  }
+  return {
+    added,
+    changed,
+    late: { added: lateAdded.length, changed: lateChanged.length, removed: lateRemoved.size },
+  };
 }
 
 /**
@@ -847,6 +926,70 @@ export async function verifyRegisteredTargetPayloads(opts: {
 }
 
 /**
+ * Validate the payload of every component rustup has registered in the
+ * restored toolchain (`lib/rustlib/components`), not only requested ones.
+ * An entry saved after a later step added a component (e.g. soldr's
+ * first-use `rustup component add clippy`) can carry the updated
+ * `components` list without that component's files or manifest. rustup then
+ * reports "component clippy is up to date" and refuses to run cargo-clippy
+ * because it "is not applicable to the toolchain"; it cannot even remove it.
+ */
+export async function verifyRegisteredComponentPayloads(opts: {
+  channel: string;
+  log: (message: string) => void;
+  runRustup: (args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
+  readFile?: (filename: string) => Promise<string>;
+  exists?: (filename: string, kind: "file" | "dir") => Promise<boolean>;
+}): Promise<boolean> {
+  const fail = (reason: string): false => {
+    opts.log(`solo-toolchain-cache: registered component validation failed: ${reason}`);
+    return false;
+  };
+  try {
+    const which = await opts.runRustup(["which", "--toolchain", opts.channel, "rustc"]);
+    const executable = which.stdout.trim();
+    if (which.code !== 0 || !path.isAbsolute(executable) || !/^rustc(?:\.exe)?$/i.test(path.basename(executable))) {
+      return fail("cannot resolve the selected toolchain");
+    }
+    const sysroot = path.dirname(path.dirname(executable));
+    const readFile = opts.readFile ?? ((filename: string) => fsp.readFile(filename, "utf8"));
+    const exists = opts.exists ?? (async (filename: string, kind: "file" | "dir") => {
+      const stat = await fsp.stat(filename).catch(() => null);
+      return stat !== null && (kind === "file" ? stat.isFile() : stat.isDirectory());
+    });
+    const rustlib = path.join(sysroot, "lib", "rustlib");
+    const components = (await readFile(path.join(rustlib, "components"))).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (components.length === 0) return fail("empty component registry");
+    for (const component of new Set(components)) {
+      if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(component)) return fail(`invalid component name ${component}`);
+      let manifest: string;
+      try {
+        manifest = await readFile(path.join(rustlib, `manifest-${component}`));
+      } catch {
+        return fail(`missing manifest for registered component ${component}`);
+      }
+      const entries = manifest.split(/\r?\n/).filter(Boolean);
+      if (entries.length === 0) return fail(`empty manifest for ${component}`);
+      for (const entry of entries) {
+        const match = /^(file|dir):(.+)$/.exec(entry);
+        if (!match) return fail(`invalid manifest entry for ${component}`);
+        const relative = match[2]!;
+        if (relative.split("/").some((part) => part === ".." || part === "." || !part || part.includes("\\"))) {
+          return fail(`unsafe manifest entry for ${component}`);
+        }
+        const kind = match[1] === "dir" ? "dir" : "file";
+        if (!(await exists(path.join(sysroot, ...relative.split("/")), kind))) {
+          return fail(`registered component ${component} is missing ${relative}`);
+        }
+      }
+    }
+    return true;
+  } catch (err) {
+    return fail(err instanceof Error ? err.message : String(err));
+  }
+}
+
+/**
  * Environment for a restored-toolchain probe. `SOLDR_DYLINT_TOOLCHAIN`
  * makes soldr's proxies rewrite every toolchain selection to the Dylint
  * nightly, so a probe of the cached channel would observe the nightly
@@ -888,6 +1031,10 @@ export async function verifyRestoredToolchain(opts: {
   checkRegisteredTargets?: boolean;
   readTargetManifest?: (filename: string) => Promise<string>;
   targetFileExists?: (filename: string) => Promise<boolean>;
+  /** Check every component rustup registered, not only requested ones. */
+  checkRegisteredComponents?: boolean;
+  readComponentFile?: (filename: string) => Promise<string>;
+  componentPathExists?: (filename: string, kind: "file" | "dir") => Promise<boolean>;
   channel: string;
   rustupCommand: string;
   bootstrapSoldr?: string;
@@ -1045,5 +1192,12 @@ export async function verifyRestoredToolchain(opts: {
   const registeredTargetsMatch = !opts.checkRegisteredTargets || await verifyRegisteredTargetPayloads({
     channel, log, runRustup, readManifest: opts.readTargetManifest, isFile: opts.targetFileExists,
   });
-  return { match: releaseMatch && targetsMatch && componentsMatch && registeredTargetsMatch, observedRelease, observedCommit };
+  const registeredComponentsMatch = !opts.checkRegisteredComponents || await verifyRegisteredComponentPayloads({
+    channel, log, runRustup, readFile: opts.readComponentFile, exists: opts.componentPathExists,
+  });
+  return {
+    match: releaseMatch && targetsMatch && componentsMatch && registeredTargetsMatch && registeredComponentsMatch,
+    observedRelease,
+    observedCommit,
+  };
 }

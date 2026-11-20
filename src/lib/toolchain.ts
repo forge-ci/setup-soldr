@@ -428,6 +428,69 @@ export async function systemRustupSatisfiesRequest(opts: {
   return true;
 }
 
+/**
+ * Tool components a workflow commonly installs into the runner toolchain
+ * before setup-soldr runs (`dtolnay/rust-toolchain` `components: clippy`,
+ * `rustup component add rustfmt`, ...). Profile basics (rustc, cargo,
+ * rust-std) and the bulky rust-docs are deliberately not carried.
+ */
+export const CARRIED_RUNNER_COMPONENTS: readonly string[] = [
+  "clippy",
+  "rustfmt",
+  "rust-src",
+  "rust-analyzer",
+  "llvm-tools",
+  "miri",
+  "rustc-dev",
+];
+
+/**
+ * Pure: the carried tool components that `rustup component list --installed`
+ * reports for the runner toolchain, in CARRIED_RUNNER_COMPONENTS order.
+ */
+export function carriedRunnerComponents(installed: Set<string>): string[] {
+  return CARRIED_RUNNER_COMPONENTS.filter((component) => componentInstalled(installed, component));
+}
+
+/**
+ * Pure: requested components plus carried ones the request does not
+ * already name (a `clippy-preview` request already covers `clippy`).
+ */
+export function mergeCarriedComponents(requested: string[], carried: string[]): string[] {
+  const covered = new Set(requested.map((c) => c.trim().replace(/-preview$/, "")));
+  return [...requested, ...carried.filter((c) => !covered.has(c))];
+}
+
+/**
+ * When macOS forces a private RUSTUP_HOME (#105), the runner toolchain the
+ * workflow prepared is no longer the one cargo runs. List the tool components
+ * that toolchain has so the managed toolchain can be given the same ones.
+ * Any probe failure returns [] and leaves the request unchanged.
+ */
+export async function runnerToolComponents(opts: {
+  cargoHome: string;
+  rustupHome: string;
+  channel: string;
+  env: Record<string, string | undefined>;
+  deps?: SystemRustupProbeDeps;
+}): Promise<string[]> {
+  const which = opts.deps?.which ?? defaultWhich;
+  const installedNamesFn = opts.deps?.rustupInstalledNames ?? rustupInstalledNames;
+  const rustup = await which("rustup");
+  if (rustup === null) return [];
+  const channel = opts.channel.trim() || "stable";
+  try {
+    const installed = await installedNamesFn(
+      rustup,
+      ["component", "list", "--toolchain", channel, "--installed"],
+      makeProbeEnv(opts.env, opts.cargoHome, opts.rustupHome),
+    );
+    return carriedRunnerComponents(installed);
+  } catch {
+    return [];
+  }
+}
+
 function makeProbeEnv(
   env: Record<string, string | undefined>,
   cargoHome: string,

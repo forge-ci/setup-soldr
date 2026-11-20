@@ -397,3 +397,33 @@ test("system Rust release probe uses the selected Soldr and Rust homes", async (
   assert.equal(ok, true);
   assert.equal(fs.readFileSync(marker, "utf8").trim(), `--no-cache rustc --version|stable|${cargoHome}|${rustupHome}||0`);
 });
+
+test("carriedRunnerComponents keeps tool components and drops profile basics and rust-docs", async () => {
+  const { carriedRunnerComponents, runnerToolComponents } = await import("../src/lib/toolchain.js");
+  const installed = new Set([
+    "cargo-aarch64-apple-darwin",
+    "clippy-aarch64-apple-darwin",
+    "rust-docs-aarch64-apple-darwin",
+    "rust-std-aarch64-apple-darwin",
+    "rust-std-x86_64-apple-darwin",
+    "rustc-aarch64-apple-darwin",
+    "rustfmt-aarch64-apple-darwin",
+    "rust-src",
+  ]);
+  assert.deepEqual(carriedRunnerComponents(installed), ["clippy", "rustfmt", "rust-src"]);
+  const calls: string[][] = [];
+  const carried = await runnerToolComponents({
+    cargoHome: "/c", rustupHome: "/r", channel: "stable", env: {},
+    deps: {
+      which: async () => "/usr/bin/rustup",
+      rustupInstalledNames: async (_rustup, args, env) => {
+        calls.push([...args, env["RUSTUP_HOME"] ?? ""]);
+        return installed;
+      },
+    },
+  });
+  assert.deepEqual(carried, ["clippy", "rustfmt", "rust-src"]);
+  assert.deepEqual(calls, [["component", "list", "--toolchain", "stable", "--installed", "/r"]]);
+  const noRustup = await runnerToolComponents({ cargoHome: "/c", rustupHome: "/r", channel: "stable", env: {}, deps: { which: async () => null } });
+  assert.deepEqual(noRustup, []);
+});
