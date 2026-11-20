@@ -64,7 +64,9 @@ import {
 import { pythonDefaultJson } from "./python-json.js";
 import {
   loadToolchainSpec,
+  mergeCarriedComponents,
   rollingToolchainAlias,
+  runnerToolComponents,
   systemRustupSatisfiesRequest,
 } from "./toolchain.js";
 import type {
@@ -725,13 +727,33 @@ export async function resolveSetup(
     // initial selection landed on `system` so we get a private rustup home.
     const overridden = resolveRustupStrategy({
       requested: rustupStrategy,
-      platform: process.platform,
+      platform: deps?.platform ?? process.platform,
       warn: (msg) => logger.warning(msg),
     });
     if (overridden !== rustupStrategy) {
       rustupStrategy = overridden;
       if (rustupStrategy === "managed") {
         rustupHome = path.join(cacheRoot, "rustup-home");
+        // The runner toolchain satisfied the request, so the workflow
+        // prepared it (e.g. dtolnay/rust-toolchain `components: clippy`).
+        // Give the private toolchain the same tool components; otherwise
+        // `soldr cargo clippy` installs clippy after the toolchain snapshot.
+        const carried = await (deps?.runnerToolComponents
+          ? deps.runnerToolComponents(cargoHome, runnerRustupHome, toolchain.channel)
+          : runnerToolComponents({
+            cargoHome,
+            rustupHome: runnerRustupHome,
+            channel: toolchain.channel,
+            env,
+            deps: deps?.systemRustup,
+          }));
+        const merged = mergeCarriedComponents(toolchain.components, carried);
+        if (merged.length > toolchain.components.length) {
+          logger.log(
+            `Carrying runner toolchain components into the managed RUSTUP_HOME: ${merged.slice(toolchain.components.length).join(", ")}`,
+          );
+          toolchain.components = merged;
+        }
       }
     }
   }

@@ -22,9 +22,13 @@ import {
   verifyProbeEnv,
   verifyRestoredToolchain,
   verifyRegisteredTargetPayloads,
+  verifyRegisteredComponentPayloads,
+  reconcileLateToolchainChanges,
+  serializeSetupTree,
+  parseSetupTree,
   type RootMap,
 } from "../src/lib/solo-toolchain-cache.js";
-import type { SnapshotDiff, SnapshotEntry } from "../src/lib/toolchain-snapshot.js";
+import { diffSnapshots, walkSnapshot, type SnapshotDiff, type SnapshotEntry } from "../src/lib/toolchain-snapshot.js";
 
 function mkTmp(prefix: string): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -78,6 +82,146 @@ test("restored toolchain verification includes undeclared registered target payl
     targetFileExists: async () => false,
   });
   assert.equal(result.match, false);
+});
+
+// A stable-aarch64-apple-darwin tree as rustup lays it out, minimal profile.
+const TOOLCHAIN = "stable-aarch64-apple-darwin";
+function writeMinimalToolchain(toolchains: string): string {
+  const sysroot = path.join(toolchains, TOOLCHAIN);
+  writeFile(sysroot, "bin/rustc", "rustc");
+  writeFile(sysroot, "bin/cargo", "cargo");
+  writeFile(sysroot, "lib/rustlib/aarch64-apple-darwin/lib/libcore-abcd.rlib", "core");
+  writeFile(sysroot, "lib/rustlib/manifest-rustc-aarch64-apple-darwin", "file:bin/rustc\n");
+  writeFile(sysroot, "lib/rustlib/manifest-cargo-aarch64-apple-darwin", "file:bin/cargo\n");
+  writeFile(sysroot, "lib/rustlib/manifest-rust-std-aarch64-apple-darwin", "file:lib/rustlib/aarch64-apple-darwin/lib/libcore-abcd.rlib\n");
+  writeFile(sysroot, "lib/rustlib/components", "cargo-aarch64-apple-darwin\nrust-std-aarch64-apple-darwin\nrustc-aarch64-apple-darwin\n");
+  return sysroot;
+}
+
+// What `rustup component add clippy` does to that tree.
+function addClippy(sysroot: string): void {
+  writeFile(sysroot, "bin/cargo-clippy", "cargo-clippy");
+  writeFile(sysroot, "bin/clippy-driver", "clippy-driver");
+  writeFile(sysroot, "lib/rustlib/manifest-clippy-preview-aarch64-apple-darwin", "file:bin/cargo-clippy\nfile:bin/clippy-driver\n");
+  fs.appendFileSync(path.join(sysroot, "lib/rustlib/components"), "clippy-preview-aarch64-apple-darwin\n");
+}
+
+function rustupFor(sysroot: string) {
+  return async (args: string[]) => ({ code: 0, stdout: args[0] === "which" ? `${path.join(sysroot, "bin", "rustc")}\n` : "", stderr: "" });
+}
+
+test("registered component validation rejects clippy registered without its files (talos-vox poisoned entry)", async () => {
+  const root = mkTmp("solo-component-poison-");
+  try {
+    const sysroot = writeMinimalToolchain(path.join(root, "toolchains"));
+    const healthy = await verifyRegisteredComponentPayloads({ channel: "stable", log: () => {}, runRustup: rustupFor(sysroot) });
+    assert.equal(healthy, true);
+    // The poisoned shape: rustup's registry lists clippy, nothing else of it exists.
+    fs.appendFileSync(path.join(sysroot, "lib/rustlib/components"), "clippy-preview-aarch64-apple-darwin\n");
+    const logs: string[] = [];
+    const poisoned = await verifyRegisteredComponentPayloads({ channel: "stable", log: (m) => logs.push(m), runRustup: rustupFor(sysroot) });
+    assert.equal(poisoned, false);
+    assert.match(logs.join("\n"), /missing manifest for registered component clippy-preview-aarch64-apple-darwin/);
+    // Manifest present but payload missing is rejected too.
+    writeFile(sysroot, "lib/rustlib/manifest-clippy-preview-aarch64-apple-darwin", "file:bin/cargo-clippy\nfile:bin/clippy-driver\n");
+    assert.equal(await verifyRegisteredComponentPayloads({ channel: "stable", log: () => {}, runRustup: rustupFor(sysroot) }), false);
+    writeFile(sysroot, "bin/cargo-clippy", "x");
+    writeFile(sysroot, "bin/clippy-driver", "x");
+    assert.equal(await verifyRegisteredComponentPayloads({ channel: "stable", log: () => {}, runRustup: rustupFor(sysroot) }), true);
+  } finally {
+    rmDir(root);
+  }
+});
+
+test("restored toolchain verification fails on an undeclared component without payload", async () => {
+  const root = mkTmp("solo-component-verify-");
+  try {
+    const sysroot = writeMinimalToolchain(path.join(root, "toolchains"));
+    fs.appendFileSync(path.join(sysroot, "lib/rustlib/components"), "clippy-preview-aarch64-apple-darwin\n");
+    const result = await verifyRestoredToolchain({
+      expectedRelease: "", channel: "stable", rustupCommand: "rustup", log: () => {},
+      checkRegisteredComponents: true,
+      runRustup: rustupFor(sysroot),
+    });
+    assert.equal(result.match, false);
+    const unchecked = await verifyRestoredToolchain({
+      expectedRelease: "", channel: "stable", rustupCommand: "rustup", log: () => {},
+      runRustup: rustupFor(sysroot),
+    });
+    assert.equal(unchecked.match, true);
+  } finally {
+    rmDir(root);
+  }
+});
+
+test("a component added after setup is saved with its files, not only rustup's updated registry", async () => {
+  const root = mkTmp("solo-late-component-");
+  try {
+    const toolchains = path.join(root, "rustup-home", "toolchains");
+    const cargoBin = path.join(root, "cargo-home", "bin");
+    fs.mkdirSync(cargoBin, { recursive: true });
+    const rootMap: RootMap = { "rustup-toolchains": toolchains, "cargo-bin": cargoBin };
+    const pre = await walkSnapshot([toolchains, cargoBin]);
+    const sysroot = writeMinimalToolchain(toolchains);
+    const setup = await walkSnapshot([toolchains, cargoBin]);
+    const saveDiff = diffSnapshots(pre, setup);
+    const setupTree = parseSetupTree(serializeSetupTree(setup, toolchains));
+    assert.ok(setupTree);
+    // A later step (soldr's first-use `rustup component add clippy`).
+    addClippy(sysroot);
+    // An unrelated toolchain a workflow installed later is not swept in.
+    writeFile(toolchains, "nightly-aarch64-apple-darwin/bin/rustc", "nightly");
+
+    const stage = async (added: SnapshotEntry[], changed: SnapshotDiff["changed"], dir: string) => {
+      await stageDiffForSave({ added, removed: [], changed }, rootMap, dir);
+      return path.join(dir, "rustup-toolchains", TOOLCHAIN);
+    };
+    // Before the fix: the setup-time manifest is staged with job-end contents.
+    const stale = await stage(saveDiff.added, saveDiff.changed, path.join(root, "stale"));
+    assert.match(fs.readFileSync(path.join(stale, "lib/rustlib/components"), "utf8"), /clippy-preview/);
+    assert.equal(fs.existsSync(path.join(stale, "bin/cargo-clippy")), false);
+
+    const reconciled = reconcileLateToolchainChanges({
+      added: saveDiff.added,
+      changed: saveDiff.changed,
+      setupTree: setupTree.snapshot,
+      current: await walkSnapshot([setupTree.root]),
+      toolchainsRoot: setupTree.root,
+    });
+    assert.deepEqual(reconciled.late, { added: 3, changed: 1, removed: 0 });
+    const fixed = await stage(reconciled.added, reconciled.changed, path.join(root, "fixed"));
+    assert.equal(fs.readFileSync(path.join(fixed, "bin/cargo-clippy"), "utf8"), "cargo-clippy");
+    assert.ok(fs.existsSync(path.join(fixed, "lib/rustlib/manifest-clippy-preview-aarch64-apple-darwin")));
+    assert.equal(fs.existsSync(path.join(root, "fixed", "rustup-toolchains", "nightly-aarch64-apple-darwin")), false);
+    assert.equal(
+      await verifyRegisteredComponentPayloads({ channel: "stable", log: () => {}, runRustup: rustupFor(fixed) }),
+      true,
+    );
+  } finally {
+    rmDir(root);
+  }
+});
+
+test("late toolchain removals are dropped from the save set", async () => {
+  const root = mkTmp("solo-late-remove-");
+  try {
+    const toolchains = path.join(root, "toolchains");
+    const pre = await walkSnapshot([toolchains]);
+    const sysroot = writeMinimalToolchain(toolchains);
+    addClippy(sysroot);
+    const setup = await walkSnapshot([toolchains]);
+    const saveDiff = diffSnapshots(pre, setup);
+    fs.rmSync(path.join(sysroot, "bin", "clippy-driver"));
+    const reconciled = reconcileLateToolchainChanges({
+      added: saveDiff.added, changed: saveDiff.changed, setupTree: setup,
+      current: await walkSnapshot([toolchains]), toolchainsRoot: toolchains,
+    });
+    assert.equal(reconciled.late.removed, 1);
+    assert.equal(reconciled.added.some((entry) => entry.relpath.endsWith("clippy-driver")), false);
+    assert.equal(reconciled.added.length, saveDiff.added.length - 1);
+  } finally {
+    rmDir(root);
+  }
 });
 
 test("hashStringArray is stable across input order", () => {

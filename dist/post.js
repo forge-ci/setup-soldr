@@ -58921,12 +58921,16 @@ exports.deleteCorruptSoloCacheEntries = deleteCorruptSoloCacheEntries;
 exports.detectLibc = detectLibc;
 exports.hashStringArray = hashStringArray;
 exports.buildSoloCacheKeys = buildSoloCacheKeys;
+exports.serializeSetupTree = serializeSetupTree;
+exports.parseSetupTree = parseSetupTree;
+exports.reconcileLateToolchainChanges = reconcileLateToolchainChanges;
 exports.stageDiffForSave = stageDiffForSave;
 exports.applyStagedToLiveRoots = applyStagedToLiveRoots;
 exports.soloExactHitAllowed = soloExactHitAllowed;
 exports.saveSoloCache = saveSoloCache;
 exports.restoreSoloCache = restoreSoloCache;
 exports.verifyRegisteredTargetPayloads = verifyRegisteredTargetPayloads;
+exports.verifyRegisteredComponentPayloads = verifyRegisteredComponentPayloads;
 exports.verifyProbeEnv = verifyProbeEnv;
 exports.verifyRestoredToolchain = verifyRestoredToolchain;
 const solo_poison_js_1 = __nccwpck_require__(36489);
@@ -58940,6 +58944,7 @@ const toolrunner_js_1 = __nccwpck_require__(6665);
 const github = __importStar(__nccwpck_require__(93228));
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const save_policy_js_1 = __nccwpck_require__(98097);
+const toolchain_snapshot_js_1 = __nccwpck_require__(69589);
 /**
  * The two live roots whose deltas this cache layer tracks. The string keys
  * are also the directory names used inside the tarball staging layout.
@@ -59128,6 +59133,76 @@ function findRootTag(absRoot, rootMap) {
 }
 async function ensureDir(p) {
     await fsp.mkdir(p, { recursive: true });
+}
+/** Serialize the setup-time tree of the managed toolchains root for the post step. */
+function serializeSetupTree(snapshot, toolchainsRoot) {
+    const entries = [...snapshot.entries.values()].filter((entry) => entry.root === toolchainsRoot);
+    return JSON.stringify({ schema: 1, root: toolchainsRoot, entries });
+}
+function parseSetupTree(text) {
+    try {
+        const parsed = JSON.parse(text);
+        if (parsed.schema !== 1 || typeof parsed.root !== "string" || !Array.isArray(parsed.entries))
+            return null;
+        const entries = new Map();
+        for (const entry of parsed.entries)
+            entries.set(`${entry.root}#${entry.relpath}`, entry);
+        return { root: parsed.root, snapshot: { entries } };
+    }
+    catch {
+        return null;
+    }
+}
+/**
+ * The save-diff manifest is computed when setup finishes, but the post step
+ * stages those paths with their contents at job end. A later step that
+ * changes the toolchain (soldr's first-use `rustup component add clippy`,
+ * a workflow's own `rustup component add`) rewrites rustup's metadata
+ * (`lib/rustlib/components`) while its new files are not in the manifest.
+ * Saving that combination poisons the entry: rustup then believes clippy is
+ * installed but has no cargo-clippy. Fold every late change inside the
+ * toolchain directories the manifest already saves into the save set so the
+ * archive matches the metadata it carries.
+ */
+function reconcileLateToolchainChanges(opts) {
+    const { toolchainsRoot } = opts;
+    const key = (entry) => `${entry.root}#${entry.relpath}`;
+    const toolchainDir = (entry) => entry.relpath.split("/", 1)[0] ?? "";
+    const saved = new Set([...opts.added, ...opts.changed.map((change) => change.after)]
+        .filter((entry) => entry.root === toolchainsRoot)
+        .map(toolchainDir)
+        .filter(Boolean));
+    const inScope = (entry) => entry.root === toolchainsRoot && saved.has(toolchainDir(entry));
+    const drift = (0, toolchain_snapshot_js_1.diffSnapshots)(opts.setupTree, opts.current);
+    const lateAdded = drift.added.filter(inScope);
+    const lateChanged = drift.changed.filter((change) => inScope(change.after));
+    const lateRemoved = new Set(drift.removed.filter(inScope).map(key));
+    const added = opts.added.filter((entry) => !lateRemoved.has(key(entry)));
+    const changed = opts.changed.filter((change) => !lateRemoved.has(key(change.after)));
+    const addedIndex = new Map(added.map((entry, index) => [key(entry), index]));
+    const changedIndex = new Map(changed.map((change, index) => [key(change.after), index]));
+    for (const entry of lateAdded) {
+        if (!addedIndex.has(key(entry))) {
+            addedIndex.set(key(entry), added.length);
+            added.push(entry);
+        }
+    }
+    for (const change of lateChanged) {
+        const k = key(change.after);
+        const a = addedIndex.get(k);
+        const c = changedIndex.get(k);
+        if (a !== undefined)
+            added[a] = change.after;
+        else if (c !== undefined)
+            changed[c] = { before: changed[c].before, after: change.after };
+        else
+            changed.push(change);
+    }
+    return {
+        added,
+        changed,
+        late: { added: lateAdded.length, changed: lateChanged.length, removed: lateRemoved.size },
+    };
 }
 /**
  * Copy newly added and repaired/changed inodes into a flat staging directory
@@ -59632,6 +59707,69 @@ async function verifyRegisteredTargetPayloads(opts) {
     }
 }
 /**
+ * Validate the payload of every component rustup has registered in the
+ * restored toolchain (`lib/rustlib/components`), not only requested ones.
+ * An entry saved after a later step added a component (e.g. soldr's
+ * first-use `rustup component add clippy`) can carry the updated
+ * `components` list without that component's files or manifest. rustup then
+ * reports "component clippy is up to date" and refuses to run cargo-clippy
+ * because it "is not applicable to the toolchain"; it cannot even remove it.
+ */
+async function verifyRegisteredComponentPayloads(opts) {
+    const fail = (reason) => {
+        opts.log(`solo-toolchain-cache: registered component validation failed: ${reason}`);
+        return false;
+    };
+    try {
+        const which = await opts.runRustup(["which", "--toolchain", opts.channel, "rustc"]);
+        const executable = which.stdout.trim();
+        if (which.code !== 0 || !path.isAbsolute(executable) || !/^rustc(?:\.exe)?$/i.test(path.basename(executable))) {
+            return fail("cannot resolve the selected toolchain");
+        }
+        const sysroot = path.dirname(path.dirname(executable));
+        const readFile = opts.readFile ?? ((filename) => fsp.readFile(filename, "utf8"));
+        const exists = opts.exists ?? (async (filename, kind) => {
+            const stat = await fsp.stat(filename).catch(() => null);
+            return stat !== null && (kind === "file" ? stat.isFile() : stat.isDirectory());
+        });
+        const rustlib = path.join(sysroot, "lib", "rustlib");
+        const components = (await readFile(path.join(rustlib, "components"))).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (components.length === 0)
+            return fail("empty component registry");
+        for (const component of new Set(components)) {
+            if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]*$/.test(component))
+                return fail(`invalid component name ${component}`);
+            let manifest;
+            try {
+                manifest = await readFile(path.join(rustlib, `manifest-${component}`));
+            }
+            catch {
+                return fail(`missing manifest for registered component ${component}`);
+            }
+            const entries = manifest.split(/\r?\n/).filter(Boolean);
+            if (entries.length === 0)
+                return fail(`empty manifest for ${component}`);
+            for (const entry of entries) {
+                const match = /^(file|dir):(.+)$/.exec(entry);
+                if (!match)
+                    return fail(`invalid manifest entry for ${component}`);
+                const relative = match[2];
+                if (relative.split("/").some((part) => part === ".." || part === "." || !part || part.includes("\\"))) {
+                    return fail(`unsafe manifest entry for ${component}`);
+                }
+                const kind = match[1] === "dir" ? "dir" : "file";
+                if (!(await exists(path.join(sysroot, ...relative.split("/")), kind))) {
+                    return fail(`registered component ${component} is missing ${relative}`);
+                }
+            }
+        }
+        return true;
+    }
+    catch (err) {
+        return fail(err instanceof Error ? err.message : String(err));
+    }
+}
+/**
  * Environment for a restored-toolchain probe. `SOLDR_DYLINT_TOOLCHAIN`
  * makes soldr's proxies rewrite every toolchain selection to the Dylint
  * nightly, so a probe of the cached channel would observe the nightly
@@ -59806,7 +59944,14 @@ async function verifyRestoredToolchain(opts) {
     const registeredTargetsMatch = !opts.checkRegisteredTargets || await verifyRegisteredTargetPayloads({
         channel, log, runRustup, readManifest: opts.readTargetManifest, isFile: opts.targetFileExists,
     });
-    return { match: releaseMatch && targetsMatch && componentsMatch && registeredTargetsMatch, observedRelease, observedCommit };
+    const registeredComponentsMatch = !opts.checkRegisteredComponents || await verifyRegisteredComponentPayloads({
+        channel, log, runRustup, readFile: opts.readComponentFile, exists: opts.componentPathExists,
+    });
+    return {
+        match: releaseMatch && targetsMatch && componentsMatch && registeredTargetsMatch && registeredComponentsMatch,
+        observedRelease,
+        observedCommit,
+    };
 }
 
 
@@ -60533,6 +60678,172 @@ function publishEntry(input) {
     finally {
         fs.rmSync(staging, { recursive: true, force: true });
     }
+}
+
+
+/***/ }),
+
+/***/ 69589:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// Toolchain delta snapshot.
+//
+// First step of the toolchain solo-cache work: walk $RUSTUP_HOME/toolchains/
+// and $CARGO_HOME/bin/ before and after `ensureRustToolchain`, then diff
+// the two snapshots to identify exactly which inodes setup-soldr added on
+// top of the runner image. The diff is what a future cache layer would
+// tar+zstd; this module only measures — no IO writes happen here.
+//
+// Identity per entry: `(root, relpath, kind, size, linkTarget?)`. We never
+// follow symlinks because rustup component shims under $CARGO_HOME/bin form
+// chains that, if followed, can re-walk the entire toolchain dir.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.walkSnapshot = walkSnapshot;
+exports.diffSnapshots = diffSnapshots;
+exports.diffStats = diffStats;
+exports.serializeManifest = serializeManifest;
+const fs = __importStar(__nccwpck_require__(51455));
+const path = __importStar(__nccwpck_require__(76760));
+function entryKey(root, relpath) {
+    return `${root}#${relpath}`;
+}
+async function walkRoot(root, into) {
+    try {
+        const stat = await fs.stat(root);
+        if (!stat.isDirectory())
+            return;
+    }
+    catch {
+        return;
+    }
+    const stack = [{ abs: root, rel: "" }];
+    while (stack.length > 0) {
+        const { abs, rel } = stack.pop();
+        let dirents;
+        try {
+            dirents = await fs.readdir(abs, { withFileTypes: true });
+        }
+        catch {
+            continue;
+        }
+        for (const dirent of dirents) {
+            const childAbs = path.join(abs, dirent.name);
+            const childRel = rel ? `${rel}/${dirent.name}` : dirent.name;
+            const key = entryKey(root, childRel);
+            if (dirent.isSymbolicLink()) {
+                let linkTarget = "";
+                try {
+                    linkTarget = await fs.readlink(childAbs);
+                }
+                catch {
+                    linkTarget = "(unreadable)";
+                }
+                into.set(key, { root, relpath: childRel, kind: "symlink", size: 0, linkTarget });
+            }
+            else if (dirent.isFile()) {
+                let size = 0;
+                try {
+                    const s = await fs.stat(childAbs);
+                    size = s.size;
+                }
+                catch {
+                    size = -1;
+                }
+                into.set(key, { root, relpath: childRel, kind: "file", size });
+            }
+            else if (dirent.isDirectory()) {
+                into.set(key, { root, relpath: childRel, kind: "directory", size: 0 });
+                stack.push({ abs: childAbs, rel: childRel });
+            }
+        }
+    }
+}
+async function walkSnapshot(roots) {
+    const entries = new Map();
+    for (const root of roots) {
+        await walkRoot(root, entries);
+    }
+    return { entries };
+}
+function diffSnapshots(baseline, post) {
+    const added = [];
+    const removed = [];
+    const changed = [];
+    for (const [key, postEntry] of post.entries) {
+        const baselineEntry = baseline.entries.get(key);
+        if (!baselineEntry) {
+            added.push(postEntry);
+        }
+        else if (baselineEntry.kind !== postEntry.kind ||
+            baselineEntry.size !== postEntry.size ||
+            baselineEntry.linkTarget !== postEntry.linkTarget) {
+            changed.push({ before: baselineEntry, after: postEntry });
+        }
+    }
+    for (const [key, baselineEntry] of baseline.entries) {
+        if (!post.entries.has(key)) {
+            removed.push(baselineEntry);
+        }
+    }
+    return { added, removed, changed };
+}
+function diffStats(diff) {
+    let addedFiles = 0;
+    let addedBytes = 0;
+    for (const e of diff.added) {
+        if (e.kind === "file") {
+            addedFiles += 1;
+            if (e.size > 0)
+                addedBytes += e.size;
+        }
+    }
+    const removedFiles = diff.removed.filter((e) => e.kind === "file").length;
+    const changedFiles = diff.changed.filter((c) => c.after.kind === "file").length;
+    return { addedFiles, addedBytes, removedFiles, changedFiles };
+}
+function serializeManifest(diff, stats) {
+    const sortByKey = (a, b) => entryKey(a.root, a.relpath).localeCompare(entryKey(b.root, b.relpath));
+    return JSON.stringify({
+        stats,
+        added: [...diff.added].sort(sortByKey),
+        removed: [...diff.removed].sort(sortByKey),
+        changed: [...diff.changed].sort((x, y) => entryKey(x.after.root, x.after.relpath).localeCompare(entryKey(y.after.root, y.after.relpath))),
+    }, null, 2);
 }
 
 
@@ -61818,6 +62129,7 @@ const cache = __importStar(__nccwpck_require__(5116));
 const cache_compress_js_1 = __nccwpck_require__(24978);
 const solo_toolchain_cache_js_1 = __nccwpck_require__(67901);
 const solo_poison_js_1 = __nccwpck_require__(36489);
+const toolchain_snapshot_js_1 = __nccwpck_require__(69589);
 const cook_cache_js_1 = __nccwpck_require__(504);
 const soldr_mini_cache_js_1 = __nccwpck_require__(83756);
 // Static import — the dynamic `await import("./lib/soldr-load-shim.js")`
@@ -63671,8 +63983,28 @@ async function runPost() {
         else {
             try {
                 const manifest = JSON.parse(fs.readFileSync(soloSaveDiffPath, "utf8"));
-                const added = Array.isArray(manifest.added) ? manifest.added : [];
-                const changed = Array.isArray(manifest.changed) ? manifest.changed : [];
+                let added = Array.isArray(manifest.added) ? manifest.added : [];
+                let changed = Array.isArray(manifest.changed) ? manifest.changed : [];
+                const setupTreePath = core.getState("soloToolchainSetupTreePath");
+                const setupTree = setupTreePath && fs.existsSync(setupTreePath)
+                    ? (0, solo_toolchain_cache_js_1.parseSetupTree)(fs.readFileSync(setupTreePath, "utf8"))
+                    : null;
+                if (setupTree) {
+                    const reconciled = (0, solo_toolchain_cache_js_1.reconcileLateToolchainChanges)({
+                        added,
+                        changed,
+                        setupTree: setupTree.snapshot,
+                        current: await (0, toolchain_snapshot_js_1.walkSnapshot)([setupTree.root]),
+                        toolchainsRoot: setupTree.root,
+                    });
+                    const { late } = reconciled;
+                    if (late.added + late.changed + late.removed > 0) {
+                        log(`solo-toolchain-cache: toolchain changed after setup (added=${late.added} changed=${late.changed} ` +
+                            `removed=${late.removed}); saving the job-end toolchain so rustup metadata matches its files`);
+                    }
+                    added = reconciled.added;
+                    changed = reconciled.changed;
+                }
                 if (added.length === 0 && changed.length === 0) {
                     log("solo-toolchain-cache: empty save-diff manifest, skipping save");
                     if (soloRestoreInvalid) {

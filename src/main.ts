@@ -93,6 +93,7 @@ import {
   restoreSoloCache,
   soloCacheArchivePath,
   verifyRestoredToolchain,
+  serializeSetupTree,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
 import { coldInstallAfterFailedRepair, compareSoloIdentity, parseSoloIdentity, planSoloRestoreKeys, soloIdentityKey, soloIdentityPath, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
@@ -1464,6 +1465,7 @@ export async function run(): Promise<void> {
         expectedTargets: result.toolchain.targets,
         expectedComponents: result.toolchain.components,
         checkRegisteredTargets: true,
+        checkRegisteredComponents: true,
         channel: result.toolchain.channel,
         rustupCommand: process.platform === "win32" ? "rustup.exe" : "rustup",
         bootstrapSoldr: await ctx.getBootstrapSoldr?.(),
@@ -1579,6 +1581,7 @@ export async function run(): Promise<void> {
         expectedTargets: result.toolchain.targets,
         expectedComponents: result.toolchain.components,
         checkRegisteredTargets: true,
+        checkRegisteredComponents: true,
         channel: result.toolchain.channel,
         rustupCommand: process.platform === "win32" ? "rustup.exe" : "rustup",
         bootstrapSoldr: await ctx.getBootstrapSoldr?.(),
@@ -1634,6 +1637,15 @@ export async function run(): Promise<void> {
           "utf8",
         );
         core.saveState("soloToolchainSaveDiffPath", saveDiffPath);
+        // The post step compares the toolchain against this setup-time tree
+        // so changes made by later steps are saved with their files.
+        const setupTreePath = path.join(ctx.runnerTemp, "setup-soldr-solo-setup-tree.json");
+        await fs.promises.writeFile(
+          setupTreePath,
+          serializeSetupTree(postInstallSnapshot, soloRootMap["rustup-toolchains"]),
+          "utf8",
+        );
+        core.saveState("soloToolchainSetupTreePath", setupTreePath);
         core.saveState("soloToolchainIncrementalEmpty", toolchainDiff.added.length === 0 ? "true" : "false");
         logger.log(
           `solo-toolchain-cache: save-diff added=${saveDiffStats.addedFiles} files (${

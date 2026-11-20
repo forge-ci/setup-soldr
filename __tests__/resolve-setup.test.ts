@@ -2264,3 +2264,48 @@ test("missing Cargo.lock disables Dylint output cache but retains foundation too
   assert.equal(result.dylintCache.enabled, true);
   assert.equal(result.dylintCache.outputCacheEnabled, false);
 });
+
+// --- macOS managed RUSTUP_HOME carries the runner toolchain's components ---
+
+async function resolveOnPlatform(platform: NodeJS.Platform, runnerComponents: string[], extraEnv: Record<string, string> = {}) {
+  const { root, workspace, runnerTemp } = makeWorkspace({});
+  const ctx = makeContext(root, workspace, runnerTemp);
+  // No explicit RUSTUP_HOME: let resolve choose between system and managed.
+  ctx.env = withInputs({ ...ctx.env, RUSTUP_HOME: undefined }, extraEnv);
+  const probed: string[] = [];
+  const result = await resolveSetup(ctx, readRawInputs(ctx.env), {
+    fetchReleaseTag: async () => "v0.7.11",
+    systemRustupOverride: async () => true,
+    platform,
+    runnerToolComponents: (_cargoHome, rustupHome, channel) => {
+      probed.push(`${rustupHome}|${channel}`);
+      return runnerComponents;
+    },
+  });
+  return { result, probed };
+}
+
+test("macOS managed RUSTUP_HOME carries clippy the workflow installed into the runner toolchain", async () => {
+  const { result, probed } = await resolveOnPlatform("darwin", ["clippy", "rustfmt"]);
+  assert.equal(result.rustupStrategy, "managed");
+  assert.deepEqual(result.toolchain.components, ["clippy", "rustfmt"]);
+  assert.equal(probed.length, 1);
+  assert.match(probed[0]!, /\.rustup\|stable$/);
+  assert.equal(result.envExports["SETUP_SOLDR_TOOLCHAIN_COMPONENTS"], JSON.stringify(["clippy", "rustfmt"]));
+});
+
+test("runner component carry keeps declared components and does not duplicate -preview names", async () => {
+  const { result } = await resolveOnPlatform("darwin", ["clippy", "rustfmt"], {
+    INPUT_TOOLCHAIN: "stable",
+  });
+  assert.ok(result.toolchain.components.includes("clippy"));
+  const { mergeCarriedComponents } = await import("../src/lib/toolchain.js");
+  assert.deepEqual(mergeCarriedComponents(["clippy-preview", "rust-src"], ["clippy", "rustfmt"]), ["clippy-preview", "rust-src", "rustfmt"]);
+});
+
+test("runner component carry is macOS-only; the system strategy already uses the runner toolchain", async () => {
+  const { result, probed } = await resolveOnPlatform("linux", ["clippy"]);
+  assert.equal(result.rustupStrategy, "system");
+  assert.deepEqual(result.toolchain.components, []);
+  assert.deepEqual(probed, []);
+});

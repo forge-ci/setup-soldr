@@ -20,6 +20,14 @@ export interface ResolveSetupDeps {
     rustupHome: string,
     toolchain: ToolchainSpec,
   ) => Promise<boolean> | boolean;
+  /** Test seam: host platform for the macOS managed-rustup override (#105). */
+  platform?: NodeJS.Platform;
+  /** Test seam: tool components installed in the runner toolchain. */
+  runnerToolComponents?: (
+    cargoHome: string,
+    rustupHome: string,
+    channel: string,
+  ) => Promise<string[]> | string[];
   resolveDylintNightly?: (
     requested: string,
     env: Record<string, string | undefined>,

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- macOS: `soldr cargo clippy` works again after a workflow installs Rust with
+  clippy before setup-soldr (#683). When macOS swaps in the private
+  `RUSTUP_HOME` (#105), the managed toolchain now also gets the tool
+  components the runner toolchain has (clippy, rustfmt, rust-src,
+  rust-analyzer, llvm-tools, miri, rustc-dev). They become part of the solo
+  key. Before this, soldr added clippy on first use, after the toolchain
+  snapshot. The post step then saved rustup's updated `components` list
+  without clippy's files. That produced entries where rustup reports clippy
+  "up to date" but refuses to run cargo-clippy ("not applicable to the
+  toolchain"). The post step now saves toolchain changes made after setup
+  together with their files. Restore validation now checks every component
+  rustup has registered, so a poisoned entry already in a cache is repaired
+  and replaced instead of breaking the job.
 - The Dylint thin-store rule now skips a build-cache or target-cache save
   only when that layer was not restored. A restored store plus this run's
   compiles is a superset, not thin, but the save was skipped whenever

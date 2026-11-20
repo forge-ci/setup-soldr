@@ -20,11 +20,13 @@ import {
   saveSoloCache,
   soloCacheEntryExistsForRef,
   soloCacheArchivePath,
+  parseSetupTree,
+  reconcileLateToolchainChanges,
   stageDiffForSave,
   type RootMap as SoloRootMap,
 } from "./lib/solo-toolchain-cache.js";
 import { formatSoloIdentity, planPoisonedEntryRecovery, planSoloSave, resolveArchivedRustc, soloIdentityKey, soloIdentityPath, soloTombstoneKey, soloTombstonePath } from "./lib/solo-poison.js";
-import type { SnapshotDiff } from "./lib/toolchain-snapshot.js";
+import { walkSnapshot, type SnapshotDiff } from "./lib/toolchain-snapshot.js";
 import { saveCookCache, saveLayeredCookCache } from "./lib/cook-cache.js";
 import { saveMiniCache } from "./lib/soldr-mini-cache.js";
 // Static import — the dynamic `await import("./lib/soldr-load-shim.js")`
@@ -2239,8 +2241,30 @@ async function runPost(): Promise<void> {
           added?: SnapshotDiff["added"];
           changed?: SnapshotDiff["changed"];
         };
-        const added = Array.isArray(manifest.added) ? manifest.added : [];
-        const changed = Array.isArray(manifest.changed) ? manifest.changed : [];
+        let added = Array.isArray(manifest.added) ? manifest.added : [];
+        let changed = Array.isArray(manifest.changed) ? manifest.changed : [];
+        const setupTreePath = core.getState("soloToolchainSetupTreePath");
+        const setupTree = setupTreePath && fs.existsSync(setupTreePath)
+          ? parseSetupTree(fs.readFileSync(setupTreePath, "utf8"))
+          : null;
+        if (setupTree) {
+          const reconciled = reconcileLateToolchainChanges({
+            added,
+            changed,
+            setupTree: setupTree.snapshot,
+            current: await walkSnapshot([setupTree.root]),
+            toolchainsRoot: setupTree.root,
+          });
+          const { late } = reconciled;
+          if (late.added + late.changed + late.removed > 0) {
+            log(
+              `solo-toolchain-cache: toolchain changed after setup (added=${late.added} changed=${late.changed} ` +
+                `removed=${late.removed}); saving the job-end toolchain so rustup metadata matches its files`,
+            );
+          }
+          added = reconciled.added;
+          changed = reconciled.changed;
+        }
         if (added.length === 0 && changed.length === 0) {
           log("solo-toolchain-cache: empty save-diff manifest, skipping save");
           if (soloRestoreInvalid) {

@@ -89,3 +89,70 @@ jobs:
               process.exit(1);
             }
           ' "$doctor_json"
+
+  # Regression for the talos-vox macOS clippy break: a workflow installs Rust
+  # with clippy into the runner toolchain, then setup-soldr forces a private
+  # RUSTUP_HOME on macOS (#105). The managed toolchain must carry clippy and
+  # rustfmt itself, so `soldr cargo clippy` never falls back to a first-use
+  # `rustup component add` after the solo-toolchain snapshot was taken.
+  macos-runner-components:
+    name: macOS managed toolchain keeps runner components
+    runs-on: macos-latest
+    steps:
+      - name: Checkout setup-soldr action
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: setup-soldr
+
+      - name: Install Rust with clippy into the runner toolchain
+        uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: Create probe crate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/probe/src"
+          printf '[package]\nname = "probe"\nversion = "0.1.0"\nedition = "2021"\n\n[workspace]\n' > "$GITHUB_WORKSPACE/probe/Cargo.toml"
+          printf 'pub fn add(a: u32, b: u32) -> u32 {\n    a + b\n}\n' > "$GITHUB_WORKSPACE/probe/src/lib.rs"
+
+      - id: setup
+        name: Setup Soldr
+        uses: ./setup-soldr
+        with:
+          prebuild-deps: none
+          job-status: ${{ job.status }}
+
+      - name: Managed toolchain carries clippy and rustfmt
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "RUSTUP_HOME=$RUSTUP_HOME components=$SETUP_SOLDR_TOOLCHAIN_COMPONENTS"
+          case "$RUSTUP_HOME" in
+            "$HOME/.rustup") echo "::error::expected the macOS managed RUSTUP_HOME (#105)"; exit 1 ;;
+          esac
+          rustup which cargo-clippy
+          rustup which rustfmt
+          # Every component rustup registered must have its files on disk.
+          sysroot="$(dirname "$(dirname "$(rustup which rustc)")")"
+          while read -r component; do
+            manifest="$sysroot/lib/rustlib/manifest-$component"
+            test -f "$manifest" || { echo "::error::$component registered without $manifest"; exit 1; }
+            while IFS=: read -r kind rel; do
+              test -e "$sysroot/$rel" || { echo "::error::$component is missing $rel"; exit 1; }
+            done < "$manifest"
+          done < "$sysroot/lib/rustlib/components"
+
+      - name: soldr cargo clippy and fmt use the carried components
+        shell: bash
+        working-directory: probe
+        run: |
+          set -euo pipefail
+          soldr cargo clippy -- -D warnings 2>&1 | tee "$RUNNER_TEMP/clippy.log"
+          soldr cargo fmt --check 2>&1 | tee "$RUNNER_TEMP/fmt.log"
+          if grep -q "first-use bootstrap" "$RUNNER_TEMP/clippy.log" "$RUNNER_TEMP/fmt.log"; then
+            echo "::error::soldr had to install a component the runner toolchain already had"
+            exit 1
+          fi
