@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Build-cache generation restore, second fix (#682, after #686). GitHub's
+  cache lookup exact-matches the primary key and every restore key before it
+  tries any prefix, so #686's `[<exact>-g, <exact>, ...]` still exact-hit the
+  bare entry (FastLED/fbuild run 44790566297 restored it while generation
+  `...-g44767084261` existed, and missed 64/30/30 units again). The generation
+  lookup is now its own request (`<exact>-g` only, newest prefix match). The
+  bare key and job fallback are a second request, made only when no
+  generation exists, so this lockfile's bare entry still beats a newer
+  generation of another lockfile.
 - Build-cache generation restore now works (#682, fixing #685). #685 put the
   `<exact-key>-g` prefix in the primary-key slot, but `@actions/cache` checks
   the primary key for an exact match only. The next restore key, the bare

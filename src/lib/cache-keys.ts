@@ -539,9 +539,9 @@ export function pathForOutput(workspace: string, p: string | null): string {
 // used to freeze the first writer's zccache store until the lockfile,
 // toolchain or soldr changed: every crate edited since then missed on every
 // run. A warm run that still compiled now saves `<exact>-g<run_id>[-<attempt>]`,
-// and restore lists `<exact>-g` as the FIRST restore key, so the newest
-// generation wins and the bare exact key stays the fallback (see
-// `buildCacheRestoreRequest` for why the order matters).
+// and restore looks up `<exact>-g` on its own first, so the newest generation
+// wins and the bare exact key stays the fallback (see
+// `buildCacheRestoreRequests` for why it must be a separate lookup).
 
 const GENERATION_SUFFIX = /^\d+(?:-\d+)?$/;
 
@@ -575,27 +575,29 @@ export function isWarmBuildCacheMatch(matchedKey: string, exactKey: string): boo
 }
 
 /**
- * Primary key and restore-keys for an `@actions/cache` build-cache restore.
+ * The `@actions/cache` lookups for a build-cache restore, in order; main.ts
+ * stops at the first one that matches.
  *
- * GitHub checks the primary key for an exact match only, then each restore
- * key for an exact match before its newest prefix match (setup-soldr#685
- * shipped the `-g` prefix as the primary, so it never matched, and
- * FastLED/fbuild run 44726574726 restored the stale bare entry). So:
- * - `<exact>-g` is the first restore key: no entry is ever saved under that
- *   literal name, so it prefix-matches and returns the newest generation;
- * - `<exact>` follows: it exact-hits the bare entry when no generation exists;
- * - the job fallbacks come last.
- * The primary must not be the bare key: that entry exists, and an exact
- * primary hit would beat every restore key. `<exact>-g` never exists, so the
- * primary always misses and the restore keys decide.
+ * GitHub's lookup runs an exact pass over the primary key and EVERY restore
+ * key before any prefix match (FastLED/fbuild run 44726574726 under #685 and
+ * run 44790566297 under #686 both restored the bare entry while a newer
+ * generation existed). So a request that lists the bare key anywhere returns
+ * the bare entry, and the generation lookup must stand alone:
+ * 1. `<exact>-g` only. Nothing is saved under that literal name, so the exact
+ *    pass misses and the prefix pass returns the newest generation.
+ * 2. Only when no generation exists: the pre-#685 request, the bare key plus
+ *    the job fallback. It exact-hits this lockfile's bare entry; the job
+ *    prefix alone could return a newer generation of another lockfile.
+ * The second lookup costs one extra metadata round trip, and only while a key
+ * has no generation yet.
  */
-export function buildCacheRestoreRequest(
+export function buildCacheRestoreRequests(
   exactKey: string,
   fallbackRestoreKeys: readonly string[],
-): { primaryKey: string; restoreKeys: string[] } {
+): { primaryKey: string; restoreKeys: string[] }[] {
   const generationPrefix = buildCacheGenerationPrefix(exactKey);
-  return {
-    primaryKey: generationPrefix,
-    restoreKeys: [generationPrefix, exactKey, ...fallbackRestoreKeys],
-  };
+  return [
+    { primaryKey: generationPrefix, restoreKeys: [generationPrefix] },
+    { primaryKey: exactKey, restoreKeys: [...fallbackRestoreKeys] },
+  ];
 }

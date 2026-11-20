@@ -40,7 +40,7 @@ import { autoKeyEnabled } from "./lib/ancestor-cache.js";
 import { ancestorTelemetry, publishBuildCachePlan, type AncestorTelemetry } from "./lib/ancestor-cache-telemetry.js";
 import { planAncestorRestore, planLocalAncestorRestore } from "./lib/ancestor-cache-github.js";
 import {
-  buildCacheRestoreRequest,
+  buildCacheRestoreRequests,
   cargoConfigHash,
   isWarmBuildCacheMatch,
   shortJsonHash,
@@ -886,18 +886,25 @@ export async function run(): Promise<void> {
       restore = { hit: false, matchedKey: s3Restore.matchedKey };
     }
     if (!restore.matchedKey) {
-      // setup-soldr#682: the legacy key is commit-free; its `-g` prefix is the
-      // first restore key so the newest generation beats the bare entry.
-      const legacyRequest = buildCacheRestoreRequest(legacyKey, restoreKeys);
+      // setup-soldr#682: the legacy key is commit-free. Look up its newest
+      // generation on its own first, then the bare key and the job fallback.
+      const restoreLegacy = async (): Promise<{ hit: boolean; matchedKey: string }> => {
+        let r: { hit: boolean; matchedKey: string } = { hit: false, matchedKey: "" };
+        for (const req of buildCacheRestoreRequests(legacyKey, restoreKeys)) {
+          r = await restoreCacheSafe([archivePath], req.primaryKey, req.restoreKeys, logger);
+          if (r.matchedKey) break;
+        }
+        return r;
+      };
       if (selectedKey) {
         restore = await restoreCacheSafe([archivePath], selectedKey, [], logger);
       } else if (localAncestorKey) {
         restore = await restoreCacheSafe([archivePath], result.buildCache.key, restoreKeys, logger);
       } else {
-        restore = await restoreCacheSafe([archivePath], legacyRequest.primaryKey, legacyRequest.restoreKeys, logger);
+        restore = await restoreLegacy();
       }
       if (selectedKey && restore.matchedKey !== selectedKey) {
-        restore = await restoreCacheSafe([archivePath], legacyRequest.primaryKey, legacyRequest.restoreKeys, logger);
+        restore = await restoreLegacy();
       }
     }
     // A donor hit is a starting point; only this source's exact write key, or
