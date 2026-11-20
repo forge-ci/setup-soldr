@@ -886,8 +886,8 @@ export async function run(): Promise<void> {
       restore = { hit: false, matchedKey: s3Restore.matchedKey };
     }
     if (!restore.matchedKey) {
-      // setup-soldr#682: the legacy key is commit-free, so ask for its newest
-      // generation first; the bare key and the job fallback follow.
+      // setup-soldr#682: the legacy key is commit-free; its `-g` prefix is the
+      // first restore key so the newest generation beats the bare entry.
       const legacyRequest = buildCacheRestoreRequest(legacyKey, restoreKeys);
       if (selectedKey) {
         restore = await restoreCacheSafe([archivePath], selectedKey, [], logger);

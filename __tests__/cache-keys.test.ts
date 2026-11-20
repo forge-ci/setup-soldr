@@ -599,9 +599,44 @@ test("#682 restore asks for the newest generation before the bare exact key", as
   const { buildCacheRestoreRequest } = await import("../src/lib/cache-keys.js");
   const jobPrefix = "setup-soldr-buildcache-v3-linux-x64-0427cc69b060d1bd-dylint-unified-v2-";
   const req = buildCacheRestoreRequest(GEN_EXACT, [jobPrefix]);
-  // The primary key never exists literally, so GitHub prefix-matches it and
-  // returns the newest generation; the bare key and the job fallback follow.
+  // @actions/cache checks the primary key only for an exact match, and checks
+  // each restore key for an exact match before a newest-prefix match.
+  // FastLED/fbuild run 44726574726 restored the bare entry because the `-g`
+  // prefix sat in the primary slot, where it is never prefix-matched.
+  assert.ok(req.restoreKeys[0]!.endsWith("-g"), "the generation prefix must be the first restore key");
+  assert.deepEqual(req.restoreKeys, [`${GEN_EXACT}-g`, GEN_EXACT, jobPrefix]);
+  // The primary must never exist as an entry: the bare key does exist, so a
+  // bare primary would exact-hit the stale entry before any restore key ran.
+  assert.notEqual(req.primaryKey, GEN_EXACT);
   assert.equal(req.primaryKey, `${GEN_EXACT}-g`);
-  assert.deepEqual(req.restoreKeys, [GEN_EXACT, jobPrefix]);
-  assert.deepEqual(buildCacheRestoreRequest(GEN_EXACT, []).restoreKeys, [GEN_EXACT]);
+  assert.equal(isBuildCacheGenerationOfForTest(req.primaryKey), false);
+  assert.deepEqual(buildCacheRestoreRequest(GEN_EXACT, []).restoreKeys, [`${GEN_EXACT}-g`, GEN_EXACT]);
 });
+
+test("#682 simulated GitHub matching restores the newest generation, else the bare key", async () => {
+  const { buildCacheRestoreRequest } = await import("../src/lib/cache-keys.js");
+  // GitHub's matcher: primary exact only; then each restore key exact first,
+  // then the newest entry that starts with it.
+  const match = (entries: { key: string; created: number }[], primary: string, restoreKeys: string[]): string => {
+    if (entries.some((e) => e.key === primary)) return primary;
+    for (const rk of restoreKeys) {
+      if (entries.some((e) => e.key === rk)) return rk;
+      const prefixed = entries.filter((e) => e.key.startsWith(rk)).sort((a, b) => b.created - a.created);
+      if (prefixed.length > 0) return prefixed[0]!.key;
+    }
+    return "";
+  };
+  const req = buildCacheRestoreRequest(GEN_EXACT, ["setup-soldr-buildcache-v3-linux-x64-"]);
+  const bare = { key: GEN_EXACT, created: 1 };
+  const g1 = { key: `${GEN_EXACT}-g44718162695`, created: 2 };
+  const g2 = { key: `${GEN_EXACT}-g44726574726`, created: 3 };
+  assert.equal(match([bare, g1, g2], req.primaryKey, req.restoreKeys), g2.key);
+  assert.equal(match([bare, g1], req.primaryKey, req.restoreKeys), g1.key);
+  assert.equal(match([bare], req.primaryKey, req.restoreKeys), GEN_EXACT);
+  const donor = { key: "setup-soldr-buildcache-v3-linux-x64-other", created: 9 };
+  assert.equal(match([donor], req.primaryKey, req.restoreKeys), donor.key);
+});
+
+function isBuildCacheGenerationOfForTest(key: string): boolean {
+  return /-g\d+(?:-\d+)?$/.test(key);
+}

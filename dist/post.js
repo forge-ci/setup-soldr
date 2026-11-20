@@ -51288,9 +51288,9 @@ function pathForOutput(workspace, p) {
 // used to freeze the first writer's zccache store until the lockfile,
 // toolchain or soldr changed: every crate edited since then missed on every
 // run. A warm run that still compiled now saves `<exact>-g<run_id>[-<attempt>]`,
-// and restore asks for `<exact>-g` first. That primary key never exists
-// literally, so GitHub prefix-matches it and returns the newest generation;
-// the bare exact key stays the fallback.
+// and restore lists `<exact>-g` as the FIRST restore key, so the newest
+// generation wins and the bare exact key stays the fallback (see
+// `buildCacheRestoreRequest` for why the order matters).
 const GENERATION_SUFFIX = /^\d+(?:-\d+)?$/;
 /** Restore prefix that matches every generation of `exactKey`. */
 function buildCacheGenerationPrefix(exactKey) {
@@ -51318,11 +51318,26 @@ function isBuildCacheGenerationOf(matchedKey, exactKey) {
 function isWarmBuildCacheMatch(matchedKey, exactKey) {
     return matchedKey.length > 0 && (matchedKey === exactKey || isBuildCacheGenerationOf(matchedKey, exactKey));
 }
-/** Primary key and restore-keys for an `@actions/cache` build-cache restore. */
+/**
+ * Primary key and restore-keys for an `@actions/cache` build-cache restore.
+ *
+ * GitHub checks the primary key for an exact match only, then each restore
+ * key for an exact match before its newest prefix match (setup-soldr#685
+ * shipped the `-g` prefix as the primary, so it never matched, and
+ * FastLED/fbuild run 44726574726 restored the stale bare entry). So:
+ * - `<exact>-g` is the first restore key: no entry is ever saved under that
+ *   literal name, so it prefix-matches and returns the newest generation;
+ * - `<exact>` follows: it exact-hits the bare entry when no generation exists;
+ * - the job fallbacks come last.
+ * The primary must not be the bare key: that entry exists, and an exact
+ * primary hit would beat every restore key. `<exact>-g` never exists, so the
+ * primary always misses and the restore keys decide.
+ */
 function buildCacheRestoreRequest(exactKey, fallbackRestoreKeys) {
+    const generationPrefix = buildCacheGenerationPrefix(exactKey);
     return {
-        primaryKey: buildCacheGenerationPrefix(exactKey),
-        restoreKeys: [exactKey, ...fallbackRestoreKeys],
+        primaryKey: generationPrefix,
+        restoreKeys: [generationPrefix, exactKey, ...fallbackRestoreKeys],
     };
 }
 

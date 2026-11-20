@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Build-cache generation restore now works (#682, fixing #685). #685 put the
+  `<exact-key>-g` prefix in the primary-key slot, but `@actions/cache` checks
+  the primary key for an exact match only. The next restore key, the bare
+  exact key, then exact-hit the stale bare entry, so FastLED/fbuild run
+  44726574726 restored it (727.9 MB) instead of the newer 770 MB generation
+  and missed 64/35/35 units again. `<exact-key>-g` is now the first restore
+  key, ahead of the bare key and the job fallbacks. The primary still names
+  no real entry, so it always misses and the restore keys decide.
 - An exact build-cache hit that still compiled now saves a new generation
   instead of `exact-hit-skip` (#682). The key is commit-free, so the first
   writer's zccache store used to be frozen until the lockfile, toolchain or
