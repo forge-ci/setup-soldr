@@ -24,6 +24,12 @@ type ArchiveExt = "tar.zst" | "tar.gz" | "zip" | "whl";
 interface InstallAsset {
   name: string;
   url: string;
+  /**
+   * REST asset endpoint (`/repos/<repo>/releases/assets/<id>`), used instead
+   * of the anonymous `releases/download` url when the run has a token
+   * (obs-rust/obs-studio#4209: anonymous downloads returned HTTP 504).
+   */
+  apiUrl?: string;
   archiveExt: ArchiveExt;
   source: "github-release" | "pypi-wheel";
   expectedSha256?: string;
@@ -125,9 +131,13 @@ function versionAtLeast(value: string, minimum: string): boolean {
   return true;
 }
 
-function requestHeaders(githubToken: string): Record<string, string> {
+// The REST asset endpoint returns JSON metadata unless the client asks for the
+// bytes; `downloadReleaseAsset` sets this on its API request.
+const RELEASE_ASSET_ACCEPT = "application/octet-stream";
+
+function requestHeaders(githubToken: string, accept = "application/vnd.github+json"): Record<string, string> {
   const headers: Record<string, string> = {
-    Accept: "application/vnd.github+json",
+    Accept: accept,
     "X-GitHub-Api-Version": "2022-11-28",
     "User-Agent": "setup-soldr-action",
   };
@@ -392,9 +402,22 @@ function sourceInstallMatches(
   );
 }
 
+/**
+ * REST asset url for an asset id reported by the release payload. Only ids the
+ * API owns are accepted and the url is always built on our own API base, so a
+ * crafted payload can never point the token at another host.
+ */
+function releaseAssetApiUrl(repo: string, id: unknown): string | undefined {
+  const slug = repo.trim();
+  if (!/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(slug)) return undefined;
+  if (typeof id !== "number" || !Number.isSafeInteger(id) || id <= 0) return undefined;
+  return githubApiUrl(`repos/${slug}/releases/assets/${id}`);
+}
+
 function selectReleaseAsset(
   release: Record<string, unknown>,
   target: string,
+  repo = "",
 ): InstallAsset | null {
   const assets = release["assets"];
   if (!Array.isArray(assets)) throw new Error("release payload has no assets array");
@@ -410,7 +433,7 @@ function selectReleaseAsset(
   for (const ext of extPreference) {
     const suffix = `.${ext}`;
     const exactName = tag ? `soldr-${tag}-${target}.${ext}` : null;
-    let fallback: { name: string; url: string } | null = null;
+    let fallback: { name: string; url: string; id?: unknown } | null = null;
     for (const asset of assets) {
       if (typeof asset !== "object" || asset === null) continue;
       const a = asset as Record<string, unknown>;
@@ -418,12 +441,18 @@ function selectReleaseAsset(
       if (!name.includes(target) || !name.endsWith(suffix) || isSymbolsSidecar(name)) continue;
       const url = a["browser_download_url"];
       if (typeof url !== "string") continue;
+      const selected = { name, url, archiveExt: ext, source: "github-release" as const };
+      const apiUrl = releaseAssetApiUrl(repo, a["id"]);
       if (exactName && name === exactName) {
-        return { name, url, archiveExt: ext, source: "github-release" };
+        return apiUrl ? { ...selected, apiUrl } : selected;
       }
-      if (!fallback) fallback = { name, url };
+      if (!fallback) fallback = { name, url, id: a["id"] };
     }
-    if (fallback) return { name: fallback.name, url: fallback.url, archiveExt: ext, source: "github-release" };
+    if (fallback) {
+      const selected = { name: fallback.name, url: fallback.url, archiveExt: ext, source: "github-release" as const };
+      const apiUrl = releaseAssetApiUrl(repo, fallback.id);
+      return apiUrl ? { ...selected, apiUrl } : selected;
+    }
   }
   return null;
 }
@@ -1045,6 +1074,36 @@ export async function downloadWithHeaders(
   });
 }
 
+/**
+ * Fetch the release archive. A run with a token asks the REST asset endpoint,
+ * which is authenticated traffic and therefore unaffected by the anonymous
+ * release-download outages of 2026-11-09 (obs-rust/obs-studio#4209). The
+ * anonymous `releases/download` url stays the fallback for a client that
+ * cannot use the API — local runs without a token, and a proxy in front of
+ * `GITHUB_API_URL` that serves metadata but not asset bytes.
+ */
+async function downloadReleaseArchive(
+  asset: InstallAsset,
+  archivePath: string,
+  githubToken: string,
+  log: (message: string) => void,
+  retry?: Parameters<typeof downloadWithHeaders>[3],
+): Promise<void> {
+  if (githubToken.trim() && asset.apiUrl) {
+    try {
+      await downloadWithHeaders(asset.apiUrl, archivePath, requestHeaders(githubToken, RELEASE_ASSET_ACCEPT), retry);
+      return;
+    } catch (error) {
+      // A transient failure stays transient: the caller's PyPI fallback owns
+      // that budget, and the anonymous url fails with it during an outage.
+      if (isRetryableDownloadError(error)) throw error;
+      const detail = error instanceof Error ? error.message : String(error);
+      log(`Release asset API unavailable for ${asset.name} (${detail}); using the public release url`);
+    }
+  }
+  await downloadWithHeaders(asset.url, archivePath, requestHeaders(githubToken), retry);
+}
+
 /** Download the primary archive, or an exact official wheel after a transient outage. */
 async function downloadReleaseAsset(opts: {
   asset: InstallAsset | null;
@@ -1062,7 +1121,7 @@ async function downloadReleaseAsset(opts: {
     const archivePath = path.join(directory, opts.asset.name);
     try {
       log(`Downloading ${opts.asset.name}`);
-      await downloadWithHeaders(opts.asset.url, archivePath, requestHeaders(githubToken), retry);
+      await downloadReleaseArchive(opts.asset, archivePath, githubToken, log, retry);
       verifyDownloadedAsset(archivePath, opts.asset.expectedSha256);
       log("soldr source: github-release");
       return { asset: opts.asset, archivePath };
@@ -1291,7 +1350,7 @@ export async function ensureSoldr(opts: {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "setup-soldr-release-"));
   try {
     const downloaded = await downloadReleaseAsset({
-      asset: selectReleaseAsset(release, target), version: tagName, target, repo,
+      asset: selectReleaseAsset(release, target, repo), version: tagName, target, repo,
       directory: tmp, githubToken, log: core.info,
     });
     asset = downloaded.asset;

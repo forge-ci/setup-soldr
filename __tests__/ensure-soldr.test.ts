@@ -851,3 +851,130 @@ test("cargo-chef support catalogue is resolved through the redirect manifest wit
     resetToolchainRedirectCache();
   }
 });
+
+// obs-rust/obs-studio#4209 item 3: on 2026-11-09 GitHub answered anonymous
+// release downloads with HTTP 504 for hours while authenticated requests kept
+// working. A run that has a token must therefore fetch the soldr archive
+// through the REST asset endpoint; the anonymous `releases/download` URL stays
+// for local runs without a token.
+const API_ASSET_URL = "https://api.github.com/repos/forge-ci/soldr/releases/assets/9002";
+const anonymousAssetUrl = (target: string): string =>
+  `https://github.com/forge-ci/soldr/releases/download/v0.9.41/soldr-v0.9.41-${target}.tar.zst`;
+
+function releaseWithAssetIds(target: string): Record<string, unknown> {
+  return {
+    tag_name: "v0.9.41",
+    assets: [
+      {
+        id: 9001,
+        name: `soldr-v0.9.41-${target}-symbols.tar.zst`,
+        browser_download_url: `https://github.com/forge-ci/soldr/releases/download/v0.9.41/soldr-v0.9.41-${target}-symbols.tar.zst`,
+      },
+      { id: 9002, name: `soldr-v0.9.41-${target}.tar.zst`, browser_download_url: anonymousAssetUrl(target) },
+    ],
+  };
+}
+
+test("release asset selection carries the REST asset url of the winning archive only", () => {
+  const selected = _internal.selectReleaseAsset(releaseWithAssetIds(FALLBACK_TARGET), FALLBACK_TARGET, "forge-ci/soldr");
+  assert.equal(selected?.name, `soldr-v0.9.41-${FALLBACK_TARGET}.tar.zst`);
+  assert.equal(selected?.url, anonymousAssetUrl(FALLBACK_TARGET));
+  assert.equal(selected?.apiUrl, API_ASSET_URL);
+  // Without a repository there is no asset id to build the API url from, so the
+  // selection stays byte-identical to the anonymous one.
+  assert.equal(_internal.selectReleaseAsset(releaseWithAssetIds(FALLBACK_TARGET), FALLBACK_TARGET)?.apiUrl, undefined);
+});
+
+test("release asset selection ignores an unusable asset id instead of building a url from it", () => {
+  for (const id of [undefined, null, "9002", 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 2]) {
+    const release = releaseWithAssetIds(FALLBACK_TARGET);
+    (release["assets"] as Record<string, unknown>[])[1]!["id"] = id;
+    const selected = _internal.selectReleaseAsset(release, FALLBACK_TARGET, "forge-ci/soldr");
+    assert.equal(selected?.url, anonymousAssetUrl(FALLBACK_TARGET));
+    assert.equal(selected?.apiUrl, undefined, `id ${String(id)} must not yield an api url`);
+  }
+});
+
+test("release asset selection builds the api url on the configured GitHub API base", () => {
+  const saved = process.env["GITHUB_API_URL"];
+  process.env["GITHUB_API_URL"] = "http://127.0.0.1:4242/secret-path";
+  try {
+    const selected = _internal.selectReleaseAsset(releaseWithAssetIds(FALLBACK_TARGET), FALLBACK_TARGET, "forge-ci/soldr");
+    assert.equal(selected?.apiUrl, "http://127.0.0.1:4242/secret-path/repos/forge-ci/soldr/releases/assets/9002");
+  } finally {
+    if (saved === undefined) delete process.env["GITHUB_API_URL"];
+    else process.env["GITHUB_API_URL"] = saved;
+  }
+});
+
+async function withAssetDownload(
+  githubToken: string,
+  body: (run: () => ReturnType<typeof _internal.downloadReleaseAsset>, calls: DownloadedCall[]) => Promise<void>,
+): Promise<void> {
+  const original = globalThis.fetch;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "soldr-api-asset-"));
+  const calls: DownloadedCall[] = [];
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    calls.push({
+      url: String(input),
+      accept: headers.get("Accept") ?? "",
+      authorization: headers.get("Authorization") ?? "",
+    });
+    return new Response("github archive", { status: 200 });
+  }) as typeof fetch;
+  try {
+    const asset = _internal.selectReleaseAsset(releaseWithAssetIds(FALLBACK_TARGET), FALLBACK_TARGET, "forge-ci/soldr");
+    assert.ok(asset);
+    await body(
+      () =>
+        _internal.downloadReleaseAsset({
+          asset,
+          version: FALLBACK_VERSION,
+          target: FALLBACK_TARGET,
+          repo: "forge-ci/soldr",
+          directory: dir,
+          githubToken,
+          log: () => {},
+          retry: noSleep,
+        }),
+      calls,
+    );
+  } finally {
+    globalThis.fetch = original;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+type DownloadedCall = { url: string; accept: string; authorization: string };
+
+test("authenticated release download fetches the archive through the REST asset endpoint", async () => {
+  await withAssetDownload("job-token", async (run, calls) => {
+    const result = await run();
+    assert.equal(result.asset.source, "github-release");
+    assert.equal(fs.readFileSync(result.archivePath, "utf8"), "github archive");
+    assert.deepEqual(calls.map(call => call.url), [API_ASSET_URL]);
+    assert.equal(calls[0]!.accept, "application/octet-stream");
+    assert.equal(calls[0]!.authorization, "Bearer job-token");
+  });
+});
+
+test("a token never lands in the downloaded url or the log", async () => {
+  const logs: string[] = [];
+  await withAssetDownload("job-token", async (run, calls) => {
+    await run();
+    assert.equal(calls[0]!.url.includes("job-token"), false);
+    assert.equal(logs.some(log => log.includes("job-token")), false);
+  });
+});
+
+test("a run without a token keeps the anonymous release url and sends no authorization", async () => {
+  await withAssetDownload("", async (run, calls) => {
+    await run();
+    assert.deepEqual(
+      calls.map(call => call.url),
+      [anonymousAssetUrl(FALLBACK_TARGET)],
+    );
+    assert.equal(calls[0]!.authorization, "");
+  });
+});
