@@ -57538,6 +57538,7 @@ const promises_1 = __nccwpck_require__(46466);
 const local_profile_js_1 = __nccwpck_require__(29720);
 const failed_job_save_js_1 = __nccwpck_require__(48188);
 const save_policy_js_1 = __nccwpck_require__(98097);
+const persistent_root_js_1 = __nccwpck_require__(75163);
 exports.ACCESS_KEY_ENV = "SOLDR_S3_CACHE_ACCESS_KEY";
 exports.SECRET_KEY_ENV = "SOLDR_S3_CACHE_SECRET_KEY";
 exports.DEFAULT_LIMIT = "50G";
@@ -57938,6 +57939,10 @@ function allowS3Save(env) {
         return { save: false, reason: "save-cache=false" };
     if (remote === "false")
         return { save: false, reason: "save-cache-remote=false" };
+    // #691: a persistent root may seed a cold layer from S3 but never writes it.
+    const persistentRoot = (0, persistent_root_js_1.activePersistentRoot)(env);
+    if (persistentRoot)
+        return { save: false, reason: `persistent-root ${persistentRoot}` };
     try {
         const gate = (0, failed_job_save_js_1.readDependencyLayerSaveGate)(env);
         if (!gate.save)
