@@ -1211,6 +1211,14 @@ cache only moves files that are already there. `persistent-root` keeps them:
   or a plain marker such as `/var/cache/obs-runner/.persistent-cache` (store =
   its directory). The root is `<store>/slots/<RUNNER_NAME>/setup-soldr/<os>-<arch>-u<uid>`:
   one runner runs one job at a time, and the uid keeps container and host jobs apart.
+- For elastic pools, give each runner container a fixed in-container root so
+  cache keys match across runners: add an absolute `root` to the JSON
+  descriptor, for example `{"schema": 1, "store": "/x", "root": "/opt/forge/soldr"}`.
+  The root is then `<root>/<os>-<arch>-u<uid>`, with no `RUNNER_NAME`
+  component, so `CARGO_HOME`, `RUSTUP_HOME` and the zccache directory have the
+  same paths on every runner and host (bind-mount the slot's host directory
+  there). The descriptor must be per container, so one runner owns the root;
+  the `.clean`, quarantine and session rules below still apply.
 - Crash safe: opening a root removes its `.clean` marker durably; the post step
   writes it back (atomically, after stopping the cache daemons and `sync -f`)
   only when setup completed. A root left unclean by its own runner is

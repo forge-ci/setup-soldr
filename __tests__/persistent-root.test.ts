@@ -19,6 +19,7 @@ import {
   closePersistentSession,
   lastMissDurationMs,
   openPersistentSession,
+  parseDescriptor,
   persistentLayout,
   preparePersistentRoot,
   readLedgerHistory,
@@ -130,6 +131,51 @@ test("a JSON host-store descriptor names the store; unknown schema degrades with
   });
   assert.equal(bad.root, null);
   assert.match(bad.warning ?? "", /schema 1/);
+});
+
+test("a descriptor `root` gives a fixed, runner-independent root so cache keys match across runners", () => {
+  const descriptor = '{"schema":1,"store":"/x","root":"/opt/forge/soldr"}';
+  assert.deepEqual(parseDescriptor("/d.json", descriptor), { store: path.resolve("/x"), root: path.resolve("/opt/forge/soldr") });
+  const pick = (env: Record<string, string>) =>
+    choosePersistentRoot({
+      input: "",
+      env,
+      platform: "linux",
+      arch: "x64",
+      uid: 0,
+      descriptorPaths: ["/d.json"],
+      readFile: files({ "/d.json": descriptor }),
+    });
+  const a = pick({ ...SELF_HOSTED, RUNNER_NAME: "dell-fsx3mn2-dyn-fastled-1" });
+  const b = pick({ ...SELF_HOSTED, RUNNER_NAME: "dell-jw22zc3-dyn-fastled-2" });
+  assert.equal(a.source, "descriptor");
+  assert.equal(a.root, path.join(path.resolve("/opt/forge/soldr"), "linux-x64-u0"));
+  assert.equal(b.root, a.root);
+  // No RUNNER_NAME component, so none is required.
+  assert.equal(pick({ RUNNER_ENVIRONMENT: "self-hosted" }).root, a.root);
+  // The uid still separates container and host jobs.
+  const host = choosePersistentRoot({
+    input: "",
+    env: SELF_HOSTED,
+    platform: "linux",
+    arch: "x64",
+    uid: 1001,
+    descriptorPaths: ["/d.json"],
+    readFile: files({ "/d.json": descriptor }),
+  });
+  assert.equal(host.root, path.join(path.resolve("/opt/forge/soldr"), "linux-x64-u1001"));
+});
+
+test("a descriptor with a relative or non-string `root` is unusable and degrades with a warning", () => {
+  for (const root of ['"rel/root"', "42", '""']) {
+    const content = `{"schema":1,"store":"/x","root":${root}}`;
+    assert.equal(parseDescriptor("/d.json", content), null, root);
+    const bad = choosePersistentRoot({ input: "", env: SELF_HOSTED, descriptorPaths: ["/d.json"], readFile: files({ "/d.json": content }) });
+    assert.equal(bad.root, null, root);
+    assert.match(bad.warning ?? "", /root/, root);
+  }
+  // Without `root` the descriptor keeps the per-runner slot layout.
+  assert.deepEqual(parseDescriptor("/d.json", '{"schema":1,"store":"/x"}'), { store: path.resolve("/x"), root: null });
 });
 
 test("a descriptor without RUNNER_NAME, or no descriptor, stays off silently", () => {
