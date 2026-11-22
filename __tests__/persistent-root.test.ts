@@ -438,7 +438,7 @@ test("resolveSetup moves cache-dir, zccache, RUSTUP_HOME and CARGO_HOME under th
 });
 
 test("#691: a cold root seeds its zccache and cargo-registry layers from the Actions cache", async () => {
-  const { result, inputs } = await resolveUnderRoot();
+  const { result, inputs } = await resolveUnderRoot(undefined, { SETUP_SOLDR_ZCCACHE_SEED: "true" });
   assert.equal(result.buildCache.enabled, true);
   assert.equal(result.buildCache.seedFromActions, true);
   assert.equal(result.cargoRegistryCache.enabled, true);
@@ -466,7 +466,7 @@ test("#691: a root keys its zccache seed like a GitHub-hosted run of the same jo
 });
 
 test("#691: seeding never overrides an explicit cargo-registry-cache: false", async () => {
-  const { result } = await resolveUnderRoot(undefined, { "INPUT_CARGO-REGISTRY-CACHE": "false" });
+  const { result } = await resolveUnderRoot(undefined, { "INPUT_CARGO-REGISTRY-CACHE": "false", SETUP_SOLDR_ZCCACHE_SEED: "true" });
   assert.equal(result.cargoRegistryCache.enabled, false);
   assert.equal(result.cargoRegistryCache.seedFromActions, false);
   assert.equal(result.buildCache.seedFromActions, true);
@@ -499,9 +499,20 @@ test("gh-runner#75: a zccache dir holding only bookkeeping is cold; one artifact
   assert.equal(zccacheStoreCold(zccache), false);
 });
 
-test("gh-runner#75: a root whose zccache store was swept seeds from the Actions cache", async () => {
-  const { result } = await resolveUnderRoot(sweptZccache);
+test("gh-runner#75: a root whose zccache store was swept seeds from the Actions cache where the host opts in", async () => {
+  const { result } = await resolveUnderRoot(sweptZccache, { SETUP_SOLDR_ZCCACHE_SEED: "true" });
   assert.equal(result.buildCache.seedFromActions, true);
+});
+
+test("gh-runner#75: a cold root does not seed its zccache store unless the host opts in", async () => {
+  // zccache keys hold the daemon route and absolute paths: a hosted store
+  // seeded on a Dell root downloaded 363 MB in 115 s and then missed all
+  // 383 units (forge-ci/bosn job 137142553411). The registry seed, which is
+  // path-free, stays on.
+  const { result } = await resolveUnderRoot();
+  assert.equal(result.buildCache.enabled, true);
+  assert.equal(result.buildCache.seedFromActions, false);
+  assert.equal(result.cargoRegistryCache.seedFromActions, true);
 });
 
 test("gh-runner#75: the seed asks for the hosted archive path and lands under this runner's workspace", () => {
