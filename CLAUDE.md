@@ -347,3 +347,5 @@ until [ "$(gh pr view $PR --json statusCheckRollup --jq '
 ```
 
 This is the second face of the same family of bugs — the first hit (the original CodeRabbit miss) and this one (empty-string-vs-null) together cost ~10 minutes of stuck polling in one session. **Default to explicit per-typename checks; treat `//` as suspicious for any field that GitHub serializes as `""` when unset.**
+
+Pushes from clud sessions are gated by `pr_checks` (talos-hq/clud#2720): run `clud pr-check` before pushing; it runs `npm run lint` (oxlint with denied warnings) and `npm run typecheck` (TypeScript compile checks).
