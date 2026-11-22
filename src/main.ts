@@ -20,7 +20,9 @@ import * as cache from "@actions/cache";
 import {
   PERSISTENT_ROOT_ENV,
   appendLedgerHistory,
+  hostedSeedPaths,
   lastMissDurationMs,
+  moveSeededArchive,
   preparePersistentRoot,
   readLedgerHistory,
   remoteCacheBypassed,
@@ -895,26 +897,47 @@ export async function run(): Promise<void> {
       core.saveState("s3BuildState", JSON.stringify(s3Restore.state));
       restore = { hit: false, matchedKey: s3Restore.matchedKey };
     }
+    // gh-runner#75: a cold root reads the entry a hosted run saved. The
+    // Actions cache keys an entry's version on the literal path, so ask for
+    // the hosted path and move the archive from where it extracts here.
+    const seedPaths = buildSeedLayer && result.persistentRoot
+      ? hostedSeedPaths({
+        archivePath,
+        persistentRoot: result.persistentRoot,
+        workspace: ctx.workspace,
+        repository: process.env["GITHUB_REPOSITORY"] ?? "",
+      })
+      : null;
+    const restorePaths = seedPaths ? [seedPaths.versionPath] : [archivePath];
+    const actionsRestoreFrom = restore.matchedKey;
     if (!restore.matchedKey) {
       // setup-soldr#682: the legacy key is commit-free. Look up its newest
       // generation on its own first, then the bare key and the job fallback.
       const restoreLegacy = async (): Promise<{ hit: boolean; matchedKey: string }> => {
         let r: { hit: boolean; matchedKey: string } = { hit: false, matchedKey: "" };
         for (const req of buildCacheRestoreRequests(legacyKey, restoreKeys)) {
-          r = await restoreCacheSafe([archivePath], req.primaryKey, req.restoreKeys, logger, { seedLayer: buildSeedLayer });
+          r = await restoreCacheSafe(restorePaths, req.primaryKey, req.restoreKeys, logger, { seedLayer: buildSeedLayer });
           if (r.matchedKey) break;
         }
         return r;
       };
       if (selectedKey) {
-        restore = await restoreCacheSafe([archivePath], selectedKey, [], logger, { seedLayer: buildSeedLayer });
+        restore = await restoreCacheSafe(restorePaths, selectedKey, [], logger, { seedLayer: buildSeedLayer });
       } else if (localAncestorKey) {
-        restore = await restoreCacheSafe([archivePath], result.buildCache.key, restoreKeys, logger, { seedLayer: buildSeedLayer });
+        restore = await restoreCacheSafe(restorePaths, result.buildCache.key, restoreKeys, logger, { seedLayer: buildSeedLayer });
       } else {
         restore = await restoreLegacy();
       }
       if (selectedKey && restore.matchedKey !== selectedKey) {
         restore = await restoreLegacy();
+      }
+    }
+    if (seedPaths && restore.matchedKey && !actionsRestoreFrom && fileExists(seedPaths.landingPath)) {
+      try {
+        moveSeededArchive(seedPaths.landingPath, archivePath);
+      } catch (err) {
+        logger.warning(`build-cache: seed archive ${seedPaths.landingPath} could not move to ${archivePath}: ${err instanceof Error ? err.message : String(err)}`);
+        restore = { hit: false, matchedKey: "" };
       }
     }
     // A donor hit is a starting point; only this source's exact write key, or
