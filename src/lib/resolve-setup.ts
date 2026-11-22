@@ -43,7 +43,7 @@ import {
 import { buildOutputs } from "./build-outputs.js";
 import { readRawInputs } from "./raw-inputs.js";
 import { isLocalRunner, resolveCacheProfileInput } from "./local-profile.js";
-import { persistentLayerCold, persistentLayout, zccacheStoreCold } from "./persistent-root.js";
+import { ZCCACHE_SEED_ENV, persistentLayerCold, persistentLayout, zccacheSeedEnabled, zccacheStoreCold } from "./persistent-root.js";
 import { timeSubPhase } from "./phase-timing.js";
 import {
   detectUserLinkerEnv,
@@ -1714,6 +1714,18 @@ export async function resolveSetup(
     setupCachePath,
     layout: setupCacheLayoutValue,
   };
+  // gh-runner#75: zccache keys hold the daemon route and absolute paths
+  // (workspace, CARGO_HOME). On a root they differ from a hosted run's, so a
+  // seeded hosted store missed every unit (forge-ci/bosn job 137142553411:
+  // 363 MB in 115 s, then 0 HIT / 383 MISS). Seed only where the host says
+  // its layout matches a hosted run's (SETUP_SOLDR_ZCCACHE_SEED=true).
+  let zccacheSeed = false;
+  if (persistentRoot && buildCacheEnabled && zccacheStoreCold(zccacheCacheDir)) {
+    zccacheSeed = zccacheSeedEnabled(env);
+    if (!zccacheSeed) {
+      log(`build-cache: cold persistent root not seeded: zccache keys hold this runner's paths, not a hosted run's (set ${ZCCACHE_SEED_ENV}=true where they match; gh-runner#75)`);
+    }
+  }
   const buildCache: BuildCachePlan = {
     enabled: buildCacheEnabled,
     key: buildCacheKey,
@@ -1725,7 +1737,7 @@ export async function resolveSetup(
     restoreKeyOsArch: "",
     path: zccacheCacheDir,
     mode: buildCacheMode,
-    seedFromActions: Boolean(persistentRoot) && buildCacheEnabled && zccacheStoreCold(zccacheCacheDir),
+    seedFromActions: zccacheSeed,
   };
   const targetCache: TargetCachePlan = {
     enabled: targetCacheEnabled,

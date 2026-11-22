@@ -501,6 +501,18 @@ export function zccacheStoreCold(dir: string): boolean {
   return !walk(dir, true);
 }
 
+/**
+ * gh-runner#75: opt-in for seeding a cold root's zccache store from a hosted
+ * run's entry. A zccache hit needs the same daemon route and the same
+ * absolute workspace and CARGO_HOME paths as the run that wrote the store;
+ * only a host that runs jobs at hosted-identical paths should set it.
+ */
+export const ZCCACHE_SEED_ENV = "SETUP_SOLDR_ZCCACHE_SEED";
+
+export function zccacheSeedEnabled(env: Record<string, string | undefined> = process.env): boolean {
+  return ["1", "true", "yes", "on"].includes((env[ZCCACHE_SEED_ENV] ?? "").trim().toLowerCase());
+}
+
 /** RUNNER_TEMP of a GitHub-hosted runner of this OS. */
 export function hostedRunnerTemp(platform: NodeJS.Platform = process.platform): string {
   if (platform === "win32") return "D:\\a\\_temp";
