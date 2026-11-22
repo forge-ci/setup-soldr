@@ -997,11 +997,19 @@ test("lockfile prefix emitted for full mode", async () => {
 });
 
 test("lockfile prefix stable across manifest changes", async () => {
+  // Pin the channel: the default `stable` is resolved through a live
+  // static.rust-lang.org fetch that falls back to "stable" on timeout, so on a
+  // loaded host the two runs could key on different channels and differ for a
+  // reason this test is not about.
+  const pinned = '[toolchain]\nchannel = "1.98.1"\n';
   const { outputs: a } = await run({
-    files: { "Cargo.toml": "[package]\nname='a'\nversion='0.1.0'\n" },
+    files: { "Cargo.toml": "[package]\nname='a'\nversion='0.1.0'\n", "rust-toolchain.toml": pinned },
   }, { INPUT_BUILD_CACHE_MODE: "once", INPUT_TARGET_CACHE: "true" });
   const { outputs: b } = await run({
-    files: { "Cargo.toml": "[package]\nname='a'\nversion='0.1.0'\n[[bin]]\nname='x'\npath='src/main.rs'\n" },
+    files: {
+      "Cargo.toml": "[package]\nname='a'\nversion='0.1.0'\n[[bin]]\nname='x'\npath='src/main.rs'\n",
+      "rust-toolchain.toml": pinned,
+    },
   }, { INPUT_BUILD_CACHE_MODE: "once", INPUT_TARGET_CACHE: "true" });
   assert.notEqual(a["target_cache_restore_key_lock"], b["target_cache_restore_key_lock"]);
   assert.equal(

@@ -222,9 +222,16 @@ test("killed bundled worker leaves pending and a foreground recheck recovers", a
       env: { ...bundledWorkerEnv(), NODE_OPTIONS: `--require=${preload}` }, stdio: "pipe",
     });
     await new Promise<void>((resolve, reject) => {
-      const deadline = Date.now() + 3_000;
+      // Liveness, not a stopwatch: a worker that exits fails at once, and a live
+      // one may take as long as a loaded host needs (a fixed 3 s flaked at load
+      // ~120). The 60 s cap only stops a wedged worker from using the whole
+      // per-test timeout.
+      let exited = false;
+      child.once("exit", () => { exited = true; });
+      const deadline = Date.now() + 60_000;
       const poll = () => {
         if (JSON.parse(fs.readFileSync(result, "utf8")).workerPid === child.pid) resolve();
+        else if (exited) reject(new Error("bundled worker exited before reporting ready"));
         else if (Date.now() > deadline) reject(new Error("bundled worker never reported ready"));
         else setTimeout(poll, 10);
       };
