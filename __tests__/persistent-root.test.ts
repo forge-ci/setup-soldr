@@ -17,7 +17,9 @@ import {
   appendLedgerHistory,
   choosePersistentRoot,
   closePersistentSession,
+  hostedSeedPaths,
   lastMissDurationMs,
+  moveSeededArchive,
   openPersistentSession,
   parseDescriptor,
   persistentLayout,
@@ -28,6 +30,7 @@ import {
   slotRoot,
   storeFromDescriptor,
   writeFileAtomic,
+  zccacheStoreCold,
 } from "../src/lib/persistent-root.js";
 import {
   describeLedger,
@@ -467,6 +470,80 @@ test("#691: seeding never overrides an explicit cargo-registry-cache: false", as
   assert.equal(result.cargoRegistryCache.enabled, false);
   assert.equal(result.cargoRegistryCache.seedFromActions, false);
   assert.equal(result.buildCache.seedFromActions, true);
+});
+
+/** What the soldr broker's sweep of a retired route leaves behind (gh-runner#75). */
+function sweptZccache(root: string): void {
+  const zccache = path.join(`${persistentLayout(root).cacheDir}-soldr`, "cache", "zccache");
+  const route = path.join(zccache, "daemon-state", "embedded-v1-soldr-daemon-b7d6a3f126fe039d69d6cb4afc46e85a");
+  fs.mkdirSync(route, { recursive: true });
+  fs.writeFileSync(path.join(route, "image-source"), "/x/soldr-daemon\n");
+  fs.mkdirSync(path.join(zccache, "logs"), { recursive: true });
+  fs.writeFileSync(path.join(zccache, "logs", "last-session-stats.json"), "{}");
+  fs.mkdirSync(path.join(zccache, "history", "1"), { recursive: true });
+  fs.writeFileSync(path.join(zccache, "history", "1", "compile_journal.jsonl"), "{}\n");
+}
+
+test("gh-runner#75: a zccache dir holding only bookkeeping is cold; one artifact makes it warm", () => {
+  const root = mkTmp();
+  const zccache = path.join(`${persistentLayout(root).cacheDir}-soldr`, "cache", "zccache");
+  assert.equal(zccacheStoreCold(zccache), true, "missing dir");
+  sweptZccache(root);
+  assert.equal(zccacheStoreCold(zccache), true, "swept store");
+  const store = path.join(zccache, "daemon-state", "embedded-v1-soldr-daemon-b7d6a3f126fe039d69d6cb4afc46e85a", "v1.15.12");
+  fs.mkdirSync(store, { recursive: true });
+  fs.writeFileSync(path.join(store, ".writer.lock"), "");
+  assert.equal(zccacheStoreCold(zccache), true, "a store with only its writer lock");
+  fs.mkdirSync(path.join(store, "objects", "ab"), { recursive: true });
+  fs.writeFileSync(path.join(store, "objects", "ab", "cdef"), "artifact");
+  assert.equal(zccacheStoreCold(zccache), false);
+});
+
+test("gh-runner#75: a root whose zccache store was swept seeds from the Actions cache", async () => {
+  const { result } = await resolveUnderRoot(sweptZccache);
+  assert.equal(result.buildCache.seedFromActions, true);
+});
+
+test("gh-runner#75: the seed asks for the hosted archive path and lands under this runner's workspace", () => {
+  const seed = hostedSeedPaths({
+    archivePath: "/var/cache/obs-runner/slots/s/setup-soldr/linux-x64-u1001/setup-soldr-soldr/cache/zccache.tar.zst",
+    persistentRoot: "/var/cache/obs-runner/slots/s/setup-soldr/linux-x64-u1001",
+    workspace: "/var/lib/obs-runner/forge-ci/r1/_work/bosn/bosn",
+    repository: "forge-ci/bosn",
+    platform: "linux",
+  });
+  // The exact string a GitHub-hosted Linux run passed to saveCache.
+  assert.deepEqual(seed, {
+    versionPath: "/home/runner/work/_temp/setup-soldr-soldr/cache/zccache.tar.zst",
+    landingPath: "/var/lib/obs-runner/forge-ci/r1/_work/_temp/setup-soldr-soldr/cache/zccache.tar.zst",
+  });
+  assert.equal(hostedSeedPaths({
+    archivePath: "/elsewhere/zccache.tar.zst",
+    persistentRoot: "/var/cache/root",
+    workspace: "/w/r/r",
+    repository: "o/r",
+    platform: "linux",
+  }), null, "an archive outside the root has no hosted twin");
+  assert.equal(hostedSeedPaths({
+    archivePath: "/var/cache/root/setup-soldr-soldr/cache/zccache.tar.zst",
+    persistentRoot: "/var/cache/root",
+    workspace: "/w/r/r",
+    repository: "",
+    platform: "linux",
+  }), null, "no repository, no hosted workspace");
+});
+
+test("gh-runner#75: moveSeededArchive moves the extracted archive into the root", () => {
+  const dir = mkTmp();
+  const from = path.join(dir, "temp", "zccache.tar.zst");
+  const to = path.join(dir, "root", "cache", "zccache.tar.zst");
+  fs.mkdirSync(path.dirname(from), { recursive: true });
+  fs.writeFileSync(from, "zstd");
+  moveSeededArchive(from, to);
+  assert.equal(fs.readFileSync(to, "utf8"), "zstd");
+  assert.equal(fs.existsSync(from), false);
+  moveSeededArchive(to, to);
+  assert.equal(fs.readFileSync(to, "utf8"), "zstd", "moving onto itself is a no-op");
 });
 
 // --- ledger -------------------------------------------------------------

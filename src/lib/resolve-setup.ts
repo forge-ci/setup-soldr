@@ -43,7 +43,7 @@ import {
 import { buildOutputs } from "./build-outputs.js";
 import { readRawInputs } from "./raw-inputs.js";
 import { isLocalRunner, resolveCacheProfileInput } from "./local-profile.js";
-import { persistentLayerCold, persistentLayout } from "./persistent-root.js";
+import { persistentLayerCold, persistentLayout, zccacheStoreCold } from "./persistent-root.js";
 import { timeSubPhase } from "./phase-timing.js";
 import {
   detectUserLinkerEnv,
@@ -1725,7 +1725,7 @@ export async function resolveSetup(
     restoreKeyOsArch: "",
     path: zccacheCacheDir,
     mode: buildCacheMode,
-    seedFromActions: Boolean(persistentRoot) && buildCacheEnabled && persistentLayerCold(zccacheCacheDir),
+    seedFromActions: Boolean(persistentRoot) && buildCacheEnabled && zccacheStoreCold(zccacheCacheDir),
   };
   const targetCache: TargetCachePlan = {
     enabled: targetCacheEnabled,

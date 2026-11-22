@@ -468,6 +468,97 @@ export function persistentLayerCold(dir: string): boolean {
   }
 }
 
+/** Entries of a zccache dir that are bookkeeping, not compiled artifacts. */
+const ZCCACHE_TOP_BOOKKEEPING = new Set(["logs", "history"]);
+const ZCCACHE_FILE_BOOKKEEPING = new Set(["image-source", ".writer.lock", ".last-active"]);
+
+/**
+ * #691 / gh-runner#75: the zccache layer of a root is cold when it holds no
+ * artifact, not merely when its directory is empty. A store the soldr
+ * broker swept after its daemon exited leaves `logs/`, `history/` and
+ * `daemon-state/<route>/image-source` behind; read as "non-empty", that
+ * root was warm forever and never seeded, while every compile missed.
+ * Stops at the first artifact, so a warm store costs one short walk.
+ */
+export function zccacheStoreCold(dir: string): boolean {
+  const walk = (current: string, top: boolean): boolean => {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch {
+      return false;
+    }
+    for (const entry of entries) {
+      if (top && ZCCACHE_TOP_BOOKKEEPING.has(entry.name)) continue;
+      if (entry.isDirectory()) {
+        if (walk(path.join(current, entry.name), false)) return true;
+      } else if (!ZCCACHE_FILE_BOOKKEEPING.has(entry.name)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  return !walk(dir, true);
+}
+
+/** RUNNER_TEMP of a GitHub-hosted runner of this OS. */
+export function hostedRunnerTemp(platform: NodeJS.Platform = process.platform): string {
+  if (platform === "win32") return "D:\\a\\_temp";
+  if (platform === "darwin") return "/Users/runner/work/_temp";
+  return "/home/runner/work/_temp";
+}
+
+export interface HostedSeedPaths {
+  /** The path a GitHub-hosted run saved: it keys the cache entry's version. */
+  versionPath: string;
+  /** Where that entry's archive extracts on this runner. */
+  landingPath: string;
+}
+
+/**
+ * #691 / gh-runner#75: `@actions/cache` hashes the literal `paths` into the
+ * entry version, so a cold root asking for its own archive path
+ * (`<root>/setup-soldr-soldr/cache/zccache.tar.zst`) never matched the
+ * entry a hosted run saved as `<RUNNER_TEMP>/setup-soldr-soldr/...`, even
+ * with the exact key ("no match"). A root lays out its state under the root
+ * as a hosted run does under RUNNER_TEMP, so the hosted path is the same
+ * relative path under the hosted RUNNER_TEMP. The archive's members are
+ * relative to the hosted GITHUB_WORKSPACE (`<work>/<repo>/<repo>`) and
+ * extract relative to this runner's workspace. Null when `archivePath` is
+ * not under the root or the repository is unknown.
+ */
+export function hostedSeedPaths(opts: {
+  archivePath: string;
+  persistentRoot: string;
+  workspace: string;
+  repository: string;
+  platform?: NodeJS.Platform;
+}): HostedSeedPaths | null {
+  const rel = path.relative(opts.persistentRoot, opts.archivePath);
+  const repo = opts.repository.split("/").pop() ?? "";
+  if (!rel || rel.startsWith("..") || path.isAbsolute(rel) || !repo || !opts.workspace) return null;
+  const platform = opts.platform ?? process.platform;
+  const p = platform === "win32" ? path.win32 : path.posix;
+  const temp = hostedRunnerTemp(platform);
+  const versionPath = p.join(temp, ...rel.split(path.sep));
+  const hostedWorkspace = p.join(p.dirname(temp), repo, repo);
+  const member = p.relative(hostedWorkspace, versionPath);
+  return { versionPath, landingPath: path.resolve(opts.workspace, ...member.split(p.sep)) };
+}
+
+/** Move a seeded archive into place; the two may sit on different mounts. */
+export function moveSeededArchive(from: string, to: string): void {
+  if (path.resolve(from) === path.resolve(to)) return;
+  fs.mkdirSync(path.dirname(to), { recursive: true });
+  try {
+    fs.renameSync(from, to);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "EXDEV") throw err;
+    fs.copyFileSync(from, to);
+    fs.rmSync(from, { force: true });
+  }
+}
+
 /** Test hook. */
 export function resetPersistentRootLogForTest(): void {
   loggedBypass.clear();
