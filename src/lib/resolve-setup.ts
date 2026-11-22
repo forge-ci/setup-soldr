@@ -43,7 +43,7 @@ import {
 import { buildOutputs } from "./build-outputs.js";
 import { readRawInputs } from "./raw-inputs.js";
 import { isLocalRunner, resolveCacheProfileInput } from "./local-profile.js";
-import { persistentLayout } from "./persistent-root.js";
+import { persistentLayerCold, persistentLayout } from "./persistent-root.js";
 import { timeSubPhase } from "./phase-timing.js";
 import {
   detectUserLinkerEnv,
@@ -616,6 +616,9 @@ export async function resolveSetup(
   // its restore and save are bypassed by the restore and save gates.
   const persistentRootRaw = (inputs.persistentRoot ?? "").trim();
   const persistentRoot = persistentRootRaw && path.isAbsolute(persistentRootRaw) ? path.resolve(persistentRootRaw) : "";
+  // #691: a cold root (new, evicted or quarantined) seeds its registry once,
+  // read-only, from the Actions cache instead of downloading every crate.
+  let cargoRegistrySeed = false;
   if (persistentRoot) {
     const layout = persistentLayout(persistentRoot);
     const forcedOff: string[] = [];
@@ -625,14 +628,19 @@ export async function resolveSetup(
     };
     inputs.soloToolchainCache = forceOff("solo-toolchain-cache", inputs.soloToolchainCache);
     inputs.soldrMiniCache = forceOff("soldr-mini-cache", inputs.soldrMiniCache || "true");
-    inputs.cargoRegistryCache = forceOff("cargo-registry-cache", inputs.cargoRegistryCache);
+    if (persistentLayerCold(path.join(layout.cargoHome, "registry")) && !isFalsy(inputs.cargoRegistryCache.trim() || "auto")) {
+      cargoRegistrySeed = true;
+    } else {
+      inputs.cargoRegistryCache = forceOff("cargo-registry-cache", inputs.cargoRegistryCache);
+    }
     inputs.targetCache = forceOff("target-cache", inputs.targetCache);
     if (!inputs.cacheDir.trim()) inputs.cacheDir = layout.cacheDir;
     env["CARGO_HOME"] = layout.cargoHome;
     env["RUSTUP_HOME"] = layout.rustupHome;
     log(
       `persistent-root: ${persistentRoot} (cache-dir=${inputs.cacheDir.trim()} RUSTUP_HOME=${layout.rustupHome} ` +
-        `CARGO_HOME=${layout.cargoHome}); every GitHub Actions cache restore and save is skipped` +
+        `CARGO_HOME=${layout.cargoHome}); every GitHub Actions cache save is skipped, and every restore ` +
+        `except a read-only seed of a cold layer (#691)` +
         (forcedOff.length > 0 ? `; disabled ${forcedOff.join(", ")}` : ""),
     );
   }
@@ -1709,6 +1717,7 @@ export async function resolveSetup(
     restoreKeyOsArch: "",
     path: zccacheCacheDir,
     mode: buildCacheMode,
+    seedFromActions: Boolean(persistentRoot) && buildCacheEnabled && persistentLayerCold(zccacheCacheDir),
   };
   const targetCache: TargetCachePlan = {
     enabled: targetCacheEnabled,
@@ -1733,6 +1742,7 @@ export async function resolveSetup(
     path: cargoRegistryCachePath,
     extraBasenames: cargoRegistryCacheExtras,
     archive: cargoRegistryArchive,
+    seedFromActions: cargoRegistrySeed && cargoRegistryCacheEnabled,
   };
   const dylintCachePlan = {
     enabled: dylintCacheEnabled,

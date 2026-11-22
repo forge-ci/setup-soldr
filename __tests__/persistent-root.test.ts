@@ -352,9 +352,23 @@ test("contract: every Actions-cache restore call site is gated or reviewed", () 
   }
 });
 
+test("#691: a cold persistent layer may read (never write) the Actions cache to seed itself", () => {
+  process.env["GITHUB_EVENT_NAME"] = "push";
+  process.env[PERSISTENT_ROOT_ENV] = "/srv/root";
+  const logs: string[] = [];
+  assert.equal(remoteCacheBypassed("build-cache", (m) => logs.push(m), process.env, { seedFromActions: true }), false);
+  assert.match(logs.join("\n"), /build-cache: persistent-root \/srv\/root is cold; seeding read-only from the GitHub Actions cache/);
+  // A warm layer on the same root is still bypassed.
+  assert.equal(remoteCacheBypassed("cargo-registry", (m) => logs.push(m), process.env, { seedFromActions: false }), true);
+  // Seeding never writes back: the save gate refuses both seeded layers.
+  assert.equal(allowCacheSave("build-cache", (m) => logs.push(m)), false);
+  assert.equal(allowCacheSave("cargo-registry-cache", (m) => logs.push(m)), false);
+  assert.match(logs.join("\n"), /cargo-registry-cache: save skipped: persistent-root \/srv\/root/);
+});
+
 // --- resolveSetup layout ------------------------------------------------
 
-test("resolveSetup moves cache-dir, zccache, RUSTUP_HOME and CARGO_HOME under the root and drops Actions-cache layers", async () => {
+async function resolveUnderRoot(prepare: (root: string) => void = () => undefined, extraEnv: Record<string, string> = {}) {
   const base = mkTmp();
   const workspace = path.join(base, "ws");
   const runnerTemp = path.join(base, "tmp");
@@ -362,6 +376,7 @@ test("resolveSetup moves cache-dir, zccache, RUSTUP_HOME and CARGO_HOME under th
   fs.mkdirSync(runnerTemp, { recursive: true });
   fs.writeFileSync(path.join(workspace, "Cargo.lock"), "# lock\n");
   const root = path.join(base, "persist");
+  prepare(root);
   const env: Record<string, string | undefined> = {
     ACTION_WORKSPACE: workspace,
     RUNNER_TEMP: runnerTemp,
@@ -373,6 +388,7 @@ test("resolveSetup moves cache-dir, zccache, RUSTUP_HOME and CARGO_HOME under th
     "INPUT_CARGO-REGISTRY-CACHE": "true",
     "INPUT_SOLO-TOOLCHAIN-CACHE": "true",
     "INPUT_PERSISTENT-ROOT": root,
+    ...extraEnv,
   };
   const ctx: ActionContext = {
     env,
@@ -390,6 +406,20 @@ test("resolveSetup moves cache-dir, zccache, RUSTUP_HOME and CARGO_HOME under th
     fetchReleaseTag: async () => "v0.7.11",
     systemRustupOverride: async () => false,
   });
+  return { root, inputs, result };
+}
+
+/** A root whose previous job left a registry and a zccache store behind. */
+function warmRoot(root: string): void {
+  const layout = persistentLayout(root);
+  fs.mkdirSync(path.join(layout.cargoHome, "registry", "index"), { recursive: true });
+  const zccache = path.join(`${layout.cacheDir}-soldr`, "cache", "zccache", "artifacts");
+  fs.mkdirSync(zccache, { recursive: true });
+  fs.writeFileSync(path.join(zccache, "a"), "x");
+}
+
+test("resolveSetup moves cache-dir, zccache, RUSTUP_HOME and CARGO_HOME under the root and drops Actions-cache layers", async () => {
+  const { root, inputs, result } = await resolveUnderRoot(warmRoot);
   const layout = persistentLayout(root);
   assert.equal(result.persistentRoot, root);
   assert.equal(result.cargoHome, layout.cargoHome);
@@ -397,9 +427,30 @@ test("resolveSetup moves cache-dir, zccache, RUSTUP_HOME and CARGO_HOME under th
   assert.ok(result.setupCache.setupCachePath.startsWith(root + path.sep), result.setupCache.setupCachePath);
   assert.ok(result.buildCache.path.startsWith(root + path.sep), `zccache ${result.buildCache.path}`);
   assert.equal(result.cargoRegistryCache.enabled, false);
+  assert.equal(result.cargoRegistryCache.seedFromActions, false);
+  assert.equal(result.buildCache.seedFromActions, false);
   assert.equal(result.targetCache.enabled, false);
   assert.equal(inputs.soloToolchainCache, "false");
   assert.equal(inputs.soldrMiniCache, "false");
+});
+
+test("#691: a cold root seeds its zccache and cargo-registry layers from the Actions cache", async () => {
+  const { result, inputs } = await resolveUnderRoot();
+  assert.equal(result.buildCache.enabled, true);
+  assert.equal(result.buildCache.seedFromActions, true);
+  assert.equal(result.cargoRegistryCache.enabled, true);
+  assert.equal(result.cargoRegistryCache.seedFromActions, true);
+  assert.ok(result.cargoRegistryCache.path.startsWith(result.persistentRoot! + path.sep), result.cargoRegistryCache.path);
+  // The other layers stay off on a root, cold or not.
+  assert.equal(result.targetCache.enabled, false);
+  assert.equal(inputs.soloToolchainCache, "false");
+});
+
+test("#691: seeding never overrides an explicit cargo-registry-cache: false", async () => {
+  const { result } = await resolveUnderRoot(undefined, { "INPUT_CARGO-REGISTRY-CACHE": "false" });
+  assert.equal(result.cargoRegistryCache.enabled, false);
+  assert.equal(result.cargoRegistryCache.seedFromActions, false);
+  assert.equal(result.buildCache.seedFromActions, true);
 });
 
 // --- ledger -------------------------------------------------------------
@@ -417,6 +468,24 @@ test("ledger: a persistent layer hits only when it held content the phase left a
   assert.equal(persistentLayerStatus(before, probeDir(path.join(dir, "toolchains"))), "miss");
 });
 
+test("#691 ledger: a cold layer filled from the Actions cache reports seeded-from-actions", () => {
+  const dir = mkTmp();
+  const empty = probeDir(path.join(dir, "zccache"));
+  fs.mkdirSync(path.join(dir, "zccache"));
+  fs.writeFileSync(path.join(dir, "zccache", "blob"), "123");
+  const after = probeDir(path.join(dir, "zccache"));
+  assert.equal(persistentLayerStatus(empty, after, true), "seeded-from-actions");
+  // No seed, or a seed that brought nothing: an ordinary miss.
+  assert.equal(persistentLayerStatus(empty, after, false), "miss");
+  assert.equal(persistentLayerStatus(empty, empty, true), "miss");
+  const ledger = summarizeLedger("persistent-root", dir, "fresh", [
+    { layer: "zccache", status: "seeded-from-actions", bytes: 3, durationMs: 900, savedMs: null },
+    { layer: "soldr", status: "miss", bytes: 10, durationMs: 2000, savedMs: null },
+  ]);
+  assert.deepEqual(ledger.totals, { hits: 0, partial: 0, misses: 1, seeded: 1, bytes: 13, durationMs: 2900, savedMs: 0 });
+  assert.match(describeLedger(ledger), /persistent-root \(fresh\) hits=0 partial=0 seeded=1 misses=1 .*zccache=seeded-from-actions/);
+});
+
 test("ledger: a hit is credited with the duration of the layer's last miss on the root", () => {
   const root = mkTmp();
   appendLedgerHistory(root, { at: "t1", runId: "1", layers: [{ layer: "rust-toolchain", status: "miss", durationMs: 61_000 }] });
@@ -430,8 +499,8 @@ test("ledger: a hit is credited with the duration of the layer's last miss on th
     { layer: "rust-toolchain", status: "hit", bytes: 1000, durationMs: 300, savedMs: 61_000 },
     { layer: "soldr", status: "miss", bytes: 10, durationMs: 2000, savedMs: null },
   ]);
-  assert.deepEqual(ledger.totals, { hits: 1, partial: 0, misses: 1, bytes: 1010, durationMs: 2300, savedMs: 61_000 });
-  assert.match(describeLedger(ledger), /persistent-root \(clean\) hits=1 partial=0 misses=1 .*saved=61\.0s/);
+  assert.deepEqual(ledger.totals, { hits: 1, partial: 0, misses: 1, seeded: 0, bytes: 1010, durationMs: 2300, savedMs: 61_000 });
+  assert.match(describeLedger(ledger), /persistent-root \(clean\) hits=1 partial=0 seeded=0 misses=1 .*saved=61\.0s/);
 });
 
 test("ledger: hosted restores map exact to hit, restore-key to partial, none to miss", () => {

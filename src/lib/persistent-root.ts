@@ -12,7 +12,10 @@
  * - every GitHub Actions cache restore and save is skipped (setup, solo
  *   toolchain, soldr-mini, cargo-registry, build, target, cook, dylint,
  *   blessed prepare, verdicts), as is the optional S3 tier and the ancestor
- *   lookup, so the job makes no cache round trip at all;
+ *   lookup, so a warm root makes no cache round trip at all. Two exceptions
+ *   read but never write: the cook base layer on a local miss (#675), and a
+ *   cold zccache or cargo-registry layer, seeded once from the Actions
+ *   cache (#691);
  * - the root is crash safe. A session is opened at the start of a job and
  *   closed only after the post step has stopped the cache daemons and synced
  *   the filesystem. A root whose last session never closed (power loss, a
@@ -430,14 +433,39 @@ export function remoteCacheBypassed(
   layer: string,
   log: (msg: string) => void = console.log,
   env: Record<string, string | undefined> = process.env,
+  opts: { seedFromActions?: boolean } = {},
 ): boolean {
   const root = activePersistentRoot(env);
   if (!root) return false;
+  if (opts.seedFromActions) {
+    // #691: the layer is cold on this root (new, evicted or quarantined), so
+    // read it once from the Actions cache, the way the cook base layer does
+    // (#675). Read-only: allowCacheSave still refuses every save on a root.
+    if (!loggedBypass.has(`seed:${layer}`)) {
+      loggedBypass.add(`seed:${layer}`);
+      log(`${layer}: persistent-root ${root} is cold; seeding read-only from the GitHub Actions cache (#691)`);
+    }
+    return false;
+  }
   if (!loggedBypass.has(layer)) {
     loggedBypass.add(layer);
     log(`${layer}: GitHub Actions cache skipped: persistent-root ${root}`);
   }
   return true;
+}
+
+/**
+ * #691: a persistent layer is cold when its directory is missing or empty:
+ * a new root, an evicted one, or one whose content was quarantined because
+ * its last session never closed (no `.clean`). A cold layer may be seeded
+ * read-only from the Actions cache; a warm one never leaves the runner.
+ */
+export function persistentLayerCold(dir: string): boolean {
+  try {
+    return fs.readdirSync(dir).length === 0;
+  } catch {
+    return true;
+  }
 }
 
 /** Test hook. */

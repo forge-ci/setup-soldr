@@ -18,7 +18,12 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
-export type LedgerStatus = "hit" | "partial" | "miss" | "skipped";
+/**
+ * `seeded-from-actions` (#691): a cold persistent layer filled read-only from
+ * the GitHub Actions cache. Neither a hit (the root did not hold it) nor a
+ * miss (nothing was rebuilt from scratch).
+ */
+export type LedgerStatus = "hit" | "partial" | "miss" | "skipped" | "seeded-from-actions";
 
 export interface LedgerLayer {
   layer: string;
@@ -37,7 +42,7 @@ export interface CacheLedger {
   /** Persistent root only: how the session opened (clean, fresh, recovered, ...). */
   session: string | null;
   layers: LedgerLayer[];
-  totals: { hits: number; partial: number; misses: number; bytes: number; durationMs: number; savedMs: number };
+  totals: { hits: number; partial: number; misses: number; seeded: number; bytes: number; durationMs: number; savedMs: number };
 }
 
 export function summarizeLedger(
@@ -46,11 +51,12 @@ export function summarizeLedger(
   session: string | null,
   layers: LedgerLayer[],
 ): CacheLedger {
-  const totals = { hits: 0, partial: 0, misses: 0, bytes: 0, durationMs: 0, savedMs: 0 };
+  const totals = { hits: 0, partial: 0, misses: 0, seeded: 0, bytes: 0, durationMs: 0, savedMs: 0 };
   for (const l of layers) {
     if (l.status === "hit") totals.hits += 1;
     else if (l.status === "partial") totals.partial += 1;
     else if (l.status === "miss") totals.misses += 1;
+    else if (l.status === "seeded-from-actions") totals.seeded += 1;
     totals.bytes += l.bytes ?? 0;
     totals.durationMs += l.durationMs ?? 0;
     totals.savedMs += l.savedMs ?? 0;
@@ -132,10 +138,13 @@ export function probeDir(dir: string, maxFiles = 200_000): DirProbe {
 
 /**
  * A persistent layer's status: a hit when it held content before the phase
- * and the phase left its top-level entries unchanged; else a miss.
+ * and the phase left its top-level entries unchanged; `seeded-from-actions`
+ * when it was cold and the Actions-cache seed (#691) filled it; else a miss.
  */
-export function persistentLayerStatus(before: DirProbe, after: DirProbe): LedgerStatus {
-  if (!before.exists || before.entries.length === 0) return "miss";
+export function persistentLayerStatus(before: DirProbe, after: DirProbe, seeded = false): LedgerStatus {
+  if (!before.exists || before.entries.length === 0) {
+    return seeded && after.entries.length > 0 ? "seeded-from-actions" : "miss";
+  }
   const same = before.entries.length === after.entries.length && before.entries.every((e, i) => e === after.entries[i]);
   return same ? "hit" : "miss";
 }
@@ -153,7 +162,7 @@ export function describeLedger(ledger: CacheLedger): string {
   const parts = ledger.layers.map((l) => `${l.layer}=${l.status}`);
   return (
     `cache-ledger: ${ledger.profile}${ledger.session ? ` (${ledger.session})` : ""} ` +
-    `hits=${t.hits} partial=${t.partial} misses=${t.misses} bytes=${formatBytes(t.bytes)} ` +
+    `hits=${t.hits} partial=${t.partial} seeded=${t.seeded} misses=${t.misses} bytes=${formatBytes(t.bytes)} ` +
     `time=${(t.durationMs / 1000).toFixed(1)}s saved=${(t.savedMs / 1000).toFixed(1)}s [${parts.join(" ")}]`
   );
 }
