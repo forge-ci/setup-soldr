@@ -1,0 +1,8 @@
+{
+  "pr_checks": {
+    "commands": [
+      "npm run lint",
+      "npm run typecheck"
+    ]
+  }
+}
