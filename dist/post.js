@@ -56664,7 +56664,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.STATE_DIR = exports.CLEAN_MARKER = exports.DEFAULT_DESCRIPTOR_PATHS = exports.PERSISTENT_DESCRIPTOR_ENV = exports.PERSISTENT_ROOT_ENV = void 0;
+exports.ZCCACHE_SEED_ENV = exports.STATE_DIR = exports.CLEAN_MARKER = exports.DEFAULT_DESCRIPTOR_PATHS = exports.PERSISTENT_DESCRIPTOR_ENV = exports.PERSISTENT_ROOT_ENV = void 0;
 exports.parseDescriptor = parseDescriptor;
 exports.storeFromDescriptor = storeFromDescriptor;
 exports.fixedRoot = fixedRoot;
@@ -56679,6 +56679,7 @@ exports.activePersistentRoot = activePersistentRoot;
 exports.remoteCacheBypassed = remoteCacheBypassed;
 exports.persistentLayerCold = persistentLayerCold;
 exports.zccacheStoreCold = zccacheStoreCold;
+exports.zccacheSeedEnabled = zccacheSeedEnabled;
 exports.hostedRunnerTemp = hostedRunnerTemp;
 exports.hostedSeedPaths = hostedSeedPaths;
 exports.moveSeededArchive = moveSeededArchive;
@@ -57107,6 +57108,16 @@ function zccacheStoreCold(dir) {
         return false;
     };
     return !walk(dir, true);
+}
+/**
+ * gh-runner#75: opt-in for seeding a cold root's zccache store from a hosted
+ * run's entry. A zccache hit needs the same daemon route and the same
+ * absolute workspace and CARGO_HOME paths as the run that wrote the store;
+ * only a host that runs jobs at hosted-identical paths should set it.
+ */
+exports.ZCCACHE_SEED_ENV = "SETUP_SOLDR_ZCCACHE_SEED";
+function zccacheSeedEnabled(env = process.env) {
+    return ["1", "true", "yes", "on"].includes((env[exports.ZCCACHE_SEED_ENV] ?? "").trim().toLowerCase());
 }
 /** RUNNER_TEMP of a GitHub-hosted runner of this OS. */
 function hostedRunnerTemp(platform = process.platform) {
