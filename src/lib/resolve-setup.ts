@@ -866,8 +866,16 @@ export async function resolveSetup(
     soldr_version: _soldrVersion,
     ...soldrFreeSignature
   } = toolchainSignature;
+  // #691: on a persistent root RUSTUP_HOME sits outside cache-dir, so the
+  // setup-cache layout loses its `+rustup` part. The layout says nothing about
+  // zccache content, and a root never saves a build cache: key the store the
+  // way a GitHub-hosted run of the same job does (managed toolchain inside
+  // cache-dir), so a cold root seeds from that run's entry.
+  const buildCacheSignature = persistentRoot
+    ? { ...soldrFreeSignature, setup_cache_layout: "bin+soldr-bin+rustup" }
+    : soldrFreeSignature;
   const buildCacheDigest = createHash("sha256")
-    .update(pythonDefaultJson(soldrFreeSignature), "utf8").digest("hex").slice(0, 16);
+    .update(pythonDefaultJson(buildCacheSignature), "utf8").digest("hex").slice(0, 16);
   const soldrDigest = createHash("sha256")
     .update(pythonDefaultJson({
       soldr_repo: _soldrRepo,

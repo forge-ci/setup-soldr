@@ -274,8 +274,9 @@ inputs:
       cargo-registry, build, target, cook, dylint, blessed prepare) and the
       S3 tier are skipped. Verdicts still publish. A cold layer (missing or
       empty: a new, evicted or quarantined root) of the zccache build cache
-      or the cargo registry is seeded once, read-only, from the Actions
-      cache; a root never saves. "" or "auto" (default)
+      or the cargo registry is seeded once, read-only, from the normal
+      restore (S3 tier first for the build cache when configured, then the
+      Actions cache); a root never saves. "" or "auto" (default)
       uses the host descriptor when one exists
       (SETUP_SOLDR_PERSISTENT_DESCRIPTOR, /var/cache/soldr-store/descriptor.json
       or /var/cache/obs-runner/.persistent-cache), placing the root at
