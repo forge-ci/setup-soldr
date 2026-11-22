@@ -428,6 +428,13 @@ test("allowS3Save honours save-cache=false, save-cache-remote=false and a cancel
   assert.equal(allowS3Save({ ...base, "INPUT_SAVE-CACHE": "true" }).save, true);
 });
 
+test("allowS3Save refuses on a persistent root: a root may seed from S3 but never writes it (#691)", () => {
+  const rooted = { GITHUB_EVENT_NAME: "push", "INPUT_SAVE-CACHE": "true", SETUP_SOLDR_PERSISTENT_ROOT: "/srv/root" };
+  const gate = allowS3Save(rooted);
+  assert.equal(gate.save, false);
+  assert.match(gate.reason, /persistent-root \/srv\/root/);
+});
+
 test("s3OffNotice: local runners are off by design, GitHub wiring gaps warn", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "s3-off-"));
   const event = (fork: boolean) => {

@@ -28,6 +28,7 @@ import { pipeline } from "node:stream/promises";
 import { isLocalRunner } from "./local-profile.js";
 import { readDependencyLayerSaveGate } from "./failed-job-save.js";
 import { parseSaveCacheMode } from "./save-policy.js";
+import { activePersistentRoot } from "./persistent-root.js";
 
 export const ACCESS_KEY_ENV = "SOLDR_S3_CACHE_ACCESS_KEY";
 export const SECRET_KEY_ENV = "SOLDR_S3_CACHE_SECRET_KEY";
@@ -533,6 +534,9 @@ export function allowS3Save(env: Env): { save: boolean; reason: string } {
   }
   if (mode === "false") return { save: false, reason: "save-cache=false" };
   if (remote === "false") return { save: false, reason: "save-cache-remote=false" };
+  // #691: a persistent root may seed a cold layer from S3 but never writes it.
+  const persistentRoot = activePersistentRoot(env);
+  if (persistentRoot) return { save: false, reason: `persistent-root ${persistentRoot}` };
   try {
     const gate = readDependencyLayerSaveGate(env);
     if (!gate.save) return gate;

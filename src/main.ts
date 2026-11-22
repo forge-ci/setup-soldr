@@ -875,7 +875,10 @@ export async function run(): Promise<void> {
     // set). An S3 or L2-seed hit writes archivePath directly and skips the
     // actions/cache lookup; a miss falls through to it unchanged.
     let restore: { hit: boolean; matchedKey: string } = { hit: false, matchedKey: "" };
-    const s3 = result.persistentRoot ? null : s3ConfigFromEnv(process.env);
+    // #691: a cold root seeds through the normal restore order, S3 first when
+    // configured; allowS3Save refuses the upload on a root.
+    const s3 = result.persistentRoot && !buildSeedLayer ? null : s3ConfigFromEnv(process.env);
+    if (s3 && buildSeedLayer) logger.log(`build-cache: seeding cold persistent root from the S3 tier first (#691)`);
     const s3Off = s3 || result.persistentRoot ? null : s3OffNotice(process.env);
     if (s3Off?.level === "warning") core.warning(s3Off.message);
     else if (s3Off) logger.log(s3Off.message);

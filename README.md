@@ -1209,8 +1209,10 @@ cache only moves files that are already there. `persistent-root` keeps them:
 - A cold root seeds its zccache build cache and cargo registry the same way
   (#691). When a layer's directory is missing or empty (a new or evicted
   root, or one quarantined because it had no `.clean`), that layer runs the
-  normal Actions-cache restore once, read-only, into the root. A root never
-  saves to the Actions cache. The `cache-ledger` output reports such a layer
+  normal restore once, read-only, into the root: the S3 tier first when
+  `s3-bucket` is configured (build cache only), then the Actions cache. A root
+  never saves to either. The build-cache key on a root matches the key a
+  GitHub-hosted run of the same job writes, so the seed finds that run's store. The `cache-ledger` output reports such a layer
   as `seeded-from-actions` (`zccache`, `cargo-home`). Seeded zccache entries
   only hit when the paths inside the job match the ones that saved them, so
   pair this with a fixed in-container root (below) on elastic pools.

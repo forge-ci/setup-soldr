@@ -446,6 +446,22 @@ test("#691: a cold root seeds its zccache and cargo-registry layers from the Act
   assert.equal(inputs.soloToolchainCache, "false");
 });
 
+test("#691: a root keys its zccache seed like a GitHub-hosted run of the same job", async () => {
+  // On a root RUSTUP_HOME sits outside cache-dir, so the setup-cache layout
+  // differs from a hosted run's managed toolchain. That layout says nothing
+  // about zccache content and must not split the build-cache key, or a cold
+  // root never finds the hosted store it should seed from.
+  const { result: rooted } = await resolveUnderRoot();
+  const { result: hosted } = await resolveUnderRoot(undefined, {
+    "INPUT_PERSISTENT-ROOT": "",
+    RUSTUP_HOME: "",
+    CARGO_HOME: "",
+  });
+  assert.equal(hosted.persistentRoot ?? "", "");
+  assert.equal(rooted.buildCache.restoreKeyToolchain, hosted.buildCache.restoreKeyToolchain);
+  assert.equal(rooted.buildCache.key, hosted.buildCache.key);
+});
+
 test("#691: seeding never overrides an explicit cargo-registry-cache: false", async () => {
   const { result } = await resolveUnderRoot(undefined, { "INPUT_CARGO-REGISTRY-CACHE": "false" });
   assert.equal(result.cargoRegistryCache.enabled, false);
