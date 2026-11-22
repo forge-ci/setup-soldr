@@ -199,6 +199,11 @@ export interface BuildCachePlan {
   restoreKeyOsArch: string;
   path: string;
   mode: "once" | "thin" | "full";
+  /**
+   * #691: on a persistent root whose zccache store is cold (missing or
+   * empty), restore it read-only from the Actions cache. Never saved back.
+   */
+  seedFromActions: boolean;
 }
 
 /**
@@ -255,6 +260,11 @@ export interface CargoRegistryCachePlan {
   path: string;
   extraBasenames: string[];
   archive: CargoRegistryArchivePlan;
+  /**
+   * #691: on a persistent root whose `CARGO_HOME/registry` is cold, the layer
+   * stays enabled for one read-only restore. Never saved back.
+   */
+  seedFromActions: boolean;
 }
 
 /**

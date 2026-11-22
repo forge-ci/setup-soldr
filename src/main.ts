@@ -446,12 +446,15 @@ async function restoreCacheSafe(
   key: string,
   restoreKeys: string[],
   logger: { log: (msg: string) => void },
+  opts: { seedLayer?: string } = {},
 ): Promise<{ hit: boolean; matchedKey: string }> {
   if (paths.length === 0 || !key) {
     return { hit: false, matchedKey: "" };
   }
-  // obs-rust/obs-studio#4954: the files persist on this runner.
-  if (remoteCacheBypassed(`actions-cache key ${key}`, (msg) => logger.log(msg))) {
+  // obs-rust/obs-studio#4954: the files persist on this runner. #691: a cold
+  // layer of the root (`seedLayer`) is still read once, never saved.
+  const gateLabel = opts.seedLayer ?? `actions-cache key ${key}`;
+  if (remoteCacheBypassed(gateLabel, (msg) => logger.log(msg), process.env, { seedFromActions: Boolean(opts.seedLayer) })) {
     return { hit: false, matchedKey: "" };
   }
   try {
@@ -556,6 +559,10 @@ export async function run(): Promise<void> {
   const ledgerBefore: Record<string, DirProbe> | null = persistent.root
     ? Object.fromEntries(Object.entries(ledgerDirs).map(([k, d]) => [k, probeDir(d)]))
     : null;
+  // #691: ledger layers a cold root filled read-only from the Actions cache.
+  const seededLayers = new Set<keyof typeof ledgerDirs>();
+  const buildSeedLayer = result.persistentRoot && result.buildCache.seedFromActions ? "build-cache" : undefined;
+  const registrySeedLayer = result.persistentRoot && result.cargoRegistryCache.seedFromActions ? "cargo-registry" : undefined;
   let toolchainPhaseMs: number | null = null;
   let installPhaseMs: number | null = null;
   core.saveState("logging", logging ? "true" : "false");
@@ -891,15 +898,15 @@ export async function run(): Promise<void> {
       const restoreLegacy = async (): Promise<{ hit: boolean; matchedKey: string }> => {
         let r: { hit: boolean; matchedKey: string } = { hit: false, matchedKey: "" };
         for (const req of buildCacheRestoreRequests(legacyKey, restoreKeys)) {
-          r = await restoreCacheSafe([archivePath], req.primaryKey, req.restoreKeys, logger);
+          r = await restoreCacheSafe([archivePath], req.primaryKey, req.restoreKeys, logger, { seedLayer: buildSeedLayer });
           if (r.matchedKey) break;
         }
         return r;
       };
       if (selectedKey) {
-        restore = await restoreCacheSafe([archivePath], selectedKey, [], logger);
+        restore = await restoreCacheSafe([archivePath], selectedKey, [], logger, { seedLayer: buildSeedLayer });
       } else if (localAncestorKey) {
-        restore = await restoreCacheSafe([archivePath], result.buildCache.key, restoreKeys, logger);
+        restore = await restoreCacheSafe([archivePath], result.buildCache.key, restoreKeys, logger, { seedLayer: buildSeedLayer });
       } else {
         restore = await restoreLegacy();
       }
@@ -967,6 +974,10 @@ export async function run(): Promise<void> {
         );
         restore = { hit: false, matchedKey: "" };
       }
+    }
+    if (buildSeedLayer && restore.matchedKey) {
+      seededLayers.add("zccache");
+      logger.log(`build-cache: seeded cold persistent root from ${restore.matchedKey} (read-only, #691)`);
     }
     core.setOutput("build-cache-hit", restore.hit ? "true" : "false");
     core.setOutput("build-cache-restore-status", deriveRestoreStatus(restore.hit, restore.matchedKey));
@@ -1056,6 +1067,7 @@ export async function run(): Promise<void> {
       result.cargoRegistryCache.key,
       [result.cargoRegistryCache.restorePrefix],
       logger,
+      { seedLayer: registrySeedLayer },
     );
     core.setOutput("cargo-registry-cache-hit", restore.hit ? "true" : "false");
     core.setOutput("cargo_registry_cache_hit", restore.hit ? "true" : "false");
@@ -1840,6 +1852,10 @@ export async function run(): Promise<void> {
             markRegistryMiss();
           } else {
             dependencyCacheMatchedKeys.push(matched);
+            if (registrySeedLayer) {
+              seededLayers.add("cargo-home");
+              logger.log(`cargo-registry: seeded cold persistent root from ${matched} (read-only, #691)`);
+            }
             logger.log(
               `cargo-registry: extracted format=${archiveResult.codecPath} archive_bytes=${archiveBytes} restored_bytes=${restoredBytes} files=${restoredFiles} duration_ms=${archiveResult.durationMs}`,
             );
@@ -2387,7 +2403,7 @@ export async function run(): Promise<void> {
       layers = Object.entries(ledgerDirs).map(([layer, dir]) => {
         const before = ledgerBefore[layer]!;
         const after = probeDir(dir);
-        const status = persistentLayerStatus(before, after);
+        const status = persistentLayerStatus(before, after, seededLayers.has(layer as keyof typeof ledgerDirs));
         const durationMs = durations[layer] ?? null;
         return {
           layer,

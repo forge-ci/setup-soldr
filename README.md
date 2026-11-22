@@ -512,7 +512,7 @@ preferred for new workflows.
 | `verdict-lazy` | `true` when the verdict ledger skipped the toolchain and build caches because every check this job runs already passed with these inputs. |
 | `cache-dir` | Action-managed runner-local cache/state root. |
 | `persistent-root` | Active persistent root, or empty on the Actions-cache profile. |
-| `cache-ledger` | Per-job cache ledger (JSON): per layer `hit`/`partial`/`miss`, bytes, duration and time saved, plus totals. |
+| `cache-ledger` | Per-job cache ledger (JSON): per layer `hit`/`partial`/`miss`/`seeded-from-actions`, bytes, duration and time saved, plus totals. |
 | `setup-duration-seconds` | Total wall-clock time spent inside the setup-soldr action. |
 | `setup-phase-summary` | JSON timing summary for the main setup phases and cache restore statuses. |
 | `cache-hit` | Whether the action restored an exact cache hit. |
@@ -1206,6 +1206,14 @@ cache only moves files that are already there. `persistent-root` keeps them:
   cache and an exact hit is written back; a cook that ran saves to the store,
   never uploads. `soldr load` rematerializes the closure into target/ with its
   freshness metadata. The per-commit delta layer is off on a root.
+- A cold root seeds its zccache build cache and cargo registry the same way
+  (#691). When a layer's directory is missing or empty (a new or evicted
+  root, or one quarantined because it had no `.clean`), that layer runs the
+  normal Actions-cache restore once, read-only, into the root. A root never
+  saves to the Actions cache. The `cache-ledger` output reports such a layer
+  as `seeded-from-actions` (`zccache`, `cargo-home`). Seeded zccache entries
+  only hit when the paths inside the job match the ones that saved them, so
+  pair this with a fixed in-container root (below) on elastic pools.
 - Auto-detection (the default) reads `SETUP_SOLDR_PERSISTENT_DESCRIPTOR`,
   `/var/cache/soldr-store/descriptor.json` (`{"schema": 1, "store": "/abs"}`)
   or a plain marker such as `/var/cache/obs-runner/.persistent-cache` (store =
@@ -1226,8 +1234,9 @@ cache only moves files that are already there. `persistent-root` keeps them:
   and the job uses the Actions cache.
 - Ignored on GitHub-hosted runners. `SETUP_SOLDR_PROFILE=hosted` (for example
   a repository variable) turns it off everywhere; `persistent-root: off` per step.
-- The `cache-ledger` output records each layer's status, bytes and duration;
-  a hit is credited with the duration of that layer's last miss on the same root.
+- The `cache-ledger` output records each layer's status (`hit`, `miss` or
+  `seeded-from-actions`), bytes and duration; a hit is credited with the
+  duration of that layer's last miss on the same root.
 
 ## Development
 

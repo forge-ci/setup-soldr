@@ -272,7 +272,10 @@ inputs:
       RUSTUP_HOME and CARGO_HOME all move under it, and every GitHub Actions
       cache restore and save (setup, solo-toolchain, soldr-mini,
       cargo-registry, build, target, cook, dylint, blessed prepare) and the
-      S3 tier are skipped. Verdicts still publish. "" or "auto" (default)
+      S3 tier are skipped. Verdicts still publish. A cold layer (missing or
+      empty: a new, evicted or quarantined root) of the zccache build cache
+      or the cargo registry is seeded once, read-only, from the Actions
+      cache; a root never saves. "" or "auto" (default)
       uses the host descriptor when one exists
       (SETUP_SOLDR_PERSISTENT_DESCRIPTOR, /var/cache/soldr-store/descriptor.json
       or /var/cache/obs-runner/.persistent-cache), placing the root at
@@ -1031,10 +1034,12 @@ outputs:
   cache-ledger:
     description: >
       Per-job cache ledger, JSON: {schema, profile (persistent-root | hosted |
-      local), root, session, layers[{layer, status (hit | partial | miss),
-      bytes, durationMs, savedMs}], totals{hits, partial, misses, bytes,
-      durationMs, savedMs}}. On a persistent root, savedMs of a hit is the
-      duration of that layer's last miss on the same root.
+      local), root, session, layers[{layer, status (hit | partial | miss |
+      seeded-from-actions), bytes, durationMs, savedMs}], totals{hits,
+      partial, misses, seeded, bytes, durationMs, savedMs}}. On a persistent
+      root, savedMs of a hit is the duration of that layer's last miss on the
+      same root; seeded-from-actions marks a cold layer (zccache, cargo-home)
+      filled read-only from the GitHub Actions cache.
   setup-duration-seconds:
     description: Total wall-clock time spent inside the setup-soldr action.
   setup-phase-summary:
