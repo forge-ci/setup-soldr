@@ -276,7 +276,9 @@ inputs:
       uses the host descriptor when one exists
       (SETUP_SOLDR_PERSISTENT_DESCRIPTOR, /var/cache/soldr-store/descriptor.json
       or /var/cache/obs-runner/.persistent-cache), placing the root at
-      <store>/slots/<RUNNER_NAME>/setup-soldr/<os>-<arch>-u<uid>; "off"
+      <store>/slots/<RUNNER_NAME>/setup-soldr/<os>-<arch>-u<uid>, or at
+      <root>/<os>-<arch>-u<uid> when the JSON descriptor sets an absolute
+      "root" (a fixed per-container root, no RUNNER_NAME); "off"
       never; a path uses that directory. Crash safe: the root's .clean
       marker is removed when a job opens it and rewritten after the post
       step stops the cache daemons and syncs; a root left unclean is

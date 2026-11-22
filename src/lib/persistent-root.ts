@@ -40,6 +40,13 @@
  * runs one job at a time, so a slot has one writer; the uid keeps container
  * jobs (root) and host jobs (the runner user) from sharing files they could
  * not overwrite.
+ *
+ * A JSON descriptor may also carry `root` (an absolute path). The root is then
+ * `<root>/<os>-<arch>-u<uid>`, with no RUNNER_NAME component. Such a
+ * descriptor is per runner container (one runner owns it), so elastic pools
+ * get the same in-container paths on every runner and host and their
+ * compile-cache keys match. The `.clean`, quarantine and session-lock rules
+ * are unchanged.
  */
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -99,21 +106,49 @@ function defaultReadFile(p: string): string | null {
   }
 }
 
-/** The store directory a descriptor file names, or null if unusable. */
-export function storeFromDescriptor(descriptorPath: string, content: string): string | null {
+export interface HostDescriptor {
+  /** Host store directory. */
+  store: string;
+  /**
+   * Fixed root base from the JSON descriptor's optional `root` field, or null.
+   * When set, the persistent root is `<root>/<os>-<arch>-u<uid>` with no
+   * RUNNER_NAME component: the descriptor is per runner container, so the
+   * paths inside the job (CARGO_HOME, RUSTUP_HOME, the zccache dir) are the
+   * same on every runner and host, and compile-cache keys match across them.
+   */
+  root: string | null;
+}
+
+/** Parse a descriptor file, or null if unusable. */
+export function parseDescriptor(descriptorPath: string, content: string): HostDescriptor | null {
   const trimmed = content.trim();
   if (trimmed.startsWith("{")) {
     try {
-      const parsed = JSON.parse(trimmed) as { schema?: unknown; store?: unknown };
+      const parsed = JSON.parse(trimmed) as { schema?: unknown; store?: unknown; root?: unknown };
       if (parsed.schema !== 1) return null;
       if (typeof parsed.store !== "string" || !path.isAbsolute(parsed.store)) return null;
-      return path.resolve(parsed.store);
+      let root: string | null = null;
+      if (parsed.root !== undefined) {
+        if (typeof parsed.root !== "string" || !path.isAbsolute(parsed.root)) return null;
+        root = path.resolve(parsed.root);
+      }
+      return { store: path.resolve(parsed.store), root };
     } catch {
       return null;
     }
   }
   // Plain marker (obs-runner's `.persistent-cache` holds the host name).
-  return path.dirname(path.resolve(descriptorPath));
+  return { store: path.dirname(path.resolve(descriptorPath)), root: null };
+}
+
+/** The store directory a descriptor file names, or null if unusable. */
+export function storeFromDescriptor(descriptorPath: string, content: string): string | null {
+  return parseDescriptor(descriptorPath, content)?.store ?? null;
+}
+
+/** Fixed (runner-independent) per-platform, per-uid root under a descriptor's `root`. */
+export function fixedRoot(base: string, platform: string, arch: string, uid: number): string {
+  return path.join(base, `${platform}-${arch}-u${uid}`);
 }
 
 /** Per-runner, per-platform, per-uid slot under a host store. */
@@ -158,13 +193,27 @@ export function choosePersistentRoot(opts: ChoosePersistentRootOptions): Persist
   for (const candidate of candidates) {
     const content = read(candidate);
     if (content === null) continue;
-    const store = storeFromDescriptor(candidate, content);
-    if (!store) return off(`unusable descriptor ${candidate}`, `setup-soldr: host descriptor ${candidate} is not schema 1 with an absolute store; using the GitHub Actions cache`);
+    const descriptor = parseDescriptor(candidate, content);
+    if (!descriptor) {
+      return off(
+        `unusable descriptor ${candidate}`,
+        `setup-soldr: host descriptor ${candidate} is not schema 1 with an absolute store (and, if set, an absolute root); using the GitHub Actions cache`,
+      );
+    }
+    const uid = opts.uid ?? (typeof process.getuid === "function" ? process.getuid() : 0);
+    const platform = opts.platform ?? process.platform;
+    const arch = opts.arch ?? process.arch;
+    if (descriptor.root) {
+      return {
+        root: fixedRoot(descriptor.root, platform, arch, uid),
+        source: "descriptor",
+        reason: `host descriptor ${candidate} (fixed root)`,
+      };
+    }
     const runner = (env["RUNNER_NAME"] ?? "").trim();
     if (!runner) return off(`descriptor ${candidate} but no RUNNER_NAME`);
-    const uid = opts.uid ?? (typeof process.getuid === "function" ? process.getuid() : 0);
     return {
-      root: slotRoot(store, runner, opts.platform ?? process.platform, opts.arch ?? process.arch, uid),
+      root: slotRoot(descriptor.store, runner, platform, arch, uid),
       source: "descriptor",
       reason: `host descriptor ${candidate}`,
     };
