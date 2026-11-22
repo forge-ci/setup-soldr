@@ -408,7 +408,10 @@ test("bench-cache-cell writes a phase=timeout row and diagnostics on watchdog ex
         ZCCACHE_CACHE_DIR: path.join(home, ".cache", "zccache"),
         SETUP_SOLDR_CACHE_PATH: path.join(runnerTemp, "setup-soldr-cache"),
         SOLDR_INSTALL_DIR: path.join(runnerTemp, "setup-soldr-tools"),
-        BENCH_CELL_TIMEOUT_MS: "300",
+        // The cargo shim hangs forever, so the watchdog always fires in the cold
+        // phase; it only has to outlast `init`. 300 ms expired inside `init` on
+        // a loaded host.
+        BENCH_CELL_TIMEOUT_MS: "10000",
         PATH: `${binDir}${path.delimiter}${process.env.PATH ?? ""}`,
       },
     });
