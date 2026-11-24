@@ -891,14 +891,23 @@ export async function run(): Promise<void> {
     // cache dir it can use immediately -- there is no archive to decompress
     // afterwards, which is what the `fleet:` marker tells the checks below.
     const fleetConfig = fleetConfigFromEnv(process.env);
-    if (fleetConfig) {
+    // The identity must carry the toolchain: `restoreKeyToolchain` is the
+    // toolchain+job prefix the actions/cache key already uses, and without it the
+    // identity would collapse to os/arch, which is the same on both sides of a
+    // rustc bump — a store that then hands a build artifacts from another
+    // compiler. There is no safe fallback, so the tier stays off instead.
+    const fleetToolchain = result.buildCache.restoreKeyToolchain.trim();
+    if (fleetConfig && !fleetToolchain) {
+      logger.log("fleet-cache: skipped — no build-cache toolchain prefix to key an identity on");
+    }
+    if (fleetConfig && fleetToolchain) {
       const fleet = await runFleetRestore({
         config: fleetConfig,
         repository: process.env["GITHUB_REPOSITORY"] ?? "",
         identity: fleetIdentity({
           platform: process.env["RUNNER_OS"],
           architecture: process.env["RUNNER_ARCH"],
-          toolchain: result.buildCache.restoreKeyToolchain || result.buildCache.restoreKeyOsArch,
+          toolchain: fleetToolchain,
         }),
         cacheDir: result.buildCache.path,
         persistentRoot: result.persistentRoot,

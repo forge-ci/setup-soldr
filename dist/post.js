@@ -56500,6 +56500,10 @@ exports.attachFromState = attachFromState;
  *    would otherwise run against a file that does not exist.
  * 3. **The session travels.** Post publishes what main restored, so the session
  *    id and key are serialised here for `core.saveState`.
+ * 4. **An identity without a toolchain is not an identity.** Callers must pass the
+ *    toolchain component (main uses the build-cache key's own toolchain prefix).
+ *    os/arch alone is identical on both sides of a rustc bump, so falling back to
+ *    it would let the store hand a build objects another compiler produced.
  */
 const fleet_cache_js_1 = __nccwpck_require__(31544);
 const fleet_cache_phase_js_1 = __nccwpck_require__(24002);
