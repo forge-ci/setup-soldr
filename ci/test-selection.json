@@ -47,6 +47,7 @@
       "__tests__/fleet-cache.test.ts",
       "__tests__/fleet-cache-phase.test.ts",
       "__tests__/fleet-restore-hook.test.ts",
+      "__tests__/fleet-cache-live.test.ts",
       "__tests__/verdict-cache.test.ts",
       "__tests__/shutdown-cache.test.ts",
       "__tests__/compile-cache-stats.test.ts",
