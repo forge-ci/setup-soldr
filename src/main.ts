@@ -135,6 +135,8 @@ import {
   restoreMiniCache,
 } from "./lib/soldr-mini-cache.js";
 import { dumpDiagnostics, loggingEnabled } from "./lib/diagnostics.js";
+import { configFromEnv as fleetConfigFromEnv, deriveIdentity as fleetIdentity } from "./lib/fleet-cache.js";
+import { restoreFleetCache } from "./lib/fleet-cache-phase.js";
 import { diagnoseShimBypass } from "./lib/shim-bypass-check.js";
 import {
   assertMinimumSoldrVersion,
@@ -884,6 +886,42 @@ export async function run(): Promise<void> {
     const s3Off = s3 || result.persistentRoot ? null : s3OffNotice(process.env);
     if (s3Off?.level === "warning") core.warning(s3Off.message);
     else if (s3Off) logger.log(s3Off.message);
+    // Fleet tier (forge-ci/cache): a store a merge_group run may publish to.
+    // It runs before the S3 and Actions tiers and, on a hit, hands the build a
+    // cache dir it can use immediately -- there is no archive to decompress
+    // afterwards, which is what the `fleet:` marker tells the checks below.
+    const fleetConfig = fleetConfigFromEnv(process.env);
+    if (fleetConfig && !s3 && !result.persistentRoot) {
+      const identity = fleetIdentity({
+        platform: process.env["RUNNER_OS"],
+        architecture: process.env["RUNNER_ARCH"],
+        toolchain: result.buildCache.restoreKeyToolchain || result.buildCache.restoreKeyOsArch,
+      });
+      const repository = process.env["GITHUB_REPOSITORY"] ?? "";
+      const fleet = await restoreFleetCache({
+        config: fleetConfig,
+        repository,
+        identity,
+        cacheDir: result.buildCache.path,
+        log: (m: string) => logger.log(m),
+      });
+      if (fleet.session) {
+        core.saveState("fleetCache", JSON.stringify({
+          id: fleet.session.sessionId,
+          identity,
+          repo: fleet.session.key.repo,
+          family: fleet.session.key.family,
+          platform: fleet.session.key.platform,
+        }));
+      }
+      if (fleet.restore.hit) {
+        restore = { hit: true, matchedKey: `fleet:${identity}` };
+        logger.log(`fleet-cache: hit, ${fleet.applied} layer(s) applied to ${result.buildCache.path}`);
+      } else {
+        logger.log(`fleet-cache: miss (${fleet.restore.reason})`);
+      }
+    }
+    const fleetHit = restore.matchedKey.startsWith("fleet:");
     if (s3) {
       for (const secret of s3CredentialValues(process.env)) core.setSecret(secret);
       const s3Restore = await s3RestoreFamily(s3.client(), {
@@ -943,14 +981,16 @@ export async function run(): Promise<void> {
     // A donor hit is a starting point; only this source's exact write key, or
     // one of its generations (#682), is warm. Post saves a warm store as a new
     // generation when the session still compiled, never under the bare key.
-    restore.hit = isWarmBuildCacheMatch(restore.matchedKey, result.buildCache.key);
+    // A fleet hit already wrote the cache dir itself; there is no archive and no
+    // generation to classify.
+    restore.hit = fleetHit || isWarmBuildCacheMatch(restore.matchedKey, result.buildCache.key);
     if (restore.matchedKey && restore.matchedKey !== result.buildCache.key && restore.hit) {
       logger.log(`build-cache: restored generation ${restore.matchedKey}`);
     }
     let buildArchiveBytes: number | null = null;
     let buildInflatedBytes: number | null = null;
     let buildFileCount: number | null = null;
-    if (restore.matchedKey) {
+    if (restore.matchedKey && !fleetHit) {
       try {
         buildArchiveBytes = fs.statSync(archivePath).size;
       } catch {
@@ -964,7 +1004,7 @@ export async function run(): Promise<void> {
         restore = { hit: false, matchedKey: "" };
       }
     }
-    if (restore.matchedKey && fileExists(archivePath)) {
+    if (restore.matchedKey && !fleetHit && fileExists(archivePath)) {
       const magic = await detectCompressMagic(archivePath);
       const haveEncryptKey = (process.env["SETUP_SOLDR_CACHE_ENCRYPT_KEY"] ?? "").trim().length > 0;
       if (magic === "zstd" || magic === "gzip" || haveEncryptKey) {

@@ -242,6 +242,26 @@ export class FleetSession {
   }
 
   /**
+   * Reattach to a session another step opened (main restores, post publishes).
+   *
+   * GitHub runs the main and post steps in different processes, so the session
+   * id travels through `core.saveState`; the service keeps the session itself.
+   * Nothing is opened here — a session that does not exist stays a miss.
+   */
+  static attach(
+    config: FleetConfig,
+    options: {
+      id: string;
+      identity: string;
+      key: { repo: string; family: string; platform: string };
+      fetchImpl?: FetchLike;
+    },
+  ): FleetSession {
+    return new FleetSession(config, options.fetchImpl ?? fetch, options.id,
+      options.identity, options.key);
+  }
+
+  /**
    * Ask the service what to restore. Never throws: an unreachable service is a
    * `degraded` miss, which is different from "the store says there is nothing".
    */
