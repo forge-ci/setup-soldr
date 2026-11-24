@@ -171,6 +171,7 @@
         "src/lib/normalize-source-mtime.ts",
         "src/lib/source-mtime-snapshot.ts",
         "src/lib/s3-cache.ts",
+        "src/lib/fleet-cache.ts",
         "src/lib/shutdown-cache.ts",
         "src/lib/stats-collector.ts",
         "src/lib/verdict-*.ts",
