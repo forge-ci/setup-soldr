@@ -923,6 +923,53 @@ async function buildFromSource(opts: {
   }
 }
 
+/**
+ * What cargo-chef a source build should carry, or null when there is nothing to do.
+ *
+ * A release bundle ships cargo-chef beside the binary; a build from local source
+ * produces a bare binary. Without it, `soldr cook` falls back to an
+ * *unauthenticated* GitHub-Releases fetch for cargo-chef from a repository it has
+ * no token for -- which a shared runner IP routinely gets a 403 for
+ * (setup-soldr#703). The pure decision lives here so it is testable.
+ */
+export function cargoChefForSourceBuild(version: string | null, hasPayload: boolean): string | null {
+  if (hasPayload || !version) return null;
+  return bundledCargoChefVersionForSoldr(version);
+}
+
+/**
+ * Give a source build the cargo-chef its release bundle would have carried,
+ * installed from the authenticated toolchain catalogue, and point soldr at it via
+ * SOLDR_CARGO_CHEF_LOCAL_DIR so `soldr cook` needs no network.
+ *
+ * Best effort on purpose: a job that cannot install it should still be able to
+ * cook the slow way rather than fail at setup.
+ */
+async function provideCargoChefForSourceBuild(opts: {
+  installDir: string;
+  target: string;
+  binaryName: string;
+  version: string | null;
+  log: (msg: string) => void;
+}): Promise<void> {
+  const { installDir, target, binaryName, version, log } = opts;
+  const wanted = cargoChefForSourceBuild(version, hasBundledCargoChefPayload(installDir, binaryName));
+  if (wanted === null) {
+    if (version === null) log("source build: soldr version unknown; leaving cargo-chef resolution to soldr");
+    return;
+  }
+  try {
+    await installCargoChefSupport({ version: wanted, target, installDir, binaryName, log });
+    exportBundledCargoChefIfPresent(installDir, binaryName);
+    log(`source build: installed cargo-chef ${wanted} locally so \`soldr cook\` needs no GitHub fetch`);
+  } catch (error) {
+    log(
+      `source build: cargo-chef ${wanted} install failed, cook will fetch it instead: ` +
+        `${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
 async function buildFromLocalSource(opts: {
   sourcePath: string;
   sourceIdentity: string;
@@ -1194,6 +1241,7 @@ export async function ensureSoldr(opts: {
       const current = await installedVersion(binaryPath);
       if (current !== null) {
         clearBundledReleasePayload(installDir, binaryName);
+        await provideCargoChefForSourceBuild({ installDir, target, binaryName, version: current, log });
         log(`Using cached soldr ${current} built from ${sourcePath} (${sourceIdentity})`);
         core.setOutput("installed_version", current);
         return;
@@ -1211,6 +1259,7 @@ export async function ensureSoldr(opts: {
       log,
     });
     const current = await installedVersion(builtPath);
+    await provideCargoChefForSourceBuild({ installDir, target, binaryName, version: current, log });
     log(`Installed soldr ${current ?? sourceIdentity} from ${sourcePath} (${sourceIdentity}) at ${builtPath}`);
     core.setOutput("installed_version", current ?? sourceIdentity);
     return;
