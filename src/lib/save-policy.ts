@@ -17,7 +17,14 @@
  *   PR labels select jobs, so skipping there left every local run cold
  *   (setup-soldr#537, zackees/ci.yml#216).
  * - `true`: always save (subject to each layer's own gates).
- * - `false`: never save.
+ * - `false`: never save, on any backend.
+ * - `remote-only`: never write the Actions cache, but leave the remote (S3)
+ *   tier's own upload decision to `allowS3Save`. The two backends were
+ *   otherwise coupled — `false` disabled S3 too — so a lane that wants a
+ *   durable remote cache without spending repository budget on an
+ *   undeclared Actions family had no spelling. A caller still passes
+ *   `save-cache-remote` (e.g. `${{ github.ref == 'refs/heads/master' }}`)
+ *   to gate when the remote write may happen.
  *
  * Restores and cooking are never gated here; only uploads are.
  *
@@ -33,7 +40,7 @@ import { readDependencyLayerSaveGate } from "./failed-job-save.js";
 import { activePersistentRoot } from "./persistent-root.js";
 export { isLocalRunner };
 
-export type SaveCacheMode = "auto" | "true" | "false";
+export type SaveCacheMode = "auto" | "true" | "false" | "remote-only";
 
 export interface SaveDecision {
   save: boolean;
@@ -55,7 +62,9 @@ export function parseSaveCacheMode(raw: string | undefined, defaultMode: SaveCac
   if (value === "auto") return "auto";
   if (["1", "true", "yes", "on"].includes(value)) return "true";
   if (["0", "false", "no", "off"].includes(value)) return "false";
-  throw new Error(`save-cache must be one of auto, true, false (got '${raw}')`);
+  // "remote" is the short alias; both spellings mean the same mode.
+  if (["remote-only", "remote"].includes(value)) return "remote-only";
+  throw new Error(`save-cache must be one of auto, true, false, remote-only (got '${raw}')`);
 }
 
 /** The run's ref and the repository's default branch, when known. */
@@ -73,6 +82,12 @@ export function decideCacheSave(
   refScope: RefScope = {},
 ): SaveDecision {
   if (mode === "false") return { save: false, mode, reason: "save-cache=false" };
+  // remote-only: the Actions cache is never written. The remote (S3) tier
+  // makes its own upload decision in allowS3Save, which treats this mode as
+  // permitted — so do not fall through to a save here.
+  if (mode === "remote-only") {
+    return { save: false, mode, reason: "save-cache=remote-only (actions cache disabled)" };
+  }
   // A planner's remote write permission is not a local cache disable.
   // Explicit save-cache=false above still disables every backend.
   if (!localRunner && remoteMode !== "auto") {
