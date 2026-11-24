@@ -532,6 +532,10 @@ export function allowS3Save(env: Env): { save: boolean; reason: string } {
   } catch (err) {
     return { save: false, reason: err instanceof Error ? err.message : String(err) };
   }
+  // save-cache=false disables every backend (#527). save-cache=remote-only
+  // deliberately does not reach here: it turns off the Actions write in
+  // save-policy and leaves this tier to its own gates (save-cache-remote,
+  // persistent root, failed/cancelled job).
   if (mode === "false") return { save: false, reason: "save-cache=false" };
   if (remote === "false") return { save: false, reason: "save-cache-remote=false" };
   // #691: a persistent root may seed a cold layer from S3 but never writes it.

@@ -426,6 +426,17 @@ test("allowS3Save honours save-cache=false, save-cache-remote=false and a cancel
   assert.equal(allowS3Save({ ...base, "INPUT_SAVE-CACHE-REMOTE": "false" }).save, false);
   assert.equal(allowS3Save({ ...base, "INPUT_JOB-STATUS": "cancelled" }).save, false);
   assert.equal(allowS3Save({ ...base, "INPUT_SAVE-CACHE": "true" }).save, true);
+  // remote-only turns off the Actions cache in save-policy and leaves this
+  // tier's own decision (save-cache-remote, job status) in force.
+  assert.equal(allowS3Save({ ...base, "INPUT_SAVE-CACHE": "remote-only" }).save, true);
+  assert.equal(
+    allowS3Save({ ...base, "INPUT_SAVE-CACHE": "remote-only", "INPUT_SAVE-CACHE-REMOTE": "false" }).save,
+    false,
+  );
+  assert.equal(
+    allowS3Save({ GITHUB_EVENT_NAME: "push", "INPUT_SAVE-CACHE": "remote-only" }).save,
+    true,
+  );
 });
 
 test("allowS3Save refuses on a persistent root: a root may seed from S3 but never writes it (#691)", () => {

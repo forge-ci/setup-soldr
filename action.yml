@@ -68,7 +68,9 @@ inputs:
       save-cache and the triggering event decide as before. true or false
       sets the remote write decision; ignored under act/act2 so local
       automatic saves remain warm. save-cache=false always disables saves
-      everywhere, including local runners. Restores are unaffected.
+      everywhere, including local runners; save-cache=remote-only disables
+      only the Actions cache and leaves this remote write decision in
+      force. Restores are unaffected.
     required: false
     default: "auto"
   save-cache:
@@ -80,7 +82,11 @@ inputs:
       `pull_request`: GitHub scopes such entries to `refs/pull/N/merge`,
       so no other run can restore them, yet they count against the
       repository's 10 GB budget. "true" always saves; "false" never
-      saves. Restores and cooking on a miss happen regardless; only
+      saves, on any backend. "remote-only" never writes the Actions
+      cache but leaves the S3 remote tier's upload decision to
+      save-cache-remote: it is how a lane gets a durable remote cache
+      without spending repository budget on a family it has not
+      declared. Restores and cooking on a miss happen regardless; only
       uploads are skipped. Trade-off: a PR that changes the dependency
       closure cooks cold and does not persist the result. See
       setup-soldr#527.
@@ -95,7 +101,9 @@ inputs:
       (bosn/act replay, ACT=true), which keeps its local cache. Objects are stored as
       <family>/<key>.tar.zst. Every run writes only its own key (pull
       requests included: the bucket is not ref-scoped); save-cache=false,
-      save-cache-remote=false and a cancelled job still block uploads.
+      save-cache-remote=false and a cancelled job still block uploads, and
+      save-cache=remote-only leaves this tier's upload decision in force
+      while disabling the Actions cache write.
     required: false
     default: ""
   s3-endpoint:
