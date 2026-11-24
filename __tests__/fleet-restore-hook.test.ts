@@ -76,10 +76,15 @@ test("a persistent root keeps the tier out of its cache", async () => {
   assert.match(result.reason, /persistent root/);
 });
 
-test("a configured S3 tier owns the build cache, so fleet stays off", async () => {
-  const result = await runFleetRestore(options({ s3Configured: true, fetchImpl: untouchable }));
-  assert.equal(result.attempted, false);
-  assert.match(result.reason, /S3 tier/);
+test("a configured S3 tier does not stop the fleet tier from running first", async () => {
+  // The alternative -- treating s3-bucket as a blocker -- would mean every lane
+  // that already sets it could never try the fleet store without deleting its S3
+  // configuration first. The caller uses `hit` to keep S3 out of the way.
+  const { fetchImpl } = fakeService(true);
+  const result = await runFleetRestore(options({ s3Configured: true, fetchImpl }));
+  assert.equal(result.attempted, true);
+  assert.equal(result.hit, true, "a hit tells main to skip the S3 tier");
+  assert.equal(result.matchedKey.startsWith("fleet:"), true);
 });
 
 test("a repository without an owner is refused before any request", async () => {

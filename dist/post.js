@@ -56444,10 +56444,13 @@ exports.attachFromState = attachFromState;
  *
  * Three rules, each with a reason:
  *
- * 1. **Tiers do not fight.** The fleet tier is skipped when the S3 tier is
- *    configured or the job runs on a persistent root: both of those already own
- *    the build-cache directory, and applying two sources to one tree produces a
- *    mix that is neither.
+ * 1. **Tiers do not fight.** The fleet tier is skipped on a persistent root,
+ *    which seeds itself (#691). The S3 tier is *not* a reason to skip: both may
+ *    be configured, and the fleet tier simply runs first -- `hit` tells the
+ *    caller to leave S3 alone, because applying two sources to one tree produces
+ *    a mix that is neither. Making S3 config a blocker would have meant every
+ *    lane that already sets `s3-bucket` could never try the fleet store without
+ *    first deleting its S3 configuration.
  * 2. **A hit is expressed in the caller's own vocabulary.** The restore flow
  *    classifies hits by `matchedKey`, so a fleet hit returns
  *    `fleet:<identity>` and the caller skips the archive and decompress steps it
@@ -56476,8 +56479,6 @@ async function runFleetRestore(opts) {
         return skipped("fleet tier is off");
     if (opts.persistentRoot)
         return skipped(`persistent root ${opts.persistentRoot} owns the cache`);
-    if (opts.s3Configured)
-        return skipped("the S3 tier owns the build cache");
     if (!opts.repository.includes("/"))
         return skipped(`no repository (got ${JSON.stringify(opts.repository)})`);
     const result = await (0, fleet_cache_phase_js_1.restoreFleetCache)({

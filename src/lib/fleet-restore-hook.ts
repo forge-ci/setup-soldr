@@ -8,10 +8,13 @@
  *
  * Three rules, each with a reason:
  *
- * 1. **Tiers do not fight.** The fleet tier is skipped when the S3 tier is
- *    configured or the job runs on a persistent root: both of those already own
- *    the build-cache directory, and applying two sources to one tree produces a
- *    mix that is neither.
+ * 1. **Tiers do not fight.** The fleet tier is skipped on a persistent root,
+ *    which seeds itself (#691). The S3 tier is *not* a reason to skip: both may
+ *    be configured, and the fleet tier simply runs first -- `hit` tells the
+ *    caller to leave S3 alone, because applying two sources to one tree produces
+ *    a mix that is neither. Making S3 config a blocker would have meant every
+ *    lane that already sets `s3-bucket` could never try the fleet store without
+ *    first deleting its S3 configuration.
  * 2. **A hit is expressed in the caller's own vocabulary.** The restore flow
  *    classifies hits by `matchedKey`, so a fleet hit returns
  *    `fleet:<identity>` and the caller skips the archive and decompress steps it
@@ -45,7 +48,11 @@ export interface FleetHookOptions {
   cacheDir: string;
   /** A persistent root seeds itself; the fleet tier stays out of its way (#691). */
   persistentRoot?: string | null;
-  /** The S3 tier owns the build directory when configured. */
+  /**
+   * Whether the S3 tier is also configured. Informational: the caller uses the
+   * returned `hit` to decide whether S3 may still run (it may not, after a fleet
+   * hit -- two sources in one tree is neither).
+   */
   s3Configured?: boolean;
   fetchImpl?: FetchLike;
   log?: (message: string) => void;
@@ -81,7 +88,6 @@ export async function runFleetRestore(opts: FleetHookOptions): Promise<FleetHook
 
   if (opts.config === null) return skipped("fleet tier is off");
   if (opts.persistentRoot) return skipped(`persistent root ${opts.persistentRoot} owns the cache`);
-  if (opts.s3Configured) return skipped("the S3 tier owns the build cache");
   if (!opts.repository.includes("/")) return skipped(`no repository (got ${JSON.stringify(opts.repository)})`);
 
   const result = await restoreFleetCache({

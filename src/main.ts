@@ -916,7 +916,10 @@ export async function run(): Promise<void> {
       if (fleet.hit) restore = { hit: true, matchedKey: fleet.matchedKey };
     }
     const fleetHit = isFleetHit(restore.matchedKey);
-    if (s3) {
+    // Both tiers may be configured; the fleet one simply runs first. A fleet hit
+    // means the cache dir is already populated, so S3 must not write an archive
+    // over it -- two sources in one tree is neither.
+    if (s3 && !fleetHit) {
       for (const secret of s3CredentialValues(process.env)) core.setSecret(secret);
       const s3Restore = await s3RestoreFamily(s3.client(), {
         family: "build",
