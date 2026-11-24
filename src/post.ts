@@ -93,7 +93,8 @@ import type {
 } from "./lib/types.js";
 import { publishBundleToolCache } from "./lib/bundle-tool-cache.js";
 import { FAILED_JOB_SKIP_STATUS, readBuildOutputSaveGate } from "./lib/failed-job-save.js";
-import { FleetSession, configFromEnv as fleetConfigFromEnv } from "./lib/fleet-cache.js";
+import { configFromEnv as fleetConfigFromEnv } from "./lib/fleet-cache.js";
+import { attachFromState } from "./lib/fleet-restore-hook.js";
 import { publishFleetCache } from "./lib/fleet-cache-phase.js";
 
 type RestoreStatus = "disabled" | "exact-hit" | "restore-key-hit" | "miss";
@@ -1765,36 +1766,29 @@ async function runPost(): Promise<void> {
   const fleetStateRaw = core.getState("fleetCache");
   if (fleetStateRaw && restoreState.buildCacheEnabled) {
     try {
-      const fleet = JSON.parse(fleetStateRaw) as {
-        id: string; identity: string; repo: string; family: string; platform: string;
-      };
       const config = fleetConfigFromEnv(process.env);
+      const session = config ? attachFromState(config, fleetStateRaw) : null;
       if (!config) {
         log("fleet-cache: state present but the tier is off; nothing to publish");
+      } else if (session === null) {
+        log(`fleet-cache: state unreadable (${fleetStateRaw.slice(0, 80)}); nothing to publish`);
+      } else if (!buildOutputGate.save) {
+        await session.close("failed", buildOutputGate.reason);
+        log(`fleet-cache: publish skipped: ${buildOutputGate.reason}`);
       } else {
-        const session = FleetSession.attach(config, {
-          id: fleet.id,
-          identity: fleet.identity,
-          key: { repo: fleet.repo, family: fleet.family, platform: fleet.platform },
+        const published = await publishFleetCache({
+          config,
+          repository: session.key.repo,
+          identity: session.identity,
+          cacheDir: result.buildCache.path,
+          session,
+          log: (m) => log(m),
+          codec: result.targetCacheCompress,
+          level: result.targetCacheCompressLevel,
         });
-        if (!buildOutputGate.save) {
-          await session.close("failed", buildOutputGate.reason);
-          log(`fleet-cache: publish skipped: ${buildOutputGate.reason}`);
-        } else {
-          const published = await publishFleetCache({
-            config,
-            repository: fleet.repo,
-            identity: fleet.identity,
-            cacheDir: result.buildCache.path,
-            session,
-            log: (m) => log(m),
-            codec: result.targetCacheCompress,
-            level: result.targetCacheCompressLevel,
-          });
-          log(published.published
-            ? `fleet-cache: ${published.reason}`
-            : `fleet-cache: save skipped: ${published.reason}`);
-        }
+        log(published.published
+          ? `fleet-cache: ${published.reason}`
+          : `fleet-cache: save skipped: ${published.reason}`);
       }
     } catch (err) {
       log(`fleet-cache: publish failed: ${err instanceof Error ? err.message : String(err)}`);

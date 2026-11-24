@@ -136,7 +136,7 @@ import {
 } from "./lib/soldr-mini-cache.js";
 import { dumpDiagnostics, loggingEnabled } from "./lib/diagnostics.js";
 import { configFromEnv as fleetConfigFromEnv, deriveIdentity as fleetIdentity } from "./lib/fleet-cache.js";
-import { restoreFleetCache } from "./lib/fleet-cache-phase.js";
+import { isFleetHit, runFleetRestore } from "./lib/fleet-restore-hook.js";
 import { diagnoseShimBypass } from "./lib/shim-bypass-check.js";
 import {
   assertMinimumSoldrVersion,
@@ -891,37 +891,31 @@ export async function run(): Promise<void> {
     // cache dir it can use immediately -- there is no archive to decompress
     // afterwards, which is what the `fleet:` marker tells the checks below.
     const fleetConfig = fleetConfigFromEnv(process.env);
-    if (fleetConfig && !s3 && !result.persistentRoot) {
-      const identity = fleetIdentity({
-        platform: process.env["RUNNER_OS"],
-        architecture: process.env["RUNNER_ARCH"],
-        toolchain: result.buildCache.restoreKeyToolchain || result.buildCache.restoreKeyOsArch,
-      });
-      const repository = process.env["GITHUB_REPOSITORY"] ?? "";
-      const fleet = await restoreFleetCache({
+    if (fleetConfig) {
+      const fleet = await runFleetRestore({
         config: fleetConfig,
-        repository,
-        identity,
+        repository: process.env["GITHUB_REPOSITORY"] ?? "",
+        identity: fleetIdentity({
+          platform: process.env["RUNNER_OS"],
+          architecture: process.env["RUNNER_ARCH"],
+          toolchain: result.buildCache.restoreKeyToolchain || result.buildCache.restoreKeyOsArch,
+        }),
         cacheDir: result.buildCache.path,
+        persistentRoot: result.persistentRoot,
+        s3Configured: Boolean(s3),
         log: (m: string) => logger.log(m),
       });
-      if (fleet.session) {
-        core.saveState("fleetCache", JSON.stringify({
-          id: fleet.session.sessionId,
-          identity,
-          repo: fleet.session.key.repo,
-          family: fleet.session.key.family,
-          platform: fleet.session.key.platform,
-        }));
+      if (fleet.state) core.saveState("fleetCache", fleet.state);
+      if (fleet.attempted) {
+        logger.log(fleet.hit
+          ? `fleet-cache: hit, ${fleet.applied} layer(s) applied to ${result.buildCache.path}`
+          : `fleet-cache: miss (${fleet.reason})`);
+      } else if (fleet.reason !== "fleet tier is off") {
+        logger.log(`fleet-cache: skipped (${fleet.reason})`);
       }
-      if (fleet.restore.hit) {
-        restore = { hit: true, matchedKey: `fleet:${identity}` };
-        logger.log(`fleet-cache: hit, ${fleet.applied} layer(s) applied to ${result.buildCache.path}`);
-      } else {
-        logger.log(`fleet-cache: miss (${fleet.restore.reason})`);
-      }
+      if (fleet.hit) restore = { hit: true, matchedKey: fleet.matchedKey };
     }
-    const fleetHit = restore.matchedKey.startsWith("fleet:");
+    const fleetHit = isFleetHit(restore.matchedKey);
     if (s3) {
       for (const secret of s3CredentialValues(process.env)) core.setSecret(secret);
       const s3Restore = await s3RestoreFamily(s3.client(), {

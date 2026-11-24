@@ -56424,6 +56424,115 @@ function warn(stage, error) {
 
 /***/ }),
 
+/***/ 70430:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FLEET_KEY_PREFIX = void 0;
+exports.runFleetRestore = runFleetRestore;
+exports.isFleetHit = isFleetHit;
+exports.attachFromState = attachFromState;
+/**
+ * The main-step half of the fleet tier, extracted so its decisions are testable.
+ *
+ * `main.ts` is an entry point that installs toolchains, so nothing can drive it
+ * through a cache restore in a test. The rules that decide *whether* the fleet
+ * tier runs, and what it hands back to the restore flow, live here instead — and
+ * `__tests__/fleet-restore-hook.test.ts` drives them against a fake service.
+ *
+ * Three rules, each with a reason:
+ *
+ * 1. **Tiers do not fight.** The fleet tier is skipped when the S3 tier is
+ *    configured or the job runs on a persistent root: both of those already own
+ *    the build-cache directory, and applying two sources to one tree produces a
+ *    mix that is neither.
+ * 2. **A hit is expressed in the caller's own vocabulary.** The restore flow
+ *    classifies hits by `matchedKey`, so a fleet hit returns
+ *    `fleet:<identity>` and the caller skips the archive and decompress steps it
+ *    would otherwise run against a file that does not exist.
+ * 3. **The session travels.** Post publishes what main restored, so the session
+ *    id and key are serialised here for `core.saveState`.
+ */
+const fleet_cache_js_1 = __nccwpck_require__(31544);
+const fleet_cache_phase_js_1 = __nccwpck_require__(24002);
+/** The marker the restore flow uses to recognise a fleet hit. */
+exports.FLEET_KEY_PREFIX = "fleet:";
+const defaultLog = (message) => console.log(message);
+async function runFleetRestore(opts) {
+    const log = opts.log ?? defaultLog;
+    const skipped = (reason) => ({
+        attempted: false,
+        hit: false,
+        applied: 0,
+        matchedKey: "",
+        reason,
+        degraded: false,
+        state: null,
+        restore: null,
+    });
+    if (opts.config === null)
+        return skipped("fleet tier is off");
+    if (opts.persistentRoot)
+        return skipped(`persistent root ${opts.persistentRoot} owns the cache`);
+    if (opts.s3Configured)
+        return skipped("the S3 tier owns the build cache");
+    if (!opts.repository.includes("/"))
+        return skipped(`no repository (got ${JSON.stringify(opts.repository)})`);
+    const result = await (0, fleet_cache_phase_js_1.restoreFleetCache)({
+        config: opts.config,
+        repository: opts.repository,
+        identity: opts.identity,
+        cacheDir: opts.cacheDir,
+        fetchImpl: opts.fetchImpl,
+        log,
+    });
+    const state = result.session === null
+        ? null
+        : {
+            id: result.session.sessionId,
+            identity: opts.identity,
+            repo: result.session.key.repo,
+            family: result.session.key.family,
+            platform: result.session.key.platform,
+        };
+    return {
+        attempted: true,
+        hit: result.restore.hit,
+        applied: result.applied,
+        matchedKey: result.restore.hit ? `${exports.FLEET_KEY_PREFIX}${opts.identity}` : "",
+        reason: result.restore.reason,
+        degraded: result.restore.degraded,
+        state: state === null ? null : JSON.stringify(state),
+        restore: result.restore,
+    };
+}
+/** True when `matchedKey` marks a hit the fleet tier produced. */
+function isFleetHit(matchedKey) {
+    return matchedKey.startsWith(exports.FLEET_KEY_PREFIX);
+}
+/** The session a later step (post) should publish into, if main opened one. */
+function attachFromState(config, raw) {
+    try {
+        const state = JSON.parse(raw);
+        if (!state.id || !state.identity || !state.repo || !state.family || !state.platform) {
+            return null;
+        }
+        return fleet_cache_js_1.FleetSession.attach(config, {
+            id: state.id,
+            identity: state.identity,
+            key: { repo: state.repo, family: state.family, platform: state.platform },
+        });
+    }
+    catch {
+        return null;
+    }
+}
+
+
+/***/ }),
+
 /***/ 33757:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -63405,6 +63514,7 @@ const source_mtime_snapshot_js_1 = __nccwpck_require__(38502);
 const bundle_tool_cache_js_1 = __nccwpck_require__(45701);
 const failed_job_save_js_1 = __nccwpck_require__(48188);
 const fleet_cache_js_1 = __nccwpck_require__(31544);
+const fleet_restore_hook_js_1 = __nccwpck_require__(70430);
 const fleet_cache_phase_js_1 = __nccwpck_require__(24002);
 function dirExists(p) {
     try {
@@ -64819,36 +64929,32 @@ async function runPost() {
     const fleetStateRaw = core.getState("fleetCache");
     if (fleetStateRaw && restoreState.buildCacheEnabled) {
         try {
-            const fleet = JSON.parse(fleetStateRaw);
             const config = (0, fleet_cache_js_1.configFromEnv)(process.env);
+            const session = config ? (0, fleet_restore_hook_js_1.attachFromState)(config, fleetStateRaw) : null;
             if (!config) {
                 log("fleet-cache: state present but the tier is off; nothing to publish");
             }
+            else if (session === null) {
+                log(`fleet-cache: state unreadable (${fleetStateRaw.slice(0, 80)}); nothing to publish`);
+            }
+            else if (!buildOutputGate.save) {
+                await session.close("failed", buildOutputGate.reason);
+                log(`fleet-cache: publish skipped: ${buildOutputGate.reason}`);
+            }
             else {
-                const session = fleet_cache_js_1.FleetSession.attach(config, {
-                    id: fleet.id,
-                    identity: fleet.identity,
-                    key: { repo: fleet.repo, family: fleet.family, platform: fleet.platform },
+                const published = await (0, fleet_cache_phase_js_1.publishFleetCache)({
+                    config,
+                    repository: session.key.repo,
+                    identity: session.identity,
+                    cacheDir: result.buildCache.path,
+                    session,
+                    log: (m) => log(m),
+                    codec: result.targetCacheCompress,
+                    level: result.targetCacheCompressLevel,
                 });
-                if (!buildOutputGate.save) {
-                    await session.close("failed", buildOutputGate.reason);
-                    log(`fleet-cache: publish skipped: ${buildOutputGate.reason}`);
-                }
-                else {
-                    const published = await (0, fleet_cache_phase_js_1.publishFleetCache)({
-                        config,
-                        repository: fleet.repo,
-                        identity: fleet.identity,
-                        cacheDir: result.buildCache.path,
-                        session,
-                        log: (m) => log(m),
-                        codec: result.targetCacheCompress,
-                        level: result.targetCacheCompressLevel,
-                    });
-                    log(published.published
-                        ? `fleet-cache: ${published.reason}`
-                        : `fleet-cache: save skipped: ${published.reason}`);
-                }
+                log(published.published
+                    ? `fleet-cache: ${published.reason}`
+                    : `fleet-cache: save skipped: ${published.reason}`);
             }
         }
         catch (err) {
