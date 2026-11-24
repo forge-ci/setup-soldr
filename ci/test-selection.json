@@ -44,6 +44,7 @@
       "__tests__/zccache-seed.test.ts",
       "__tests__/seed-isolated-cache.test.ts",
       "__tests__/s3-cache.test.ts",
+      "__tests__/fleet-cache.test.ts",
       "__tests__/verdict-cache.test.ts",
       "__tests__/shutdown-cache.test.ts",
       "__tests__/compile-cache-stats.test.ts",
