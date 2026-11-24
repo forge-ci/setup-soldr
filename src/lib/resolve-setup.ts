@@ -13,6 +13,7 @@ import * as toml from "@iarna/toml";
 import {
   cargoConfigHash,
   canonicalJsonStringify,
+  normalizeBuildCacheKeyMode,
   normalizeBuildCacheMode,
   normalizeLegacyTargetCacheMode,
   normalizeTargetCacheBool,
@@ -946,7 +947,14 @@ export async function resolveSetup(
   // warm across commits. The fallback (BuildCachePlan below) is scoped to this
   // job prefix only, never another job's store.
   const buildCacheJobPrefix = `${buildCacheToolchainPrefix}${sanitizedSuffix ? `${sanitizedSuffix}-` : ""}`;
-  const buildCacheKey = `${buildCacheJobPrefix}${cargoLockHash}-s${soldrDigest}`;
+  // build-cache-key-mode: "hash" keys on the Cargo.lock hash, so every dependency
+  // change is an exact miss. "nightly" replaces that segment with a stable name,
+  // so a branch keeps one warm store and Rust rebuilds only the delta. The
+  // platform/toolchain/job prefix and the soldr digest stay in both modes, so
+  // jobs never share a store and a soldr upgrade still invalidates.
+  const buildCacheKeyMode = normalizeBuildCacheKeyMode(inputs.buildCacheKeyMode);
+  const buildCacheKeySegment = buildCacheKeyMode === "nightly" ? "nightly" : cargoLockHash;
+  const buildCacheKey = `${buildCacheJobPrefix}${buildCacheKeySegment}-s${soldrDigest}`;
   const buildCacheParentKey = "";
 
   const legacyTargetCacheModeInput = inputs.targetCacheMode;
