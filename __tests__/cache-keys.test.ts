@@ -8,6 +8,7 @@ import {
   canonicalJsonStringify,
   cargoConfigHash,
   crossToolCacheKeyFor,
+  normalizeBuildCacheKeyMode,
   normalizeBuildCacheMode,
   normalizeLegacyTargetCacheMode,
   normalizeTargetCacheBool,
@@ -140,6 +141,17 @@ test("normalizeBuildCacheMode defaults to 'thin' when empty + target-cache reque
   // explicit build-cache-mode" signal from resolve-setup; the bounded
   // "thin" shape is the standardized default in that case.
   assert.equal(normalizeBuildCacheMode("", "", true), "thin");
+});
+
+test("normalizeBuildCacheKeyMode defaults to 'hash' and rejects unknown values", () => {
+  assert.equal(normalizeBuildCacheKeyMode(""), "hash");
+  assert.equal(normalizeBuildCacheKeyMode("  "), "hash");
+  assert.equal(normalizeBuildCacheKeyMode("hash"), "hash");
+  assert.equal(normalizeBuildCacheKeyMode("NIGHTLY"), "nightly");
+  assert.throws(
+    () => normalizeBuildCacheKeyMode("content"),
+    /invalid build-cache-key-mode 'content'; expected hash or nightly/,
+  );
 });
 
 test("normalizeBuildCacheMode defaults to 'once' when empty + target-cache off", () => {

@@ -39,6 +39,7 @@ export function readRawInputs(env: Record<string, string | undefined>): RawInput
     lockfile: get("lockfile"),
     buildCache: get("build-cache"),
     buildCacheMode: get("build-cache-mode"),
+    buildCacheKeyMode: get("build-cache-key-mode"),
     zccacheSeedStrict: get("zccache-seed-strict"),
     targetCache: get("target-cache"),
     targetCacheMode: get("target-cache-mode"),

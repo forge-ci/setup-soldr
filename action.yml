@@ -226,6 +226,16 @@ inputs:
       ("true"/"false") to override any preset. (#251)
     required: false
     default: ""
+  build-cache-key-mode:
+    description: >-
+      How the build-cache key is derived. "hash" (default) keys on the
+      Cargo.lock hash, so any dependency change is an exact miss. "nightly"
+      drops the hash and keeps only the platform/toolchain/job prefix, so every
+      run on a branch restores the same store and Rust rebuilds only the delta.
+      The per-job prefix and the soldr digest are kept in both modes, so jobs
+      never share a store and a soldr upgrade still invalidates.
+    required: false
+    default: "hash"
   build-cache-save-min-compiles:
     description: >
       Delta-aware build-cache save gate (issues #230 / #214). When a build

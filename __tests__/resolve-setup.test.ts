@@ -2002,6 +2002,23 @@ test("crossToolCaches: unsupported lane still gets an entry but with empty paths
   assert.deepEqual(lane.paths, [], "unsupported lane has nothing to cache");
 });
 
+test("build-cache-key-mode: nightly drops the Cargo.lock hash from the build-cache key", async () => {
+  const hashed = await run({}, {});
+  const nightly = await run({}, { INPUT_BUILD_CACHE_KEY_MODE: "nightly" });
+  assert.notEqual(
+    hashed.result.buildCache.key,
+    nightly.result.buildCache.key,
+    "nightly mode must produce a different key",
+  );
+  // The nightly key keeps the platform/toolchain/job prefix and the soldr digest,
+  // so jobs still never share a store and a soldr upgrade still invalidates.
+  assert.match(nightly.result.buildCache.key, /-nightly-s[0-9a-f]+\$/);
+  assert.doesNotMatch(nightly.result.buildCache.key, /-nightly-\d/);
+  // The default stays hash-keyed, so existing users are unaffected.
+  assert.equal(hashed.inputs.buildCacheKeyMode, "");
+  assert.equal(nightly.inputs.buildCacheKeyMode, "nightly");
+});
+
 test("crossToolCaches keys do not collide with other cache namespaces", async () => {
   const { result } = await run({}, {
     INPUT_CROSS_TARGETS: "x86_64-pc-windows-gnu",

@@ -220,6 +220,20 @@ export function normalizeBuildCacheMode(
   return mode as "once" | "thin" | "full";
 }
 
+/**
+ * `build-cache-key-mode`: "hash" keys the build cache on the Cargo.lock hash, so
+ * a dependency change is an exact miss. "nightly" drops the hash and keeps one
+ * stable store per branch, so Rust rebuilds only the delta. Empty means "hash".
+ */
+export function normalizeBuildCacheKeyMode(value: string): "hash" | "nightly" {
+  const mode = (value ?? "").trim().toLowerCase();
+  if (!mode) return "hash";
+  if (!["hash", "nightly"].includes(mode)) {
+    throw new Error(`invalid build-cache-key-mode '${value}'; expected hash or nightly`);
+  }
+  return mode as "hash" | "nightly";
+}
+
 export function normalizeTargetCacheCompress(value: string): "auto" | "zstd" | "none" {
   const codec = value.trim().toLowerCase();
   if (!codec) {
