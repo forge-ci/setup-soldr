@@ -158,7 +158,27 @@ test("#527 parseSaveCacheMode accepts auto/true/false and boolean aliases", () =
   assert.equal(parseSaveCacheMode("yes"), "true");
   assert.equal(parseSaveCacheMode("false"), "false");
   assert.equal(parseSaveCacheMode("0"), "false");
+  assert.equal(parseSaveCacheMode("remote-only"), "remote-only");
+  assert.equal(parseSaveCacheMode("Remote"), "remote-only");
   assert.throws(() => parseSaveCacheMode("sometimes"), /save-cache/);
+});
+
+test("save-cache=remote-only disables the Actions cache but not the remote tier", () => {
+  // Every event: the Actions write is off, including where auto would save.
+  for (const ev of ["push", "pull_request", "merge_group", "schedule", ""]) {
+    const d = decideCacheSave("remote-only", ev);
+    assert.equal(d.save, false, ev);
+    assert.equal(d.reason, "save-cache=remote-only (actions cache disabled)");
+  }
+  // Local runners keep the same answer: remote-only is not a local warm-up.
+  assert.equal(decideCacheSave("remote-only", "pull_request", true).save, false);
+  // save-cache-remote still gates the layer it governs; remote-only does not
+  // force a save through a planner's explicit "false".
+  assert.equal(decideCacheSave("remote-only", "push", false, "false").save, false);
+  assert.equal(
+    currentSaveDecision({ GITHUB_EVENT_NAME: "push", "INPUT_SAVE-CACHE": "remote-only" }).save,
+    false,
+  );
 });
 
 test("#527 decision matrix: auto skips only pull_request; true/false override", () => {

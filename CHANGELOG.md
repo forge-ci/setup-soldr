@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `save-cache: remote-only` (with `remote` as an alias). The two write
+  backends were coupled: `save-cache=false` disabled the S3 remote tier as
+  well as the Actions cache, so a lane that wanted a durable remote cache
+  without spending repository budget on an Actions family it has not declared
+  had no spelling. `remote-only` skips every Actions upload and leaves the
+  remote decision to `save-cache-remote`, persistent-root and job-status gates.
+  It is the setting obs-rust/obs-studio needs for its app-build lanes: S3 is
+  wired there already, but its Actions family is undeclared and the repository
+  sits at 9.911 GiB of a 10 GiB budget.
 - Build-cache generation restore, second fix (#682, after #686). GitHub's
   cache lookup exact-matches the primary key and every restore key before it
   tries any prefix, so #686's `[<exact>-g, <exact>, ...]` still exact-hit the
