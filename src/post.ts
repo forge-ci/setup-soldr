@@ -1436,7 +1436,7 @@ export function closePersistentRootIfComplete(
   }
   try {
     closePersistentSession(root);
-    log(`persistent-root: ${root} synced and marked clean`);
+    log(`persistent-root: ${root} marked clean`);
   } catch (err) {
     warn(`setup-soldr: persistent-root ${root} could not be marked clean (${err instanceof Error ? err.message : String(err)}); the next job rebuilds it`);
   }

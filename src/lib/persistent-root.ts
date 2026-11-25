@@ -70,6 +70,7 @@ export const DEFAULT_DESCRIPTOR_PATHS: readonly string[] = [
 export const CLEAN_MARKER = ".clean";
 /** setup-soldr's own bookkeeping inside the root. */
 export const STATE_DIR = ".setup-soldr";
+const BOOT_MARKER = "clean-for-boot.json";
 const SESSION_FILE = "session.json";
 const LEDGER_FILE = "ledger.json";
 /** A session older than this is stale even if another runner owns it (7 h > any job). */
@@ -274,6 +275,17 @@ export function syncFilesystem(dir: string): void {
   if (result.status !== 0) spawnSync("sync", [], { stdio: "ignore", timeout: 120_000 });
 }
 
+/** Boot-scoped checkpoints never trust a cache across a kernel restart. */
+function checkpointBootId(): string {
+  if (process.platform !== "linux" || process.env["SETUP_SOLDR_PERSISTENT_CHECKPOINT"] !== "boot") return "";
+  try {
+    const id = fs.readFileSync("/proc/sys/kernel/random/boot_id", "utf8").trim();
+    return /^[0-9a-f-]{36}$/.test(id) ? id : "";
+  } catch {
+    return "";
+  }
+}
+
 export interface SessionIdentity {
   runner: string;
   runId: string;
@@ -342,7 +354,7 @@ function sameJob(a: SessionIdentity, b: SessionIdentity): boolean {
 export function openPersistentSession(
   root: string,
   identity: SessionIdentity,
-  opts: { now?: () => number } = {},
+  opts: { now?: () => number; bootId?: () => string } = {},
 ): OpenResult {
   const now = opts.now ?? Date.now;
   fs.mkdirSync(root, { recursive: true });
@@ -351,7 +363,12 @@ export function openPersistentSession(
   const sessionPath = path.join(stateDir, SESSION_FILE);
   const cleanPath = path.join(root, CLEAN_MARKER);
   const previous = readJson<SessionRecord>(sessionPath);
-  const wasClean = fs.existsSync(cleanPath);
+  const bootMarkerPath = path.join(stateDir, BOOT_MARKER);
+  const bootId = (opts.bootId ?? checkpointBootId)();
+  const bootMarker = readJson<{ schema: number; bootId: string; openedAt: string; pid: number }>(bootMarkerPath);
+  const sessionClosed = previous && bootMarker?.schema === 1
+    && bootMarker.openedAt === previous.openedAt && bootMarker.pid === previous.pid;
+  const wasClean = fs.existsSync(cleanPath) || (bootId !== "" && sessionClosed && bootMarker.bootId === bootId);
   const entries = rootEntries(root);
 
   let outcome: OpenOutcome;
@@ -363,10 +380,11 @@ export function openPersistentSession(
   } else if (entries.length === 0) {
     outcome = "fresh";
     detail = "empty root";
-  } else if (previous && sameJob(previous, identity)) {
+  } else if (previous && !sessionClosed && sameJob(previous, identity)) {
     return { outcome: "reentrant", detail: "session already open in this job", quarantined };
   } else if (
     previous &&
+    !sessionClosed &&
     previous.runner &&
     identity.runner &&
     previous.runner !== identity.runner &&
@@ -375,9 +393,13 @@ export function openPersistentSession(
     return { outcome: "busy", detail: `open session held by runner ${previous.runner} run ${previous.runId}`, quarantined };
   } else {
     outcome = "recovered";
-    detail = previous
-      ? `session of ${previous.runner || "?"} run ${previous.runId || "?"} (opened ${previous.openedAt}) never closed`
-      : "content without a clean marker";
+    if (sessionClosed) {
+      detail = "previous boot checkpoint is ineligible";
+    } else {
+      detail = previous
+        ? `session of ${previous.runner || "?"} run ${previous.runId || "?"} (opened ${previous.openedAt}) never closed`
+        : "content without a clean marker";
+    }
     const quarantine = path.join(stateDir, `quarantine-${now()}-${process.pid}`);
     fs.mkdirSync(quarantine, { recursive: true });
     for (const name of entries) {
@@ -397,19 +419,31 @@ export function openPersistentSession(
     // stateDir may not exist yet.
   }
   const record: SessionRecord = { schema: 1, ...identity, pid: process.pid, openedAt: new Date(now()).toISOString() };
-  writeFileAtomic(sessionPath, `${JSON.stringify(record)}\n`);
   unlinkDurable(cleanPath);
+  unlinkDurable(bootMarkerPath);
+  writeFileAtomic(sessionPath, `${JSON.stringify(record)}\n`);
   return { outcome, detail, quarantined };
 }
 
 /**
- * Close the session: flush the filesystem, then write the clean marker
- * atomically. Call only after every writer into the root (cache daemons
- * included) has stopped, and only when the setup completed.
+ * Close the session after all writers have stopped and setup has completed.
+ * A boot-scoped checkpoint deliberately becomes invalid after a reboot.
  */
-export function closePersistentSession(root: string, opts: { sync?: (dir: string) => void; now?: () => number } = {}): void {
-  (opts.sync ?? syncFilesystem)(root);
+export function closePersistentSession(
+  root: string,
+  opts: { sync?: (dir: string) => void; now?: () => number; bootId?: () => string } = {},
+): void {
+  const bootId = (opts.bootId ?? checkpointBootId)();
   const marker = { schema: 1, closedAt: new Date((opts.now ?? Date.now)()).toISOString() };
+  if (bootId) {
+    const stateDir = path.join(root, STATE_DIR);
+    const session = readJson<SessionRecord>(path.join(stateDir, SESSION_FILE));
+    if (!session) throw new Error("persistent session record is missing");
+    const checkpoint = { ...marker, bootId, openedAt: session.openedAt, pid: session.pid };
+    writeFileAtomic(path.join(stateDir, BOOT_MARKER), `${JSON.stringify(checkpoint)}\n`);
+    return;
+  }
+  (opts.sync ?? syncFilesystem)(root);
   writeFileAtomic(path.join(root, CLEAN_MARKER), `${JSON.stringify(marker)}\n`);
 }
 
