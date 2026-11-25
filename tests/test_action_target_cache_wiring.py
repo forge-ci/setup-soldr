@@ -106,6 +106,7 @@ EXPECTED_INPUTS = {
     "build-cache-save-min-compiles",
     "job-status",
     "save-on-failure",
+    "persistent-cook-peer-root",
     "persistent-root",
     "target-cache-save-min-compiles",
     "s3-bucket",
