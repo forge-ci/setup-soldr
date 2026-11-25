@@ -1234,6 +1234,11 @@ cache only moves files that are already there. `persistent-root` keeps them:
   only when setup completed. A root left unclean by its own runner is
   quarantined and rebuilt cold; one another runner holds open is left alone
   and the job uses the Actions cache.
+- Linux hosts can set `SETUP_SOLDR_PERSISTENT_CHECKPOINT=boot` to reuse a
+  completed cache during the current kernel boot without flushing the whole
+  filesystem at job teardown. The next job after a reboot rebuilds a cache
+  last closed in this mode. The normal durable checkpoint is used if the
+  kernel boot ID is unavailable.
 - Ignored on GitHub-hosted runners. `SETUP_SOLDR_PROFILE=hosted` (for example
   a repository variable) turns it off everywhere; `persistent-root: off` per step.
 - The `cache-ledger` output records each layer's status (`hit`, `miss` or

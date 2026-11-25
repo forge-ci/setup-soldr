@@ -215,6 +215,49 @@ test("a fresh root opens, loses no data and is unclean until closed", () => {
   assert.equal(fs.existsSync(path.join(root, CLEAN_MARKER)), false, "opening removes the marker before any work");
 });
 
+test("boot-scoped checkpoints reuse a clean cache only during the same boot", () => {
+  const root = path.join(mkTmp(), "root");
+  const boot = { bootId: () => "boot-a" };
+  const source = path.join(root, "rustup");
+  const sync = () => assert.fail("boot checkpoints must skip the filesystem flush");
+
+  openPersistentSession(root, identity("dell-1", "1"), boot);
+  fs.mkdirSync(source);
+  closePersistentSession(root, { ...boot, sync });
+  assert.equal(fs.existsSync(path.join(root, CLEAN_MARKER)), false);
+  assert.equal(openPersistentSession(root, identity("dell-1", "2"), boot).outcome, "clean");
+  assert.equal(fs.existsSync(source), true);
+
+  closePersistentSession(root, { ...boot, sync });
+  const reboot = openPersistentSession(root, identity("replacement-runner", "3"), { bootId: () => "boot-b" });
+  assert.equal(reboot.outcome, "recovered");
+  assert.deepEqual(reboot.quarantined, ["rustup"]);
+});
+
+test("switching to durable checkpoints recovers a boot-scoped cache", () => {
+  const root = path.join(mkTmp(), "root");
+  const boot = { bootId: () => "boot-a" };
+  openPersistentSession(root, identity("dell-1", "1"), boot);
+  fs.mkdirSync(path.join(root, "rustup"));
+  closePersistentSession(root, boot);
+  const durable = openPersistentSession(root, identity("replacement-runner", "2"), { bootId: () => "" });
+  assert.equal(durable.outcome, "recovered");
+});
+
+test("a boot checkpoint cannot validate a later unclosed session", () => {
+  const root = path.join(mkTmp(), "root");
+  const boot = { bootId: () => "boot-a" };
+  openPersistentSession(root, identity("dell-1", "1"), { ...boot, now: () => 1000 });
+  const source = path.join(root, "rustup");
+  fs.mkdirSync(source);
+  closePersistentSession(root, boot);
+  const checkpoint = path.join(root, ".setup-soldr", "clean-for-boot.json");
+  const oldCheckpoint = fs.readFileSync(checkpoint);
+  openPersistentSession(root, identity("dell-1", "2"), { ...boot, now: () => 2000 });
+  fs.writeFileSync(checkpoint, oldCheckpoint);
+  assert.equal(openPersistentSession(root, identity("dell-1", "3"), boot).outcome, "recovered");
+});
+
 test("a root whose session never closed is quarantined and rebuilt cold", () => {
   const root = path.join(mkTmp(), "root");
   openPersistentSession(root, identity("dell-1", "1"));
