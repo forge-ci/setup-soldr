@@ -93,6 +93,9 @@ import type {
 } from "./lib/types.js";
 import { publishBundleToolCache } from "./lib/bundle-tool-cache.js";
 import { FAILED_JOB_SKIP_STATUS, readBuildOutputSaveGate } from "./lib/failed-job-save.js";
+import { configFromEnv as fleetConfigFromEnv } from "./lib/fleet-cache.js";
+import { attachFromState } from "./lib/fleet-restore-hook.js";
+import { publishFleetCache } from "./lib/fleet-cache-phase.js";
 
 type RestoreStatus = "disabled" | "exact-hit" | "restore-key-hit" | "miss";
 type SaveStatus =
@@ -1755,6 +1758,42 @@ async function runPost(): Promise<void> {
     uploadMs: buildSave.phaseTimings?.uploadMs,
     timestamp: new Date().toISOString(),
   });
+
+  // Fleet tier (forge-ci/cache): the session main opened is closed here, and the
+  // cache dir is published only when the build produced something worth keeping
+  // (the same `buildOutputGate` the other tiers use). A failed publish is a
+  // logged warning: a cache must not be able to fail a job.
+  const fleetStateRaw = core.getState("fleetCache");
+  if (fleetStateRaw && restoreState.buildCacheEnabled) {
+    try {
+      const config = fleetConfigFromEnv(process.env);
+      const session = config ? attachFromState(config, fleetStateRaw) : null;
+      if (!config) {
+        log("fleet-cache: state present but the tier is off; nothing to publish");
+      } else if (session === null) {
+        log(`fleet-cache: state unreadable (${fleetStateRaw.slice(0, 80)}); nothing to publish`);
+      } else if (!buildOutputGate.save) {
+        await session.close("failed", buildOutputGate.reason);
+        log(`fleet-cache: publish skipped: ${buildOutputGate.reason}`);
+      } else {
+        const published = await publishFleetCache({
+          config,
+          repository: session.key.repo,
+          identity: session.identity,
+          cacheDir: result.buildCache.path,
+          session,
+          log: (m) => log(m),
+          codec: result.targetCacheCompress,
+          level: result.targetCacheCompressLevel,
+        });
+        log(published.published
+          ? `fleet-cache: ${published.reason}`
+          : `fleet-cache: save skipped: ${published.reason}`);
+      }
+    } catch (err) {
+      log(`fleet-cache: publish failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
 
   // Optional S3 remote cache: upload this run's build-cache archive under
   // its own key. Shares the build-output, tiny-delta and payload gates

@@ -54670,6 +54670,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports._internal = exports.DOWNLOAD_RETRY_BUDGET_MS = exports.DOWNLOAD_ATTEMPTS = void 0;
 exports.installedSoldrReleaseIsUsable = installedSoldrReleaseIsUsable;
 exports.extractBinary = extractBinary;
+exports.cargoChefForSourceBuild = cargoChefForSourceBuild;
 exports.isRetryableDownloadError = isRetryableDownloadError;
 exports.downloadWithHeaders = downloadWithHeaders;
 exports.ensureSoldr = ensureSoldr;
@@ -55472,6 +55473,46 @@ async function buildFromSource(opts) {
         }
     }
 }
+/**
+ * What cargo-chef a source build should carry, or null when there is nothing to do.
+ *
+ * A release bundle ships cargo-chef beside the binary; a build from local source
+ * produces a bare binary. Without it, `soldr cook` falls back to an
+ * *unauthenticated* GitHub-Releases fetch for cargo-chef from a repository it has
+ * no token for -- which a shared runner IP routinely gets a 403 for
+ * (setup-soldr#703). The pure decision lives here so it is testable.
+ */
+function cargoChefForSourceBuild(version, hasPayload) {
+    if (hasPayload || !version)
+        return null;
+    return bundledCargoChefVersionForSoldr(version);
+}
+/**
+ * Give a source build the cargo-chef its release bundle would have carried,
+ * installed from the authenticated toolchain catalogue, and point soldr at it via
+ * SOLDR_CARGO_CHEF_LOCAL_DIR so `soldr cook` needs no network.
+ *
+ * Best effort on purpose: a job that cannot install it should still be able to
+ * cook the slow way rather than fail at setup.
+ */
+async function provideCargoChefForSourceBuild(opts) {
+    const { installDir, target, binaryName, version, log } = opts;
+    const wanted = cargoChefForSourceBuild(version, hasBundledCargoChefPayload(installDir, binaryName));
+    if (wanted === null) {
+        if (version === null)
+            log("source build: soldr version unknown; leaving cargo-chef resolution to soldr");
+        return;
+    }
+    try {
+        await installCargoChefSupport({ version: wanted, target, installDir, binaryName, log });
+        exportBundledCargoChefIfPresent(installDir, binaryName);
+        log(`source build: installed cargo-chef ${wanted} locally so \`soldr cook\` needs no GitHub fetch`);
+    }
+    catch (error) {
+        log(`source build: cargo-chef ${wanted} install failed, cook will fetch it instead: ` +
+            `${error instanceof Error ? error.message : String(error)}`);
+    }
+}
 async function buildFromLocalSource(opts) {
     const { sourcePath, sourceIdentity, installDir, target, binaryName, bootstrapSoldr, log } = opts;
     const buildEnv = {};
@@ -55699,6 +55740,7 @@ async function ensureSoldr(opts) {
             const current = await installedVersion(binaryPath);
             if (current !== null) {
                 clearBundledReleasePayload(installDir, binaryName);
+                await provideCargoChefForSourceBuild({ installDir, target, binaryName, version: current, log });
                 log(`Using cached soldr ${current} built from ${sourcePath} (${sourceIdentity})`);
                 core.setOutput("installed_version", current);
                 return;
@@ -55717,6 +55759,7 @@ async function ensureSoldr(opts) {
             log,
         });
         const current = await installedVersion(builtPath);
+        await provideCargoChefForSourceBuild({ installDir, target, binaryName, version: current, log });
         log(`Installed soldr ${current ?? sourceIdentity} from ${sourcePath} (${sourceIdentity}) at ${builtPath}`);
         core.setOutput("installed_version", current ?? sourceIdentity);
         return;
@@ -55961,6 +56004,578 @@ function decideLayerSave(input, kind) {
 function readDependencyLayerSaveGate(env) {
     const raw = (0, raw_inputs_js_1.readRawInputs)(env);
     return decideLayerSave({ jobStatus: raw.jobStatus, saveOnFailure: raw.saveOnFailure }, "dependency");
+}
+
+
+/***/ }),
+
+/***/ 24002:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.restoreFleetCache = restoreFleetCache;
+exports.publishFleetCache = publishFleetCache;
+/**
+ * The fleet-cache lifecycle: restore before the build, publish after it.
+ *
+ * `fleet-cache.ts` speaks the protocol; this module is what a caller in the
+ * action actually invokes, and it owns the two decisions that must not be
+ * duplicated per callsite:
+ *
+ * - **Layer format.** A layer is the same archive the Actions cache tier already
+ *   produces (`tar -cf - -C <parent> <basename>` + zstd), so restoring it reuses
+ *   `decompressCache` and there is no second archive path to keep correct — the
+ *   double-nesting bug that made zccache report "0 hits despite restored
+ *   artifacts" lives in exactly that code and is already fixed there.
+ * - **Never fail a build.** Everything here resolves to a value; the caller gets
+ *   a miss or a `published: false` with a reason and carries on.
+ */
+const fs = __importStar(__nccwpck_require__(73024));
+const os = __importStar(__nccwpck_require__(48161));
+const path = __importStar(__nccwpck_require__(76760));
+const cache_compress_js_1 = __nccwpck_require__(24978);
+const fleet_cache_js_1 = __nccwpck_require__(31544);
+const defaultLog = (message) => console.log(message);
+/**
+ * Open a session and apply the newest compatible chain to `cacheDir`.
+ *
+ * Layers are applied in order (base first). A layer that cannot be downloaded or
+ * decompressed aborts the restore and reports a miss: half-applied deltas would
+ * corrupt the tree, which is worse than a cold build.
+ */
+async function restoreFleetCache(opts) {
+    const log = opts.log ?? defaultLog;
+    const session = await fleet_cache_js_1.FleetSession.open(opts.config, {
+        repository: opts.repository,
+        identity: opts.identity,
+        fetchImpl: opts.fetchImpl,
+    });
+    if (session === null) {
+        return {
+            session: null,
+            applied: 0,
+            restore: {
+                hit: false,
+                reason: "fleet cache unavailable; continuing cold",
+                layers: [],
+                identity: opts.identity,
+                degraded: true,
+            },
+        };
+    }
+    const decision = await session.restore();
+    if (!decision.hit) {
+        log(`fleet-cache: miss (${decision.reason})`);
+        return { session, restore: decision, applied: 0 };
+    }
+    const parent = path.dirname(opts.cacheDir);
+    fs.mkdirSync(parent, { recursive: true });
+    let applied = 0;
+    for (const layer of decision.layers) {
+        const staging = fs.mkdtempSync(path.join(os.tmpdir(), "fleet-layer-"));
+        const archive = path.join(staging, `${layer.seq}.tar.zst`);
+        try {
+            const bytes = await session.download(layer.digest);
+            fs.writeFileSync(archive, bytes);
+            await (0, cache_compress_js_1.decompressCache)({ archivePath: archive, targetDir: opts.cacheDir, log });
+            applied += 1;
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            log(`fleet-cache: layer s${String(layer.seq).padStart(6, "0")} failed to apply: ${message}`);
+            return {
+                session,
+                applied: 0,
+                failure: message,
+                restore: {
+                    hit: false,
+                    reason: `layer s${String(layer.seq).padStart(6, "0")} could not be applied: ${message}`,
+                    layers: [],
+                    identity: opts.identity,
+                    degraded: true,
+                },
+            };
+        }
+        finally {
+            fs.rmSync(staging, { recursive: true, force: true });
+        }
+    }
+    log(`fleet-cache: hit — applied ${applied} layer(s) for ${opts.identity}`);
+    return { session, restore: decision, applied };
+}
+/**
+ * Compress `cacheDir` and publish it in the session, then seal the session.
+ *
+ * The session is closed either way: an unclosed session is a record nobody can
+ * replay. Publishing after a failed build is the caller's decision — the post
+ * step already gates that with `job-status`.
+ */
+async function publishFleetCache(opts) {
+    const log = opts.log ?? defaultLog;
+    if (opts.session === null) {
+        return { published: false, reason: "no fleet session; nothing to publish" };
+    }
+    const outcome = opts.outcome ?? "closed";
+    try {
+        if (!fs.existsSync(opts.cacheDir)) {
+            await opts.session.close(outcome, "cache dir missing");
+            return { published: false, reason: `cache dir ${opts.cacheDir} does not exist` };
+        }
+        const parent = path.dirname(opts.cacheDir);
+        fs.mkdirSync(parent, { recursive: true });
+        const before = new Set(fs.readdirSync(parent));
+        await (0, cache_compress_js_1.compressCache)({
+            cacheDir: opts.cacheDir,
+            codec: opts.codec ?? "auto",
+            level: opts.level ?? "3",
+            log,
+            label: "fleet-cache",
+        });
+        // compressCache leaves one archive in the parent; find it rather than rely on
+        // its return shape, which has changed more than once.
+        const archive = fs
+            .readdirSync(parent)
+            .find((name) => !before.has(name) && /\.tar\.(zst|gz)$/.test(name));
+        if (!archive) {
+            await opts.session.close(outcome, "no archive produced");
+            return { published: false, reason: "compressCache produced no archive" };
+        }
+        const archivePath = path.join(parent, archive);
+        let result;
+        try {
+            result = await opts.session.publish(fs.readFileSync(archivePath));
+        }
+        finally {
+            fs.rmSync(archivePath, { force: true });
+        }
+        await opts.session.close(outcome, result.reason);
+        log(`fleet-cache: ${result.reason}`);
+        return result;
+    }
+    catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        await opts.session.close("failed", message);
+        return { published: false, reason: message };
+    }
+}
+
+
+/***/ }),
+
+/***/ 31544:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FleetSession = exports.SCHEMA = void 0;
+exports.parseMode = parseMode;
+exports.configFromEnv = configFromEnv;
+exports.deriveIdentity = deriveIdentity;
+exports.keyFor = keyFor;
+/**
+ * The fleet cache tier (forge-ci/cache, forge-ci/setup-soldr#700).
+ *
+ * A fourth tier beside actions/cache, the cook registry and the S3 remote: a
+ * session-oriented store that a `merge_group` run may *publish* to, which the
+ * Actions cache structurally cannot (every save is gated on a default-branch
+ * push).
+ *
+ * The whole point of putting it here rather than asking each workflow to call a
+ * CLI: anything a workflow author could get wrong is computed, not passed.
+ *
+ * - `fleet-cache: auto|off` turns the tier on; **no URL means off**, the same
+ *   rule that makes `s3-bucket` safe with no bucket or credentials.
+ * - `fleet-cache-family` is the only thing a human names (a lane is "app", not
+ *   "tier2"); getting it wrong only splits keys, it does not break correctness.
+ * - The **identity is never an input**: it is derived here from the runner and
+ *   the resolved toolchain, so a producer cannot publish under an identity no
+ *   consumer computes.
+ *
+ * Failure semantics are the design's: a cache must never be able to fail a
+ * build. Every operation is fail-open — an unreachable service, an absent entry
+ * or an identity mismatch is a *miss with a logged reason*, and publishing is a
+ * warning at worst.
+ */
+const node_os_1 = __nccwpck_require__(48161);
+exports.SCHEMA = 1;
+/** `auto` is the default; anything unrecognised fails closed to `off`. */
+function parseMode(raw) {
+    const value = (raw ?? "").trim().toLowerCase();
+    if (!value || value === "auto" || value === "true" || value === "1" || value === "on")
+        return "auto";
+    return "off";
+}
+/**
+ * Resolve the tier from the process environment.
+ *
+ * `INPUT_FLEET-CACHE` is how the runner passes a hyphenated input to a step;
+ * the test seam also accepts the unhyphenated spelling.
+ */
+function configFromEnv(env = process.env) {
+    const mode = parseMode(env["INPUT_FLEET-CACHE"] ?? env["INPUT_FLEET_CACHE"]);
+    if (mode === "off")
+        return null;
+    const url = (env["FLEET_CACHE_URL"] ?? "").trim();
+    if (!url)
+        return null;
+    const timeout = Number.parseInt(env["FLEET_CACHE_TIMEOUT_MS"] ?? "", 10);
+    return {
+        url: url.replace(/\/+$/, ""),
+        family: (env["INPUT_FLEET-CACHE-FAMILY"] ?? env["INPUT_FLEET_CACHE_FAMILY"] ?? "").trim(),
+        token: (env["FLEET_CACHE_TOKEN"] ?? "").trim(),
+        timeoutMs: Number.isFinite(timeout) && timeout > 0 ? timeout : 4000,
+    };
+}
+/**
+ * The compatibility contract, derived rather than supplied.
+ *
+ * Every component that can change what the build produces is in here; nothing
+ * that changes per run (commit, run id, job name) is. A cache published under
+ * one identity is invisible to a consumer computing another, which is why this
+ * is computed in one place instead of being an action input.
+ */
+function deriveIdentity(parts) {
+    const normalise = (value, fallback) => (value ?? fallback)
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9.]+/g, "-")
+        .replace(/^-+|-+$/g, "") || fallback;
+    return [
+        "fc",
+        String(exports.SCHEMA),
+        normalise(parts.platform ?? (0, node_os_1.platform)(), "unknown"),
+        normalise(parts.architecture ?? (0, node_os_1.arch)(), "unknown"),
+        normalise(parts.configuration, "default"),
+        normalise(parts.toolchain, "notoolchain"),
+    ].join("-");
+}
+/** The store key: repo + family + platform. A repo without a slash is refused. */
+function keyFor(parts) {
+    const repo = (parts.repository ?? "").trim();
+    const family = (parts.family ?? "").trim();
+    if (!repo.includes("/") || !family)
+        return null;
+    const platformPart = (parts.platform ?? (0, node_os_1.platform)()).trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const archPart = (parts.architecture ?? (0, node_os_1.arch)()).trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+    return { repo, family, platform: `${platformPart}-${archPart}` };
+}
+class FleetUnavailable extends Error {
+}
+async function call(config, fetchImpl, method, path, body, contentType = "application/json") {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), config.timeoutMs);
+    try {
+        const response = await fetchImpl(`${config.url}${path}`, {
+            method,
+            body,
+            signal: controller.signal,
+            headers: {
+                ...(body === undefined ? {} : { "Content-Type": contentType }),
+                ...(config.token ? { Authorization: `Bearer ${config.token}` } : {}),
+                "User-Agent": `setup-soldr-fleet-cache/${exports.SCHEMA} ${(0, node_os_1.hostname)()}`,
+            },
+        });
+        const text = await response.text();
+        if (!response.ok) {
+            let message = text.slice(0, 200);
+            try {
+                const parsed = JSON.parse(text);
+                if (parsed.error)
+                    message = parsed.error;
+            }
+            catch {
+                /* not JSON: keep the raw prefix */
+            }
+            throw new FleetUnavailable(`${response.status} ${path}: ${message}`);
+        }
+        return text ? JSON.parse(text) : {};
+    }
+    finally {
+        clearTimeout(timer);
+    }
+}
+/**
+ * A session is one build's cache lifecycle. Restores and publishes share it, so
+ * the service can log the whole job and replay it later.
+ */
+class FleetSession {
+    // Plain fields rather than constructor parameter properties: this estate runs
+    // tests with `--experimental-strip-types`, which erases types instead of
+    // transforming them, so only erasable TypeScript syntax is usable here.
+    config;
+    fetchImpl;
+    id;
+    identity;
+    key;
+    constructor(config, fetchImpl, id, identity, key) {
+        this.config = config;
+        this.fetchImpl = fetchImpl;
+        this.id = id;
+        this.identity = identity;
+        this.key = key;
+    }
+    static async open(config, options) {
+        const key = keyFor({ repository: options.repository, family: config.family });
+        if (key === null)
+            return null;
+        const fetchImpl = options.fetchImpl ?? fetch;
+        try {
+            const created = (await call(config, fetchImpl, "POST", "/sessions", JSON.stringify({
+                ...key,
+                identity: options.identity,
+                ref: options.ref ?? process.env["GITHUB_REF"] ?? "",
+                sha: options.sha ?? process.env["GITHUB_SHA"] ?? "",
+                run_id: options.runId ?? process.env["GITHUB_RUN_ID"] ?? "",
+                job: options.job ?? process.env["GITHUB_JOB"] ?? "",
+            })));
+            if (!created?.id)
+                return null;
+            return new FleetSession(config, fetchImpl, created.id, options.identity, key);
+        }
+        catch (error) {
+            warn("open", error);
+            return null;
+        }
+    }
+    get sessionId() {
+        return this.id;
+    }
+    /**
+     * Reattach to a session another step opened (main restores, post publishes).
+     *
+     * GitHub runs the main and post steps in different processes, so the session
+     * id travels through `core.saveState`; the service keeps the session itself.
+     * Nothing is opened here — a session that does not exist stays a miss.
+     */
+    static attach(config, options) {
+        return new FleetSession(config, options.fetchImpl ?? fetch, options.id, options.identity, options.key);
+    }
+    /**
+     * Ask the service what to restore. Never throws: an unreachable service is a
+     * `degraded` miss, which is different from "the store says there is nothing".
+     */
+    async restore() {
+        const miss = (reason, degraded = false) => ({
+            hit: false,
+            reason,
+            layers: [],
+            identity: this.identity,
+            degraded,
+        });
+        try {
+            const decision = (await call(this.config, this.fetchImpl, "POST", `/sessions/${this.id}/restore`));
+            return {
+                hit: decision.hit === true,
+                reason: decision.reason ?? "",
+                layers: Array.isArray(decision.layers) ? decision.layers : [],
+                identity: this.identity,
+                degraded: false,
+            };
+        }
+        catch (error) {
+            warn("restore", error);
+            return miss(error instanceof Error ? error.message : String(error), true);
+        }
+    }
+    /** Download one layer's bytes. Throws: a caller that asked for bytes must know. */
+    async download(digest) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), this.config.timeoutMs * 10);
+        try {
+            const response = await this.fetchImpl(`${this.config.url}/blobs/${digest}`, {
+                signal: controller.signal,
+                headers: this.config.token ? { Authorization: `Bearer ${this.config.token}` } : {},
+            });
+            if (!response.ok)
+                throw new FleetUnavailable(`${response.status} /blobs/${digest}`);
+            return Buffer.from(await response.arrayBuffer());
+        }
+        finally {
+            clearTimeout(timer);
+        }
+    }
+    /** Publish this build's archive. A failure is a warning, never a failed job. */
+    async publish(data) {
+        try {
+            const result = (await call(this.config, this.fetchImpl, "POST", `/sessions/${this.id}/publish`, new Uint8Array(data), "application/octet-stream"));
+            return {
+                published: true,
+                kind: result.kind,
+                seq: result.seq,
+                digest: result.digest,
+                reason: `published ${result.kind ?? "layer"} s${String(result.seq ?? 0).padStart(6, "0")}`,
+            };
+        }
+        catch (error) {
+            warn("publish", error);
+            return { published: false, reason: error instanceof Error ? error.message : String(error) };
+        }
+    }
+    /** Seal the session. Best effort: the record is for replay, not for correctness. */
+    async close(outcome = "closed", detail = "") {
+        try {
+            await call(this.config, this.fetchImpl, "POST", `/sessions/${this.id}/close`, JSON.stringify({ outcome, detail }));
+        }
+        catch (error) {
+            warn("close", error);
+        }
+    }
+}
+exports.FleetSession = FleetSession;
+function warn(stage, error) {
+    // Never `core.setFailed`: a cache must not be able to fail a build.
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`fleet-cache: ${stage} unavailable, continuing cold: ${message}`);
+}
+
+
+/***/ }),
+
+/***/ 70430:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FLEET_KEY_PREFIX = void 0;
+exports.runFleetRestore = runFleetRestore;
+exports.isFleetHit = isFleetHit;
+exports.attachFromState = attachFromState;
+/**
+ * The main-step half of the fleet tier, extracted so its decisions are testable.
+ *
+ * `main.ts` is an entry point that installs toolchains, so nothing can drive it
+ * through a cache restore in a test. The rules that decide *whether* the fleet
+ * tier runs, and what it hands back to the restore flow, live here instead — and
+ * `__tests__/fleet-restore-hook.test.ts` drives them against a fake service.
+ *
+ * Three rules, each with a reason:
+ *
+ * 1. **Tiers do not fight.** The fleet tier is skipped on a persistent root,
+ *    which seeds itself (#691). The S3 tier is *not* a reason to skip: both may
+ *    be configured, and the fleet tier simply runs first -- `hit` tells the
+ *    caller to leave S3 alone, because applying two sources to one tree produces
+ *    a mix that is neither. Making S3 config a blocker would have meant every
+ *    lane that already sets `s3-bucket` could never try the fleet store without
+ *    first deleting its S3 configuration.
+ * 2. **A hit is expressed in the caller's own vocabulary.** The restore flow
+ *    classifies hits by `matchedKey`, so a fleet hit returns
+ *    `fleet:<identity>` and the caller skips the archive and decompress steps it
+ *    would otherwise run against a file that does not exist.
+ * 3. **The session travels.** Post publishes what main restored, so the session
+ *    id and key are serialised here for `core.saveState`.
+ * 4. **An identity without a toolchain is not an identity.** Callers must pass the
+ *    toolchain component (main uses the build-cache key's own toolchain prefix).
+ *    os/arch alone is identical on both sides of a rustc bump, so falling back to
+ *    it would let the store hand a build objects another compiler produced.
+ */
+const fleet_cache_js_1 = __nccwpck_require__(31544);
+const fleet_cache_phase_js_1 = __nccwpck_require__(24002);
+/** The marker the restore flow uses to recognise a fleet hit. */
+exports.FLEET_KEY_PREFIX = "fleet:";
+const defaultLog = (message) => console.log(message);
+async function runFleetRestore(opts) {
+    const log = opts.log ?? defaultLog;
+    const skipped = (reason) => ({
+        attempted: false,
+        hit: false,
+        applied: 0,
+        matchedKey: "",
+        reason,
+        degraded: false,
+        state: null,
+        restore: null,
+    });
+    if (opts.config === null)
+        return skipped("fleet tier is off");
+    if (opts.persistentRoot)
+        return skipped(`persistent root ${opts.persistentRoot} owns the cache`);
+    if (!opts.repository.includes("/"))
+        return skipped(`no repository (got ${JSON.stringify(opts.repository)})`);
+    const result = await (0, fleet_cache_phase_js_1.restoreFleetCache)({
+        config: opts.config,
+        repository: opts.repository,
+        identity: opts.identity,
+        cacheDir: opts.cacheDir,
+        fetchImpl: opts.fetchImpl,
+        log,
+    });
+    const state = result.session === null
+        ? null
+        : {
+            id: result.session.sessionId,
+            identity: opts.identity,
+            repo: result.session.key.repo,
+            family: result.session.key.family,
+            platform: result.session.key.platform,
+        };
+    return {
+        attempted: true,
+        hit: result.restore.hit,
+        applied: result.applied,
+        matchedKey: result.restore.hit ? `${exports.FLEET_KEY_PREFIX}${opts.identity}` : "",
+        reason: result.restore.reason,
+        degraded: result.restore.degraded,
+        state: state === null ? null : JSON.stringify(state),
+        restore: result.restore,
+    };
+}
+/** True when `matchedKey` marks a hit the fleet tier produced. */
+function isFleetHit(matchedKey) {
+    return matchedKey.startsWith(exports.FLEET_KEY_PREFIX);
+}
+/** The session a later step (post) should publish into, if main opened one. */
+function attachFromState(config, raw) {
+    try {
+        const state = JSON.parse(raw);
+        if (!state.id || !state.identity || !state.repo || !state.family || !state.platform) {
+            return null;
+        }
+        return fleet_cache_js_1.FleetSession.attach(config, {
+            id: state.id,
+            identity: state.identity,
+            key: { repo: state.repo, family: state.family, platform: state.platform },
+        });
+    }
+    catch {
+        return null;
+    }
 }
 
 
@@ -62980,6 +63595,9 @@ const yank_audit_js_1 = __nccwpck_require__(23140);
 const source_mtime_snapshot_js_1 = __nccwpck_require__(38502);
 const bundle_tool_cache_js_1 = __nccwpck_require__(45701);
 const failed_job_save_js_1 = __nccwpck_require__(48188);
+const fleet_cache_js_1 = __nccwpck_require__(31544);
+const fleet_restore_hook_js_1 = __nccwpck_require__(70430);
+const fleet_cache_phase_js_1 = __nccwpck_require__(24002);
 function dirExists(p) {
     try {
         return fs.statSync(p).isDirectory();
@@ -64386,6 +65004,45 @@ async function runPost() {
         uploadMs: buildSave.phaseTimings?.uploadMs,
         timestamp: new Date().toISOString(),
     });
+    // Fleet tier (forge-ci/cache): the session main opened is closed here, and the
+    // cache dir is published only when the build produced something worth keeping
+    // (the same `buildOutputGate` the other tiers use). A failed publish is a
+    // logged warning: a cache must not be able to fail a job.
+    const fleetStateRaw = core.getState("fleetCache");
+    if (fleetStateRaw && restoreState.buildCacheEnabled) {
+        try {
+            const config = (0, fleet_cache_js_1.configFromEnv)(process.env);
+            const session = config ? (0, fleet_restore_hook_js_1.attachFromState)(config, fleetStateRaw) : null;
+            if (!config) {
+                log("fleet-cache: state present but the tier is off; nothing to publish");
+            }
+            else if (session === null) {
+                log(`fleet-cache: state unreadable (${fleetStateRaw.slice(0, 80)}); nothing to publish`);
+            }
+            else if (!buildOutputGate.save) {
+                await session.close("failed", buildOutputGate.reason);
+                log(`fleet-cache: publish skipped: ${buildOutputGate.reason}`);
+            }
+            else {
+                const published = await (0, fleet_cache_phase_js_1.publishFleetCache)({
+                    config,
+                    repository: session.key.repo,
+                    identity: session.identity,
+                    cacheDir: result.buildCache.path,
+                    session,
+                    log: (m) => log(m),
+                    codec: result.targetCacheCompress,
+                    level: result.targetCacheCompressLevel,
+                });
+                log(published.published
+                    ? `fleet-cache: ${published.reason}`
+                    : `fleet-cache: save skipped: ${published.reason}`);
+            }
+        }
+        catch (err) {
+            log(`fleet-cache: publish failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+    }
     // Optional S3 remote cache: upload this run's build-cache archive under
     // its own key. Shares the build-output, tiny-delta and payload gates
     // above; the upload itself is gated by allowS3Save (save-cache=false,

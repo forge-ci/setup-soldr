@@ -135,6 +135,8 @@ import {
   restoreMiniCache,
 } from "./lib/soldr-mini-cache.js";
 import { dumpDiagnostics, loggingEnabled } from "./lib/diagnostics.js";
+import { configFromEnv as fleetConfigFromEnv, deriveIdentity as fleetIdentity } from "./lib/fleet-cache.js";
+import { isFleetHit, runFleetRestore } from "./lib/fleet-restore-hook.js";
 import { diagnoseShimBypass } from "./lib/shim-bypass-check.js";
 import {
   assertMinimumSoldrVersion,
@@ -884,7 +886,49 @@ export async function run(): Promise<void> {
     const s3Off = s3 || result.persistentRoot ? null : s3OffNotice(process.env);
     if (s3Off?.level === "warning") core.warning(s3Off.message);
     else if (s3Off) logger.log(s3Off.message);
-    if (s3) {
+    // Fleet tier (forge-ci/cache): a store a merge_group run may publish to.
+    // It runs before the S3 and Actions tiers and, on a hit, hands the build a
+    // cache dir it can use immediately -- there is no archive to decompress
+    // afterwards, which is what the `fleet:` marker tells the checks below.
+    const fleetConfig = fleetConfigFromEnv(process.env);
+    // The identity must carry the toolchain: `restoreKeyToolchain` is the
+    // toolchain+job prefix the actions/cache key already uses, and without it the
+    // identity would collapse to os/arch, which is the same on both sides of a
+    // rustc bump — a store that then hands a build artifacts from another
+    // compiler. There is no safe fallback, so the tier stays off instead.
+    const fleetToolchain = result.buildCache.restoreKeyToolchain.trim();
+    if (fleetConfig && !fleetToolchain) {
+      logger.log("fleet-cache: skipped — no build-cache toolchain prefix to key an identity on");
+    }
+    if (fleetConfig && fleetToolchain) {
+      const fleet = await runFleetRestore({
+        config: fleetConfig,
+        repository: process.env["GITHUB_REPOSITORY"] ?? "",
+        identity: fleetIdentity({
+          platform: process.env["RUNNER_OS"],
+          architecture: process.env["RUNNER_ARCH"],
+          toolchain: fleetToolchain,
+        }),
+        cacheDir: result.buildCache.path,
+        persistentRoot: result.persistentRoot,
+        s3Configured: Boolean(s3),
+        log: (m: string) => logger.log(m),
+      });
+      if (fleet.state) core.saveState("fleetCache", fleet.state);
+      if (fleet.attempted) {
+        logger.log(fleet.hit
+          ? `fleet-cache: hit, ${fleet.applied} layer(s) applied to ${result.buildCache.path}`
+          : `fleet-cache: miss (${fleet.reason})`);
+      } else if (fleet.reason !== "fleet tier is off") {
+        logger.log(`fleet-cache: skipped (${fleet.reason})`);
+      }
+      if (fleet.hit) restore = { hit: true, matchedKey: fleet.matchedKey };
+    }
+    const fleetHit = isFleetHit(restore.matchedKey);
+    // Both tiers may be configured; the fleet one simply runs first. A fleet hit
+    // means the cache dir is already populated, so S3 must not write an archive
+    // over it -- two sources in one tree is neither.
+    if (s3 && !fleetHit) {
       for (const secret of s3CredentialValues(process.env)) core.setSecret(secret);
       const s3Restore = await s3RestoreFamily(s3.client(), {
         family: "build",
@@ -943,14 +987,16 @@ export async function run(): Promise<void> {
     // A donor hit is a starting point; only this source's exact write key, or
     // one of its generations (#682), is warm. Post saves a warm store as a new
     // generation when the session still compiled, never under the bare key.
-    restore.hit = isWarmBuildCacheMatch(restore.matchedKey, result.buildCache.key);
+    // A fleet hit already wrote the cache dir itself; there is no archive and no
+    // generation to classify.
+    restore.hit = fleetHit || isWarmBuildCacheMatch(restore.matchedKey, result.buildCache.key);
     if (restore.matchedKey && restore.matchedKey !== result.buildCache.key && restore.hit) {
       logger.log(`build-cache: restored generation ${restore.matchedKey}`);
     }
     let buildArchiveBytes: number | null = null;
     let buildInflatedBytes: number | null = null;
     let buildFileCount: number | null = null;
-    if (restore.matchedKey) {
+    if (restore.matchedKey && !fleetHit) {
       try {
         buildArchiveBytes = fs.statSync(archivePath).size;
       } catch {
@@ -964,7 +1010,7 @@ export async function run(): Promise<void> {
         restore = { hit: false, matchedKey: "" };
       }
     }
-    if (restore.matchedKey && fileExists(archivePath)) {
+    if (restore.matchedKey && !fleetHit && fileExists(archivePath)) {
       const magic = await detectCompressMagic(archivePath);
       const haveEncryptKey = (process.env["SETUP_SOLDR_CACHE_ENCRYPT_KEY"] ?? "").trim().length > 0;
       if (magic === "zstd" || magic === "gzip" || haveEncryptKey) {

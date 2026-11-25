@@ -98,6 +98,25 @@ inputs:
       save-cache-remote=false and a cancelled job still block uploads.
     required: false
     default: ""
+  fleet-cache:
+    description: >
+      auto | off. The fleet-cache tier (forge-ci/cache): a session-oriented
+      store a merge_queue run may publish to, which the Actions cache cannot,
+      because every Actions save is gated on a default-branch push. No-op
+      unless FLEET_CACHE_URL is set in the job's environment, so the tier is
+      inert until a service exists. Failures never fail a job: an unreachable
+      service or an absent entry is a cache miss with a logged reason.
+      Temporary integration point: workflows do not call the store themselves.
+    required: false
+    default: "off"
+  fleet-cache-family:
+    description: >
+      The build type this lane caches (app, tier2, rust-tests, ...). The only
+      thing a human names for this tier: the key's repo and platform and the
+      cache identity are derived. A wrong value splits keys, it does not break
+      correctness.
+    required: false
+    default: ""
   s3-endpoint:
     description: S3 endpoint host, e.g. nyc3.digitaloceanspaces.com. Required with s3-bucket.
     required: false

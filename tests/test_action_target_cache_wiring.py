@@ -32,6 +32,8 @@ EXPECTED_INPUTS = {
     "cache",
     "save-cache",
     "save-cache-remote",
+    "fleet-cache",
+    "fleet-cache-family",
     "cache-dir",
     "cache-key-suffix",
     "key",
