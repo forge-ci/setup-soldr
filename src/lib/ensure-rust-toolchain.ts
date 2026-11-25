@@ -94,6 +94,15 @@ async function captureText(
   return { code, stdout };
 }
 
+export async function rustupProfileMatches(
+  rustup: string,
+  profile: string,
+  capture: typeof captureText = captureText,
+): Promise<boolean> {
+  const current = await capture(rustup, ["show", "profile"]);
+  return current.code === 0 && current.stdout.trim() === profile;
+}
+
 async function captureAll(
   command: string,
   args: string[],
@@ -377,7 +386,13 @@ export async function ensureRustToolchain(opts: {
   log(`Requested Rust components: ${components.length > 0 ? components.join(", ") : "none"}`);
   log(`Requested Rust targets: ${targets.length > 0 ? targets.join(", ") : "none"}`);
 
-  await exec.exec(rustup, ["set", "profile", profile]);
+  // Persistent roots commonly already use this profile. Avoid rewriting the
+  // Rustup settings on every job, while still setting missing/different values.
+  if (resolveResult.persistentRoot && await rustupProfileMatches(rustup, profile)) {
+    log(`Using existing Rustup profile ${profile}`);
+  } else {
+    await exec.exec(rustup, ["set", "profile", profile]);
+  }
 
   if (forceRepair) {
     log(`Cached Rust toolchain failed validation; reinstalling ${channel} before adding components/targets`);

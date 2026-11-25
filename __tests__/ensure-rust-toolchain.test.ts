@@ -1,11 +1,30 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  rustupProfileMatches,
   shouldRefreshToolchain,
   shouldSkipRefreshForExactHit,
   tryDelegateToSoldrToolchainEnsure,
 } from "../src/lib/ensure-rust-toolchain.js";
 import { resolveRustupStrategy } from "../src/lib/resolve-setup.js";
+
+test("rustup profile check recognizes the existing profile", async () => {
+  const matches = await rustupProfileMatches("rustup", "minimal", async (command, args) => {
+    assert.equal(command, "rustup");
+    assert.deepEqual(args, ["show", "profile"]);
+    return { code: 0, stdout: "minimal\r\n" };
+  });
+  assert.equal(matches, true);
+});
+
+test("rustup profile check requires a successful, exact match", async () => {
+  assert.equal(await rustupProfileMatches("rustup", "minimal", async () => ({
+    code: 0, stdout: "default\n",
+  })), false);
+  assert.equal(await rustupProfileMatches("rustup", "minimal", async () => ({
+    code: 1, stdout: "minimal\n",
+  })), false);
+});
 
 test("shouldRefreshToolchain recognizes rolling aliases", () => {
   assert.equal(shouldRefreshToolchain("stable"), true);
