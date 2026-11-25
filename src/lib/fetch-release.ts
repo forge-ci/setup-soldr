@@ -44,19 +44,33 @@ export async function resolveLatestTagViaRedirect(repo: string): Promise<string>
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);
   try {
-    const response = await fetch(`https://github.com/${repo}/releases/latest`, {
-      method: "HEAD",
-      redirect: "manual",
-      headers: { "User-Agent": "setup-soldr-action" },
-      signal: controller.signal,
-    });
-    const location = response.headers.get("location") ?? "";
-    const match = /\/releases\/tag\/([^/?#]+)\/?(?:[?#].*)?$/.exec(location);
-    const tag = match ? decodeURIComponent(match[1]!).trim() : "";
-    if (response.status < 300 || response.status >= 400 || !tag) {
-      throw new Error(`releases/latest redirect for ${repo} returned HTTP ${response.status} (location ${location || "none"})`);
+    let url = new URL(`https://github.com/${repo}/releases/latest`);
+    // A repository transfer can first redirect /releases/latest to the new
+    // owner. Follow only GitHub release lookups, within the same time budget.
+    for (let hop = 0; hop < 3; hop++) {
+      const response = await fetch(url, {
+        method: "HEAD",
+        redirect: "manual",
+        headers: { "User-Agent": "setup-soldr-action" },
+        signal: controller.signal,
+      });
+      const location = response.headers.get("location");
+      if (response.status < 300 || response.status >= 400 || !location) {
+        throw new Error(`releases/latest redirect for ${repo} returned HTTP ${response.status} without a release redirect`);
+      }
+      const next = new URL(location, url);
+      if (next.origin !== "https://github.com" || next.username || next.password) {
+        throw new Error(`releases/latest redirect for ${repo} points outside GitHub`);
+      }
+      const match = /^\/[^/]+\/[^/]+\/releases\/tag\/([^/]+)\/?$/.exec(next.pathname);
+      const tag = match ? decodeURIComponent(match[1]!).trim() : "";
+      if (tag) return tag;
+      if (!/^\/[^/]+\/[^/]+\/releases\/latest\/?$/.test(next.pathname)) {
+        throw new Error(`releases/latest redirect for ${repo} does not point to a release page`);
+      }
+      url = next;
     }
-    return tag;
+    throw new Error(`Too many releases/latest redirects for ${repo}`);
   } finally {
     clearTimeout(timer);
   }
@@ -80,7 +94,28 @@ export async function fetchReleaseTagDefault(
       // fall through to the REST API
     }
   }
-  const url = githubApiUrl(`repos/${repo}/releases/latest`, { ...process.env, ...env });
+  const apiEnv = { ...process.env, ...env };
+  const url = githubApiUrl(`repos/${repo}/releases/latest`, apiEnv);
+  try {
+    return await fetchLatestTagViaApi(repo, url, token);
+  } catch (apiError) {
+    // The unauthenticated path already tried the redirect. Keep custom and
+    // enterprise API endpoints on their own server, including on failure.
+    if (!token || githubApiUrl("", apiEnv) !== "https://api.github.com/") throw apiError;
+    try {
+      return await resolveLatestTagViaRedirect(repo);
+    } catch (redirectError) {
+      throw new AggregateError(
+        [apiError, redirectError],
+        `Could not resolve the latest Soldr release for ${repo}. GitHub API: ${String(apiError)}. ` +
+          `GitHub release redirect: ${String(redirectError)}`,
+        { cause: redirectError },
+      );
+    }
+  }
+}
+
+async function fetchLatestTagViaApi(repo: string, url: string, token: string): Promise<string> {
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",

@@ -65,6 +65,69 @@ test("authenticated latest-tag lookup keeps the REST API path", async () => {
   }
 });
 
+test("authenticated latest-tag lookup can recover from a REST timeout without forwarding the token", async () => {
+  const m = mockFetch((url) => {
+    if (url.startsWith("https://api.github.com/")) {
+      throw new DOMException("The operation was aborted", "AbortError");
+    }
+    if (url.includes("/zackees/soldr/")) {
+      return new Response(null, { status: 301, headers: { location: "https://github.com/forge-ci/soldr/releases/latest" } });
+    }
+    return new Response(null, { status: 302, headers: { location: "/forge-ci/soldr/releases/tag/v0.9.57" } });
+  });
+  try {
+    assert.equal(await fetchReleaseTagDefault("zackees/soldr", "", { INPUT_TOKEN: "tok" }), "v0.9.57");
+    assert.deepEqual(m.calls, [
+      { url: "https://api.github.com/repos/zackees/soldr/releases/latest", method: "GET", auth: "Bearer tok" },
+      { url: "https://github.com/zackees/soldr/releases/latest", method: "HEAD", auth: "" },
+      { url: "https://github.com/forge-ci/soldr/releases/latest", method: "HEAD", auth: "" },
+    ]);
+  } finally {
+    m.restore();
+  }
+});
+
+test("latest-tag lookup refuses a release redirect to another origin", async () => {
+  const m = mockFetch((url) => {
+    if (url.startsWith("https://api.github.com/")) return new Response(null, { status: 503 });
+    return new Response(null, { status: 301, headers: { location: "https://example.org/forge-ci/soldr/releases/tag/v0.9.57" } });
+  });
+  try {
+    await assert.rejects(
+      fetchReleaseTagDefault("zackees/soldr", "", { INPUT_TOKEN: "tok" }),
+      /release redirect.*outside GitHub/,
+    );
+    assert.equal(m.calls.length, 2);
+  } finally {
+    m.restore();
+  }
+});
+
+test("authenticated latest-tag lookup never falls back from a custom API endpoint to github.com", async () => {
+  const m = mockFetch(() => new Response(null, { status: 503 }));
+  try {
+    await assert.rejects(fetchReleaseTagDefault("acme/private", "", {
+      GITHUB_API_URL: "https://git.acme.example/api/v3",
+      INPUT_TOKEN: "tok",
+    }), /GitHub API returned HTTP 503/);
+    assert.deepEqual(m.calls.map((c) => c.url), ["https://git.acme.example/api/v3/repos/acme/private/releases/latest"]);
+  } finally {
+    m.restore();
+  }
+});
+
+test("authenticated latest-tag lookup reports both surfaces when neither is available", async () => {
+  const m = mockFetch((url) => new Response(null, { status: url.includes("api.github.com") ? 503 : 502 }));
+  try {
+    await assert.rejects(
+      fetchReleaseTagDefault("zackees/soldr", "", { INPUT_TOKEN: "tok" }),
+      /latest Soldr release.*GitHub API.*HTTP 503.*release redirect.*HTTP 502/,
+    );
+  } finally {
+    m.restore();
+  }
+});
+
 test("anonymous exact release resolves assets from releases/download without the REST API", async () => {
   const m = mockFetch((url) => new Response(null, { status: url.endsWith(".tar.zst") ? 200 : 404 }));
   try {
