@@ -33,7 +33,7 @@ export function cookStorePath(root: string, key: string): string {
 }
 
 /** Copy the entry for `key` to `dest`. Returns its size, or 0 on a miss. */
-export async function cookStoreGet(root: string, key: string, dest: string): Promise<number> {
+export async function cookStoreGet(root: string, key: string, dest: string, touchAccess = true): Promise<number> {
   const src = cookStorePath(root, key);
   let size: number;
   try {
@@ -44,8 +44,10 @@ export async function cookStoreGet(root: string, key: string, dest: string): Pro
   if (size === 0) return 0;
   await fsp.mkdir(path.dirname(dest), { recursive: true });
   await fsp.copyFile(src, dest);
-  const now = new Date();
-  await fsp.utimes(src, now, now).catch(() => {});
+  if (touchAccess) {
+    const now = new Date();
+    await fsp.utimes(src, now, now).catch(() => {});
+  }
   return size;
 }
 

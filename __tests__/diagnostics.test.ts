@@ -74,6 +74,7 @@ function fixtureRawInputs(): RawInputs {
     prebuildDepsFlags: "--release",
     prebuildDepsRecipes: "",
     prebuildDepsDeltaCache: "true",
+    persistentCookPeerRoot: "",
     cookDelta: "false",
     soldrMiniCache: "true",
     verdicts: "",

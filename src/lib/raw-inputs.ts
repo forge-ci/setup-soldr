@@ -73,6 +73,7 @@ export function readRawInputs(env: Record<string, string | undefined>): RawInput
     prebuildDepsFlags: get("prebuild-deps-flags"),
     prebuildDepsRecipes: get("prebuild-deps-recipes"),
     prebuildDepsDeltaCache: get("prebuild-deps-delta-cache"),
+    persistentCookPeerRoot: get("persistent-cook-peer-root"),
     cookDelta: get("cook-delta"),
     soldrMiniCache: get("soldr-mini-cache"),
     verdicts: get("verdicts"),

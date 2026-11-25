@@ -1455,6 +1455,7 @@ export async function run(): Promise<void> {
         deltaRestoreKeys: cookDeltaRestoreKeys,
         baseArchivePath: cookBaseArchive,
         deltaArchivePath: cookDeltaArchive,
+        persistentCookPeerRoot: inputs.persistentCookPeerRoot,
         deltaEnabled: cookDeltaEnabled,
         log: (msg) => logger.log(msg),
         warn: (msg) => logger.warning(msg),
