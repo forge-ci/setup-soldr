@@ -136,6 +136,14 @@ inputs:
     description: Override the runner-local cache/state root used for the installed soldr binary and any managed rustup state rehydrated by this action.
     required: false
     default: ""
+  persistent-cook-peer-root:
+    description: >
+      Absolute path to another trusted local persistent root with compatible toolchain paths.
+      On a persistent runner's local cook-base miss, read the exact archive from
+      this peer before consulting the Actions cache. Both roots must have the same
+      cache trust boundary. Leave empty to disable peer reads.
+    required: false
+    default: ""
   cache-key-suffix:
     description: Optional extra suffix appended to the cache key.
     required: false

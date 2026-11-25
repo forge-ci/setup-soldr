@@ -94,6 +94,7 @@ export interface CookLayerRestoreInfo {
   matchedKey: string;
   archivePath: string;
   archiveBytes: number;
+  retryRemote?: () => Promise<CookLayerRestoreInfo>;
 }
 
 export interface CookLayeredRestoreOpts {
@@ -104,6 +105,7 @@ export interface CookLayeredRestoreOpts {
   deltaRestoreKeys?: string[];
   baseArchivePath: string;
   deltaArchivePath: string;
+  persistentCookPeerRoot?: string;
   log: (msg: string) => void;
   warn?: (msg: string) => void;
   /**
@@ -609,8 +611,8 @@ async function restoreOneLayer(
 
 /**
  * #675: on a persistent root the cook base layer is read through the root's
- * local store first, then the Actions cache; an exact remote hit is written
- * back so the next job on this runner never leaves the host. The delta layer
+ * local store first, then an explicitly configured peer, then the Actions
+ * cache. An exact remote hit is written back to the local store. The delta layer
  * is per-commit and not worth a round trip here (the delta of the commit
  * before rarely matches this checkout on a busy runner), so it stays off.
  */
@@ -621,6 +623,21 @@ async function restorePersistentBase(
   restore: typeof cache.restoreCache,
 ): Promise<CookLayerRestoreInfo> {
   const label = "cook-cache-base";
+  async function restoreRemote(): Promise<CookLayerRestoreInfo> {
+    opts.log(`${label}: reading the remote cache key=${opts.baseKey} (#675)`);
+    const remote = await restoreOneLayer(
+      label, opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore,
+    );
+    if (remote.hit) {
+      try {
+        await cookStorePut(root, opts.baseKey, opts.baseArchivePath);
+        opts.log(`${label}: wrote remote hit back to ${cookStorePath(root, opts.baseKey)}`);
+      } catch (err) {
+        warn(`${label}: local store write-back failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    return remote;
+  }
   await fsp.rm(opts.baseArchivePath, { force: true });
   try {
     const bytes = await cookStoreGet(root, opts.baseKey, opts.baseArchivePath);
@@ -631,19 +648,22 @@ async function restorePersistentBase(
   } catch (err) {
     warn(`${label}: local store read failed: ${err instanceof Error ? err.message : String(err)}`);
   }
-  opts.log(`${label}: local store miss key=${opts.baseKey}; reading the remote cache (#675)`);
-  const remote = await restoreOneLayer(
-    label, opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore,
-  );
-  if (remote.hit) {
+  const peer = opts.persistentCookPeerRoot;
+  if (peer && path.isAbsolute(peer) && path.resolve(peer) !== path.resolve(root)) {
     try {
-      await cookStorePut(root, opts.baseKey, opts.baseArchivePath);
-      opts.log(`${label}: wrote remote hit back to ${cookStorePath(root, opts.baseKey)}`);
+      const bytes = await cookStoreGet(peer, opts.baseKey, opts.baseArchivePath, false);
+      if (bytes > 0) {
+        opts.log(`${label}: peer store hit key=${opts.baseKey} archive=${bytes}B`);
+        return {
+          hit: true, matchedKey: opts.baseKey, archivePath: opts.baseArchivePath,
+          archiveBytes: bytes, retryRemote: restoreRemote,
+        };
+      }
     } catch (err) {
-      warn(`${label}: local store write-back failed: ${err instanceof Error ? err.message : String(err)}`);
+      warn(`${label}: peer store read failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
-  return remote;
+  return restoreRemote();
 }
 
 export async function restoreLayeredCookCacheArchives(
@@ -832,7 +852,7 @@ export async function loadLayeredCookCache(
   if (!opts.restore.base.matchedKey) {
     return { baseLoaded: false, deltaLoaded: false, baseReport: null, deltaReport: null };
   }
-  const base = await loadOneLayer({
+  const baseOptions = {
     label: "cook-cache-base",
     soldrBinary: opts.soldrBinary,
     projectRoot: opts.projectRoot,
@@ -842,7 +862,14 @@ export async function loadLayeredCookCache(
     log: opts.log,
     warn,
     run,
-  });
+  };
+  let base = await loadOneLayer(baseOptions);
+  const retryRemote = opts.restore.base.retryRemote;
+  if (!base.loaded && retryRemote) {
+    opts.log("cook-cache-base: peer archive rejected; trying the remote cache");
+    opts.restore.base = await retryRemote();
+    if (opts.restore.base.matchedKey) base = await loadOneLayer(baseOptions);
+  }
   if (!base.loaded) {
     return {
       baseLoaded: false,

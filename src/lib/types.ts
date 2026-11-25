@@ -131,6 +131,7 @@ export interface RawInputs {
   /** #675: extra cook recipes, one `soldr cook` flag line each. */
   prebuildDepsRecipes: string;
   prebuildDepsDeltaCache: string;
+  persistentCookPeerRoot: string;
   cookDelta: string;
   soldrMiniCache: string;
   verdicts: string;

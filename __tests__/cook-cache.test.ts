@@ -946,6 +946,84 @@ test("#675 persistent root: a local miss reads the Actions cache and writes an e
   });
 });
 
+test("a cold persistent root reads the exact base archive from its trusted peer", async () => {
+  const { cookStorePath } = await import("../src/lib/cook-local-store.js");
+  await withPersistentRoot(async (root, work) => {
+    const peer = path.join(work, "peer");
+    const stored = cookStorePath(peer, "cook-base-v4-k");
+    fs.mkdirSync(path.dirname(stored), { recursive: true });
+    fs.writeFileSync(stored, "peer closure archive");
+    fs.utimesSync(stored, 1, 1);
+    const baseArchivePath = path.join(work, "base.tar.zst");
+    let remoteCalls = 0;
+    const result = await restoreLayeredCookCacheArchives({
+      baseKey: "cook-base-v4-k",
+      baseArchivePath,
+      deltaKey: "cook-delta-v3-k",
+      deltaArchivePath: path.join(work, "delta.tar.zst"),
+      persistentCookPeerRoot: peer,
+      log: () => {},
+      restoreCache: async () => {
+        remoteCalls += 1;
+        return undefined;
+      },
+    });
+    assert.equal(result.base.hit, true);
+    assert.equal(result.base.matchedKey, "cook-base-v4-k");
+    assert.equal(fs.readFileSync(baseArchivePath, "utf8"), "peer closure archive");
+    assert.equal(fs.statSync(stored).mtimeMs, 1000);
+    assert.equal(fs.existsSync(cookStorePath(root, "cook-base-v4-k")), false);
+    assert.equal(result.delta.hit, false);
+    assert.equal(remoteCalls, 0);
+  });
+});
+
+test("a rejected peer archive falls back to the remote base archive", async () => {
+  const { cookStorePath } = await import("../src/lib/cook-local-store.js");
+  await withPersistentRoot(async (_root, work) => {
+    const peer = path.join(work, "peer");
+    const stored = cookStorePath(peer, "cook-base-v4-k");
+    fs.mkdirSync(path.dirname(stored), { recursive: true });
+    fs.writeFileSync(stored, "broken archive");
+    const baseArchivePath = path.join(work, "base.tar.zst");
+    const deltaArchivePath = path.join(work, "delta.tar.zst");
+    const restore = await restoreLayeredCookCacheArchives({
+      baseKey: "cook-base-v4-k",
+      baseArchivePath,
+      deltaKey: "cook-delta-v3-k",
+      deltaArchivePath,
+      persistentCookPeerRoot: peer,
+      log: () => {},
+      restoreCache: async (paths) => {
+        assert.equal(fs.existsSync(paths[0]!), false);
+        fs.writeFileSync(paths[0]!, "valid fallback archive");
+        return "cook-base-v4-older";
+      },
+    });
+    const tried: string[] = [];
+    const loaded = await loadLayeredCookCache({
+      soldrBinary: "soldr",
+      projectRoot: work,
+      targetDir: path.join(work, "target"),
+      baseArchivePath,
+      deltaArchivePath,
+      baseManifestPath: path.join(work, "base-manifest.pb"),
+      restore,
+      log: () => {},
+      runSoldrJson: async () => {
+        tried.push(fs.readFileSync(baseArchivePath, "utf8"));
+        return tried.length === 1
+          ? { code: 1, payload: null, stdout: "", stderr: "invalid archive" }
+          : { code: 0, payload: { cache_files_restored: 1 }, stdout: "", stderr: "" };
+      },
+    });
+    assert.deepEqual(tried, ["broken archive", "valid fallback archive"]);
+    assert.equal(loaded.baseLoaded, true);
+    assert.equal(restore.base.matchedKey, "cook-base-v4-older");
+    assert.equal(restore.base.hit, false);
+  });
+});
+
 test("#675 persistent root: a fallback-prefix remote match is used but not stored under the exact key", async () => {
   const { cookStorePath } = await import("../src/lib/cook-local-store.js");
   await withPersistentRoot(async (root, work) => {

@@ -53374,13 +53374,27 @@ async function restoreOneLayer(label, key, archivePath, restoreKeys, log, warn, 
 }
 /**
  * #675: on a persistent root the cook base layer is read through the root's
- * local store first, then the Actions cache; an exact remote hit is written
- * back so the next job on this runner never leaves the host. The delta layer
+ * local store first, then an explicitly configured peer, then the Actions
+ * cache. An exact remote hit is written back to the local store. The delta layer
  * is per-commit and not worth a round trip here (the delta of the commit
  * before rarely matches this checkout on a busy runner), so it stays off.
  */
 async function restorePersistentBase(root, opts, warn, restore) {
     const label = "cook-cache-base";
+    async function restoreRemote() {
+        opts.log(`${label}: reading the remote cache key=${opts.baseKey} (#675)`);
+        const remote = await restoreOneLayer(label, opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore);
+        if (remote.hit) {
+            try {
+                await (0, cook_local_store_js_1.cookStorePut)(root, opts.baseKey, opts.baseArchivePath);
+                opts.log(`${label}: wrote remote hit back to ${(0, cook_local_store_js_1.cookStorePath)(root, opts.baseKey)}`);
+            }
+            catch (err) {
+                warn(`${label}: local store write-back failed: ${err instanceof Error ? err.message : String(err)}`);
+            }
+        }
+        return remote;
+    }
     await fsp.rm(opts.baseArchivePath, { force: true });
     try {
         const bytes = await (0, cook_local_store_js_1.cookStoreGet)(root, opts.baseKey, opts.baseArchivePath);
@@ -53392,18 +53406,23 @@ async function restorePersistentBase(root, opts, warn, restore) {
     catch (err) {
         warn(`${label}: local store read failed: ${err instanceof Error ? err.message : String(err)}`);
     }
-    opts.log(`${label}: local store miss key=${opts.baseKey}; reading the remote cache (#675)`);
-    const remote = await restoreOneLayer(label, opts.baseKey, opts.baseArchivePath, opts.baseRestoreKeys ?? [], opts.log, warn, restore);
-    if (remote.hit) {
+    const peer = opts.persistentCookPeerRoot;
+    if (peer && path.isAbsolute(peer) && path.resolve(peer) !== path.resolve(root)) {
         try {
-            await (0, cook_local_store_js_1.cookStorePut)(root, opts.baseKey, opts.baseArchivePath);
-            opts.log(`${label}: wrote remote hit back to ${(0, cook_local_store_js_1.cookStorePath)(root, opts.baseKey)}`);
+            const bytes = await (0, cook_local_store_js_1.cookStoreGet)(peer, opts.baseKey, opts.baseArchivePath, false);
+            if (bytes > 0) {
+                opts.log(`${label}: peer store hit key=${opts.baseKey} archive=${bytes}B`);
+                return {
+                    hit: true, matchedKey: opts.baseKey, archivePath: opts.baseArchivePath,
+                    archiveBytes: bytes, retryRemote: restoreRemote,
+                };
+            }
         }
         catch (err) {
-            warn(`${label}: local store write-back failed: ${err instanceof Error ? err.message : String(err)}`);
+            warn(`${label}: peer store read failed: ${err instanceof Error ? err.message : String(err)}`);
         }
     }
-    return remote;
+    return restoreRemote();
 }
 async function restoreLayeredCookCacheArchives(opts) {
     const restore = opts.restoreCache ?? cache.restoreCache;
@@ -53548,7 +53567,7 @@ async function loadLayeredCookCache(opts) {
     if (!opts.restore.base.matchedKey) {
         return { baseLoaded: false, deltaLoaded: false, baseReport: null, deltaReport: null };
     }
-    const base = await loadOneLayer({
+    const baseOptions = {
         label: "cook-cache-base",
         soldrBinary: opts.soldrBinary,
         projectRoot: opts.projectRoot,
@@ -53558,7 +53577,15 @@ async function loadLayeredCookCache(opts) {
         log: opts.log,
         warn,
         run,
-    });
+    };
+    let base = await loadOneLayer(baseOptions);
+    const retryRemote = opts.restore.base.retryRemote;
+    if (!base.loaded && retryRemote) {
+        opts.log("cook-cache-base: peer archive rejected; trying the remote cache");
+        opts.restore.base = await retryRemote();
+        if (opts.restore.base.matchedKey)
+            base = await loadOneLayer(baseOptions);
+    }
     if (!base.loaded) {
         return {
             baseLoaded: false,
@@ -54001,7 +54028,7 @@ function cookStorePath(root, key) {
     return path.join(cookStoreDir(root), `${key.replace(/[^A-Za-z0-9._-]/g, "_")}${SUFFIX}`);
 }
 /** Copy the entry for `key` to `dest`. Returns its size, or 0 on a miss. */
-async function cookStoreGet(root, key, dest) {
+async function cookStoreGet(root, key, dest, touchAccess = true) {
     const src = cookStorePath(root, key);
     let size;
     try {
@@ -54014,8 +54041,10 @@ async function cookStoreGet(root, key, dest) {
         return 0;
     await fsp.mkdir(path.dirname(dest), { recursive: true });
     await fsp.copyFile(src, dest);
-    const now = new Date();
-    await fsp.utimes(src, now, now).catch(() => { });
+    if (touchAccess) {
+        const now = new Date();
+        await fsp.utimes(src, now, now).catch(() => { });
+    }
     return size;
 }
 /** Store `src` under `key`, then prune to `keep` entries. Returns the stored size, or 0. */
@@ -57961,6 +57990,7 @@ function readRawInputs(env) {
         prebuildDepsFlags: get("prebuild-deps-flags"),
         prebuildDepsRecipes: get("prebuild-deps-recipes"),
         prebuildDepsDeltaCache: get("prebuild-deps-delta-cache"),
+        persistentCookPeerRoot: get("persistent-cook-peer-root"),
         cookDelta: get("cook-delta"),
         soldrMiniCache: get("soldr-mini-cache"),
         verdicts: get("verdicts"),
