@@ -1,0 +1,88 @@
+name: fleet-cache integration
+
+# The TypeScript client against the Python service -- the pairing that actually
+# runs in production. Every other fleet test uses a fake service, which proves the
+# client's logic and nothing about the wire; a protocol change on either side has
+# to fail here.
+#
+# forge-ci/cache is public, so this checks it out and starts the real server. No
+# credential, no registry: the file backend is enough to prove the protocol.
+
+on:
+  pull_request:
+    paths:
+      - "src/lib/fleet-*.ts"
+      - "__tests__/fleet-*.ts"
+      - ".github/workflows/fleet-cache-integration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  interop:
+    name: ts client ↔ python service
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies 📦
+        run: npm ci
+
+      - name: Check out the cache service 🗄️
+        uses: actions/checkout@v4
+        with:
+          repository: forge-ci/cache
+          path: .cache-repo
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.14"
+
+      - name: Start the service 🚀
+        run: |
+          set -euo pipefail
+          cd .cache-repo
+          uv run --python 3.14 cache_server.py --store /tmp/cache-store \
+            --db /tmp/cache.db --port 8791 > /tmp/cache-server.log 2>&1 &
+          for _ in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8791/health > /dev/null; then
+              echo "service is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "the service did not come up:" >&2
+          cat /tmp/cache-server.log >&2
+          exit 1
+
+      - name: Interop test 🔌
+        env:
+          CACHECTL_SERVER_URL: http://127.0.0.1:8791
+        run: |
+          set -euo pipefail
+          node --test --test-timeout=120000 --experimental-strip-types \
+            --import ./__tests__/register-loader.mjs __tests__/fleet-cache-live.test.ts
+
+      # The first version left the server running and setup-uv's post step then
+      # blocked on the venv it had made: the tests passed and the job still went
+      # red, five minutes later. A live process outlives the step that started it,
+      # so something has to stop it explicitly.
+      - name: Stop the service 🛑
+        if: always()
+        run: |
+          pkill -f "cache_server.py" || true
+          sleep 1
+          if curl -sf http://127.0.0.1:8791/health > /dev/null; then
+            echo "the service is still up" >&2
+            exit 1
+          fi
