@@ -49108,8 +49108,9 @@ function stampedEntries(dir) {
 }
 /**
  * Link every stamped store entry into `soldrBinDir`, so soldr finds the
- * install and skips its fetch. Links into the store whose target is gone
- * (a pruned tool cache) are dropped, so soldr fetches afresh.
+ * install and skips its fetch. Any link whose target is gone (a pruned tool
+ * cache, or an absolute link into a store path that has since moved, #713)
+ * is dropped, so soldr fetches afresh or the entry is re-linked.
  */
 function adoptBundles(input) {
     const { soldrBinDir, store } = input;
@@ -49121,8 +49122,7 @@ function adoptBundles(input) {
         const p = path.join(soldrBinDir, name);
         if (!fs.lstatSync(p).isSymbolicLink())
             continue;
-        const target = fs.readlinkSync(p);
-        if (path.dirname(target) === store && !fs.existsSync(target)) {
+        if (!fs.existsSync(p)) {
             fs.unlinkSync(p);
             dropped.push(name);
         }
@@ -62084,14 +62084,19 @@ function lstatOrNull(p) {
  * example one setup-cache just restored) is left alone: it already holds the
  * content, and replacing it would discard it. An empty directory, a file, or
  * a link elsewhere is replaced.
+ *
+ * The link target is written relative to the link's directory (#713), so
+ * relocating a tree that holds both the link and the store keeps it
+ * resolving. An older absolute link to the same target is rewritten.
  */
 function linkDir(input) {
     const { linkPath, target } = input;
     fs.mkdirSync(target, { recursive: true });
     fs.mkdirSync(path.dirname(linkPath), { recursive: true });
+    const relTarget = path.relative(path.dirname(linkPath), target) || ".";
     const existing = lstatOrNull(linkPath);
     if (existing?.isSymbolicLink()) {
-        if (fs.readlinkSync(linkPath) === target)
+        if (fs.readlinkSync(linkPath) === relTarget)
             return "already-linked";
         fs.unlinkSync(linkPath);
     }
@@ -62103,7 +62108,7 @@ function linkDir(input) {
     else if (existing) {
         fs.unlinkSync(linkPath);
     }
-    fs.symlinkSync(target, linkPath, "dir");
+    fs.symlinkSync(relTarget, linkPath, "dir");
     return "linked";
 }
 /** True when `p` is a real directory (not a link) holding a `.complete` stamp. */

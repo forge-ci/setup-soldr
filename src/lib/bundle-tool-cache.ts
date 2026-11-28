@@ -62,8 +62,9 @@ function stampedEntries(dir: string): string[] {
 
 /**
  * Link every stamped store entry into `soldrBinDir`, so soldr finds the
- * install and skips its fetch. Links into the store whose target is gone
- * (a pruned tool cache) are dropped, so soldr fetches afresh.
+ * install and skips its fetch. Any link whose target is gone (a pruned tool
+ * cache, or an absolute link into a store path that has since moved, #713)
+ * is dropped, so soldr fetches afresh or the entry is re-linked.
  */
 export function adoptBundles(input: { soldrBinDir: string; store: string }): {
   linked: string[];
@@ -78,8 +79,7 @@ export function adoptBundles(input: { soldrBinDir: string; store: string }): {
   for (const name of fs.readdirSync(soldrBinDir).sort()) {
     const p = path.join(soldrBinDir, name);
     if (!fs.lstatSync(p).isSymbolicLink()) continue;
-    const target = fs.readlinkSync(p);
-    if (path.dirname(target) === store && !fs.existsSync(target)) {
+    if (!fs.existsSync(p)) {
       fs.unlinkSync(p);
       dropped.push(name);
     }

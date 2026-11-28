@@ -160,5 +160,5 @@ test("#553 an empty syslib dir or a stale/dangling link is replaced by the store
   fs.mkdirSync(staleBin, { recursive: true });
   fs.symlinkSync(path.join(toolCache, "gone"), path.join(staleBin, "syslib"));
   assert.equal(linkSyslibToolCache({ soldrBinDir: staleBin, store }).status, "linked");
-  assert.equal(fs.readlinkSync(path.join(staleBin, "syslib")), store);
+  assert.equal(path.resolve(staleBin, fs.readlinkSync(path.join(staleBin, "syslib"))), store);
 });
