@@ -64,6 +64,7 @@ import {
   timeSubPhase,
 } from "./lib/phase-timing.js";
 import { ensureRustToolchain } from "./lib/ensure-rust-toolchain.js";
+import { provisionProvidedToolchain, resolveScope } from "./lib/scope-lower.js";
 import { ensureSoldr } from "./lib/ensure-soldr.js";
 import {
   finishLazySetup,
@@ -484,6 +485,7 @@ export async function run(): Promise<void> {
   // session is open (crash recovery done) before anything reads the root.
   const persistent = preparePersistentRoot({
     input: inputs.persistentRoot,
+    scope: resolveScope(inputs.scope, process.env),
     env: process.env,
     dryRun: TRUTHY.has((process.env["SETUP_SOLDR_DRY_RUN"] ?? "").trim().toLowerCase()),
     log: (msg) => logger.log(msg),
@@ -1643,7 +1645,13 @@ export async function run(): Promise<void> {
   // profile diff). Skip the install entirely on the verified
   // exact-hit path. The snapshot still runs so cache-save logic
   // downstream sees an unchanged tree (install-delta empty).
-  if (soloExactHit) {
+  if (provisionProvidedToolchain(result, {
+    log: (msg) => logger.log(msg),
+    addPath: (p) => core.addPath(p),
+    exportVariable: (name, value) => core.exportVariable(name, value),
+  })) {
+    // #713: the image provides this toolchain read-only; nothing to fetch.
+  } else if (soloExactHit) {
     logger.log(
       "toolchain: solo-cache exact-hit + verified — skipping rustup install (#323)",
     );

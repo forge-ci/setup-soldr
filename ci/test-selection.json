@@ -151,6 +151,7 @@
         "src/lib/save-policy.ts",
         "src/lib/local-profile.ts",
         "src/lib/persistent-root.ts",
+        "src/lib/scope-lower.ts",
         "src/lib/cook-local-store.ts",
         "src/lib/cache-ledger.ts",
         "src/lib/failed-job-save.ts",

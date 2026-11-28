@@ -4,6 +4,7 @@
 // Bootstraps rustup if missing, installs the requested channel + components
 // + targets, and ensures the toolchain is ready for downstream cargo calls.
 
+import { makeWritableDirs, readOnlyPaths } from "./scope-lower.js";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -329,9 +330,7 @@ export async function ensureRustToolchain(opts: {
   const soldrRoot = resolveResult.soldrRoot;
   const binDir = path.join(cargoHome, "bin");
 
-  for (const dir of [cargoHome, rustupHome, soldrRoot, path.join(soldrRoot, "cache"), path.join(soldrRoot, "bin"), binDir]) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
+  makeWritableDirs([cargoHome, rustupHome, soldrRoot, path.join(soldrRoot, "cache"), path.join(soldrRoot, "bin"), binDir], readOnlyPaths(process.env));
 
   // rustup respects $CARGO_HOME / $RUSTUP_HOME from process.env; make sure
   // they're set for child processes. (Main step exports them via resolve.)

@@ -6,9 +6,7 @@
 import { after, test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
-import * as http from "node:http";
-import * as https from "node:https";
-import * as net from "node:net";
+import { createRequire } from "node:module";
 import * as os from "node:os";
 import * as path from "node:path";
 import {
@@ -26,6 +24,12 @@ import { persistentLayout, preparePersistentRoot } from "../src/lib/persistent-r
 import { readRawInputs, resolveSetup } from "../src/lib/resolve-setup.js";
 import { createLogger } from "../src/lib/log-utils.js";
 import type { ActionContext, ResolveResult } from "../src/lib/types.js";
+
+// CommonJS views are mutable, so the network trap reaches every caller.
+const require = createRequire(path.join(process.cwd(), "noop.js"));
+const http = require("node:http") as typeof import("node:http");
+const https = require("node:https") as typeof import("node:https");
+const net = require("node:net") as typeof import("node:net");
 
 const tmpDirs: string[] = [];
 after(() => {
@@ -153,10 +157,10 @@ test("no scope leaves the persistent root unchanged", () => {
 test("resolveSetup exports the scope to soldr and scopes the default cache root", async () => {
   const root = mkTmp("setup-soldr-scope-");
   const scoped = await resolveWith(root, { [SCOPE_ENV]: "alpha", RUSTUP_HOME: path.join(root, "rh") });
-  assert.equal(scoped.exportedEnv[SCOPE_ENV], "alpha");
+  assert.equal(scoped.envExports[SCOPE_ENV], "alpha");
   assert.ok(scoped.cacheRoot.includes(path.join("scopes", "alpha")), scoped.cacheRoot);
   const plain = await resolveWith(mkTmp("setup-soldr-scope-"), { RUSTUP_HOME: path.join(root, "rh2") });
-  assert.equal(plain.exportedEnv[SCOPE_ENV], undefined);
+  assert.equal(plain.envExports[SCOPE_ENV], undefined);
   assert.ok(!plain.cacheRoot.includes("scopes"), plain.cacheRoot);
   assert.equal(plain.providedToolchain, undefined);
 });
@@ -213,7 +217,7 @@ test("a provided toolchain makes no network request and points RUSTUP_HOME at a 
   assert.ok(result.providedToolchain);
   assert.equal(result.rustupStrategy, "explicit", "solo-toolchain-cache stays off for a provided toolchain");
   assert.ok(!isReadOnlyPath(result.rustupHome, [lower]), "RUSTUP_HOME is writable, not the lower");
-  assert.equal(result.exportedEnv["RUSTUP_HOME"], result.rustupHome);
+  assert.equal(result.envExports["RUSTUP_HOME"], result.rustupHome);
   const linked = path.join(result.rustupHome, "toolchains", "1.80.0-x86_64-unknown-linux-gnu");
   assert.ok(!path.isAbsolute(fs.readlinkSync(linked)), "overlay link is relative");
   assert.equal(fs.realpathSync(path.join(linked, "bin", "rustc")), fs.realpathSync(path.join(lower, "toolchains", "1.80.0-x86_64-unknown-linux-gnu", "bin", "rustc")));

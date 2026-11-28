@@ -162,6 +162,8 @@ export interface RawInputs {
    * root or "off" before resolveSetup, which treats only an absolute path as active.
    */
   persistentRoot: string;
+  /** forge-ci/setup-soldr#713: scope id input; "" falls back to SOLDR_SCOPE. */
+  scope: string;
 }
 
 /**
@@ -334,6 +336,10 @@ export interface ResolveResult {
   rustupStrategy: "managed" | "system" | "explicit";
   /** Active persistent root (obs-rust/obs-studio#4954); absent on the hosted profile. */
   persistentRoot?: string;
+  /** forge-ci/setup-soldr#713: toolchain taken from SOLDR_TOOLCHAIN_LOWER. */
+  providedToolchain?: { lower: string; name: string; dir: string };
+  /** forge-ci/setup-soldr#713: sanitized scope id, absent when unscoped. */
+  scope?: string;
 
   // Soldr
   soldrRepo: string;

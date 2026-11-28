@@ -97,5 +97,6 @@ export function readRawInputs(env: Record<string, string | undefined>): RawInput
     jobStatus: get("job-status"),
     saveOnFailure: get("save-on-failure"),
     persistentRoot: get("persistent-root"),
+    scope: get("scope"),
   };
 }
