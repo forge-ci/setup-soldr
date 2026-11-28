@@ -51,6 +51,7 @@
  * compile-cache keys match. The `.clean`, quarantine and session-lock rules
  * are unchanged.
  */
+import { scopeRoot } from "./scope-lower.js";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -676,8 +677,11 @@ export function preparePersistentRoot(opts: {
   log: (msg: string) => void;
   warn: (msg: string) => void;
   choose?: (o: ChoosePersistentRootOptions) => PersistentRootChoice;
+  /** forge-ci/setup-soldr#713: a set scope gets its own `scopes/<id>/` root. */
+  scope?: string;
 }): PreparedPersistentRoot {
-  const choice = (opts.choose ?? choosePersistentRoot)({ input: opts.input, env: opts.env });
+  const chosen = (opts.choose ?? choosePersistentRoot)({ input: opts.input, env: opts.env });
+  const choice = chosen.root && opts.scope ? { ...chosen, root: scopeRoot(chosen.root, opts.scope), reason: `${chosen.reason}, scope ${opts.scope}` } : chosen;
   if (!choice.root) {
     if (choice.warning) opts.warn(choice.warning);
     else if ((opts.input ?? "").trim()) opts.log(`persistent-root: off (${choice.reason})`);

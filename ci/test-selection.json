@@ -22,7 +22,8 @@
       "__tests__/log-utils.test.ts",
       "__tests__/phase-timing.test.ts",
       "__tests__/run-pipe.test.ts",
-      "__tests__/persistent-root.test.ts"
+      "__tests__/persistent-root.test.ts",
+      "__tests__/scope-lower.test.ts"
     ],
     "contract": [
       "__tests__/dylint-contract.test.ts",
@@ -150,6 +151,7 @@
         "src/lib/save-policy.ts",
         "src/lib/local-profile.ts",
         "src/lib/persistent-root.ts",
+        "src/lib/scope-lower.ts",
         "src/lib/cook-local-store.ts",
         "src/lib/cache-ledger.ts",
         "src/lib/failed-job-save.ts",

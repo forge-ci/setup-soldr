@@ -98,6 +98,7 @@ function fixtureRawInputs(): RawInputs {
     jobStatus: "",
     saveOnFailure: "",
     persistentRoot: "",
+    scope: "",
   };
 }
 

@@ -4,6 +4,7 @@
 // resolves the toolchain spec, derives all cache keys, computes the env
 // exports + outputs the orchestrator needs.
 
+import { SCOPE_ENV, TOOLCHAIN_LOWER_ENV, findProvidedToolchain, makeWritableDirs, prepareToolchainOverlay, readOnlyPaths, resolveScope, scopeRoot } from "./scope-lower.js";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as fs from "node:fs";
@@ -211,10 +212,11 @@ function defaultDylintCachePaths(cargoHome: string, driverPath: string): string[
   ];
 }
 
+// #713 item 4: read-only flagged paths (SOLDR_TOOLCHAIN_LOWER,
+// SETUP_SOLDR_READONLY_PATHS) are never created. Set per resolveSetup call.
+let readOnlyDirs: string[] = [];
 function makeDirs(...paths: string[]): void {
-  for (const p of paths) {
-    fs.mkdirSync(p, { recursive: true });
-  }
+  makeWritableDirs(paths, readOnlyDirs);
 }
 
 /**
@@ -614,6 +616,8 @@ export async function resolveSetup(
   // under it and the GitHub Actions cache layers whose files now persist are
   // switched off. build-cache stays on so soldr keeps its zccache wrapper;
   // its restore and save are bypassed by the restore and save gates.
+  readOnlyDirs = readOnlyPaths(env);
+  const scope = resolveScope(inputs.scope, env);
   const persistentRootRaw = (inputs.persistentRoot ?? "").trim();
   const persistentRoot = persistentRootRaw && path.isAbsolute(persistentRootRaw) ? path.resolve(persistentRootRaw) : "";
   // #691: a cold root (new, evicted or quarantined) seeds its registry once,
@@ -649,7 +653,7 @@ export async function resolveSetup(
   const requestedCacheDir = inputs.cacheDir.trim();
   const cacheRoot = requestedCacheDir
     ? resolveAbsolute(requestedCacheDir, env)
-    : path.resolve(path.join(runnerTemp, "setup-soldr"));
+    : path.resolve(path.join(scopeRoot(runnerTemp, scope), "setup-soldr"));
   const soldrRoot = path.join(path.dirname(cacheRoot), `${path.basename(cacheRoot)}-soldr`);
   const cargoHomeInput = (env["CARGO_HOME"] ?? "").trim();
   const cargoHome = cargoHomeInput
@@ -698,7 +702,19 @@ export async function resolveSetup(
   const explicitRustupHome = (env["RUSTUP_HOME"] ?? "").trim();
   let rustupHome: string;
   let rustupStrategy: "managed" | "system" | "explicit";
-  if (explicitRustupHome) {
+  // #713 item 3: a stamped toolchain in the read-only lower wins over every
+  // other source; RUSTUP_HOME becomes a writable overlay that links it.
+  const lowerDir = (env[TOOLCHAIN_LOWER_ENV] ?? "").trim();
+  const providedToolchain = lowerDir ? findProvidedToolchain(lowerDir, toolchain.channel) : null;
+  if (lowerDir && !providedToolchain) {
+    log(`${TOOLCHAIN_LOWER_ENV}=${lowerDir} has no stamped toolchain for ${toolchain.channel}; installing normally`);
+  }
+  if (providedToolchain) {
+    rustupHome = path.join(soldrRoot, "rustup-overlay");
+    rustupStrategy = "explicit";
+    prepareToolchainOverlay(rustupHome, providedToolchain);
+    log(`${TOOLCHAIN_LOWER_ENV}: provided toolchain ${providedToolchain.name}; RUSTUP_HOME overlay ${rustupHome}`);
+  } else if (explicitRustupHome) {
     rustupHome = resolveAbsolute(explicitRustupHome, env);
     rustupStrategy = "explicit";
   } else {
@@ -1477,6 +1493,7 @@ export async function resolveSetup(
     setEnv("SETUP_SOLDR_CI_TESTS", "true");
   }
   setEnv("SOLDR_CACHE_DIR", soldrRoot);
+  if (scope) setEnv(SCOPE_ENV, scope);
   setEnv("CARGO_HOME", cargoHome);
   setEnv("RUSTUP_HOME", rustupHome);
   setEnv("ZCCACHE_CACHE_DIR", zccacheCacheDir);
@@ -1826,6 +1843,8 @@ export async function resolveSetup(
     toolchain,
     rustupStrategy,
     ...(persistentRoot ? { persistentRoot } : {}),
+    ...(providedToolchain ? { providedToolchain } : {}),
+    ...(scope ? { scope } : {}),
     soldrRepo,
     soldrRef,
     soldrSourcePath,

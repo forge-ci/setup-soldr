@@ -317,6 +317,21 @@ inputs:
       SETUP_SOLDR_PROFILE=hosted turns it off everywhere.
     required: false
     default: ""
+  scope:
+    description: >
+      Scope id (forge-ci/setup-soldr#713, forge-ci/soldr#4308). Defaults to
+      the SOLDR_SCOPE environment variable; sanitized to [A-Za-z0-9._-]. When
+      set, the persistent root (and the default cache-dir) gains a
+      scopes/<id>/ component, so two scopes on one runner share no writable
+      path, and SOLDR_SCOPE is exported to soldr. "" with SOLDR_SCOPE unset
+      keeps today's behaviour. Related: SOLDR_TOOLCHAIN_LOWER names a
+      read-only directory whose toolchains/<channel>[-<host>]/ entries
+      carrying a .soldr-toolchain-complete stamp are used without any
+      download or rustup install (RUSTUP_HOME becomes a writable overlay);
+      setup-soldr never creates directories under it or under the
+      SETUP_SOLDR_READONLY_PATHS path list.
+    required: false
+    default: ""
   target-cache-save-min-compiles:
     description: >
       Delta-aware target-cache save gate (#255). Mirror of

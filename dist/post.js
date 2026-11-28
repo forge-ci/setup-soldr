@@ -57386,6 +57386,7 @@ exports.preparePersistentRoot = preparePersistentRoot;
  * compile-cache keys match. The `.clean`, quarantine and session-lock rules
  * are unchanged.
  */
+const scope_lower_js_1 = __nccwpck_require__(45583);
 const fs = __importStar(__nccwpck_require__(73024));
 const os = __importStar(__nccwpck_require__(48161));
 const path = __importStar(__nccwpck_require__(76760));
@@ -57879,7 +57880,8 @@ function lastMissDurationMs(history, layer) {
  * must never fail a job.
  */
 function preparePersistentRoot(opts) {
-    const choice = (opts.choose ?? choosePersistentRoot)({ input: opts.input, env: opts.env });
+    const chosen = (opts.choose ?? choosePersistentRoot)({ input: opts.input, env: opts.env });
+    const choice = chosen.root && opts.scope ? { ...chosen, root: (0, scope_lower_js_1.scopeRoot)(chosen.root, opts.scope), reason: `${chosen.reason}, scope ${opts.scope}` } : chosen;
     if (!choice.root) {
         if (choice.warning)
             opts.warn(choice.warning);
@@ -58014,6 +58016,7 @@ function readRawInputs(env) {
         jobStatus: get("job-status"),
         saveOnFailure: get("save-on-failure"),
         persistentRoot: get("persistent-root"),
+        scope: get("scope"),
     };
 }
 
@@ -59049,6 +59052,170 @@ async function gatedVerdictSave(paths, key, log, backend) {
     if (!allowVerdictSave(log))
         return -1;
     return (backend ?? saveBackend)(paths, key);
+}
+
+
+/***/ }),
+
+/***/ 45583:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// forge-ci/setup-soldr#713 items 2-4 (env names match forge-ci/soldr#4308).
+//
+// - Scope: `scope` input, default SOLDR_SCOPE, sanitized to [A-Za-z0-9._-].
+//   A set scope moves the persistent root (and the default cache root) under
+//   `scopes/<id>/`, so two scopes on one runner share no writable path, and is
+//   exported to soldr as SOLDR_SCOPE.
+// - Provided toolchain: SOLDR_TOOLCHAIN_LOWER is a read-only directory with
+//   `toolchains/<name>/`. A toolchain whose name is the requested channel (or
+//   `<channel>-<host triple>`) and that carries PROVIDED_TOOLCHAIN_STAMP is
+//   used as is: no rustup-init download, no `rustup toolchain install`.
+//   RUSTUP_HOME points at a writable overlay whose `toolchains/<name>` is a
+//   relative link into the lower.
+// - Read-only paths: the lower plus SETUP_SOLDR_READONLY_PATHS (path-list);
+//   setup-soldr never creates directories on or under them.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PROVIDED_TOOLCHAIN_STAMP = exports.READONLY_PATHS_ENV = exports.TOOLCHAIN_LOWER_ENV = exports.SCOPE_ENV = void 0;
+exports.resolveScope = resolveScope;
+exports.scopeRoot = scopeRoot;
+exports.readOnlyPaths = readOnlyPaths;
+exports.isReadOnlyPath = isReadOnlyPath;
+exports.makeWritableDirs = makeWritableDirs;
+exports.findProvidedToolchain = findProvidedToolchain;
+exports.prepareToolchainOverlay = prepareToolchainOverlay;
+exports.provisionProvidedToolchain = provisionProvidedToolchain;
+const fs = __importStar(__nccwpck_require__(73024));
+const path = __importStar(__nccwpck_require__(76760));
+exports.SCOPE_ENV = "SOLDR_SCOPE";
+exports.TOOLCHAIN_LOWER_ENV = "SOLDR_TOOLCHAIN_LOWER";
+exports.READONLY_PATHS_ENV = "SETUP_SOLDR_READONLY_PATHS";
+/** Marker a complete toolchain in the lower carries. */
+exports.PROVIDED_TOOLCHAIN_STAMP = ".soldr-toolchain-complete";
+/** The scope id: the input when set, else SOLDR_SCOPE; "" means unscoped. */
+function resolveScope(input, env) {
+    const raw = (input ?? "").trim() || (env[exports.SCOPE_ENV] ?? "").trim();
+    const safe = raw.replace(/[^A-Za-z0-9._-]/g, "_");
+    return /^\.*$/.test(safe) ? "" : safe;
+}
+function scopeRoot(root, scope) {
+    return scope ? path.join(root, "scopes", scope) : root;
+}
+function readOnlyPaths(env) {
+    const out = [];
+    const lower = (env[exports.TOOLCHAIN_LOWER_ENV] ?? "").trim();
+    if (lower)
+        out.push(path.resolve(lower));
+    for (const p of (env[exports.READONLY_PATHS_ENV] ?? "").split(path.delimiter)) {
+        if (p.trim())
+            out.push(path.resolve(p.trim()));
+    }
+    return out;
+}
+function isReadOnlyPath(p, readOnly) {
+    const target = path.resolve(p);
+    return readOnly.some((ro) => {
+        const rel = path.relative(ro, target);
+        return rel === "" || (!rel.startsWith("..") && !path.isAbsolute(rel));
+    });
+}
+/** mkdir -p every path that is not flagged read-only. */
+function makeWritableDirs(paths, readOnly) {
+    for (const p of paths) {
+        if (!isReadOnlyPath(p, readOnly))
+            fs.mkdirSync(p, { recursive: true });
+    }
+}
+function findProvidedToolchain(lower, channel) {
+    const want = channel.trim();
+    if (!lower.trim() || !want)
+        return null;
+    const toolchains = path.join(path.resolve(lower), "toolchains");
+    let entries;
+    try {
+        entries = fs.readdirSync(toolchains).sort();
+    }
+    catch {
+        return null;
+    }
+    for (const name of entries) {
+        if (name !== want && !name.startsWith(`${want}-`))
+            continue;
+        // `1.80` must not pick `1.80.0-...`: the remainder must be a host triple.
+        if (name !== want && /^\d/.test(name.slice(want.length + 1)))
+            continue;
+        const dir = path.join(toolchains, name);
+        if (fs.existsSync(path.join(dir, exports.PROVIDED_TOOLCHAIN_STAMP))) {
+            return { lower: path.resolve(lower), name, dir };
+        }
+    }
+    return null;
+}
+/** Create the writable overlay RUSTUP_HOME that links the lower toolchain. */
+function prepareToolchainOverlay(overlay, provided) {
+    const toolchains = path.join(overlay, "toolchains");
+    fs.mkdirSync(toolchains, { recursive: true });
+    const link = path.join(toolchains, provided.name);
+    const target = path.relative(toolchains, provided.dir);
+    let current = null;
+    try {
+        current = fs.readlinkSync(link);
+    }
+    catch {
+        current = null;
+    }
+    if (current === target)
+        return;
+    fs.rmSync(link, { recursive: true, force: true });
+    fs.symlinkSync(target, link, process.platform === "win32" ? "junction" : "dir");
+}
+/**
+ * main's toolchain step for a provided toolchain: no download, no rustup
+ * install. Returns false (and does nothing) when no lower toolchain applies.
+ */
+function provisionProvidedToolchain(result, io) {
+    const provided = result.providedToolchain;
+    if (!provided)
+        return false;
+    io.log(`toolchain: using provided ${provided.name} from ${exports.TOOLCHAIN_LOWER_ENV}=${provided.lower}; skipping download and rustup install (#713)`);
+    io.addPath(path.join(provided.dir, "bin"));
+    io.exportVariable("RUSTUP_TOOLCHAIN", provided.name);
+    process.env["RUSTUP_TOOLCHAIN"] = provided.name;
+    return true;
 }
 
 
