@@ -237,5 +237,64 @@ test("#557 linkDir keeps a non-empty real dir and replaces an empty dir or stale
   const stale = path.join(root, "stale");
   fs.symlinkSync(path.join(root, "gone"), stale);
   assert.equal(linkDir({ linkPath: stale, target }), "linked");
-  assert.equal(fs.readlinkSync(stale), target);
+  assert.equal(path.resolve(root, fs.readlinkSync(stale)), target);
+});
+
+// setup-soldr#713: links into the store must be relative, so relocating the
+// tree that holds both the bin dir and the store keeps them resolving, and a
+// dangling link of any shape is dropped on adopt instead of failing install.
+function assertRelativeAndResolving(dir: string): void {
+  for (const name of fs.readdirSync(dir)) {
+    const p = path.join(dir, name);
+    if (!fs.lstatSync(p).isSymbolicLink()) continue;
+    const target = fs.readlinkSync(p);
+    assert.ok(!path.isAbsolute(target), `${name} -> ${target} must be relative`);
+    assert.ok(fs.existsSync(p), `${name} -> ${target} must resolve`);
+  }
+}
+
+test("#713 adoptBundles links survive moving the tree that holds bin and store", unixOnly, () => {
+  const root = mkTmp("ss713-");
+  const before = path.join(root, "a");
+  const store = toolCacheStorePath(path.join(before, "tool-cache"), "bundles", process.platform, process.arch);
+  fs.mkdirSync(path.join(store, "llvm-21.1.5"), { recursive: true });
+  fs.writeFileSync(path.join(store, "llvm-21.1.5", ".complete"), "");
+  const bin = path.join(before, "soldr", "bin");
+  assert.deepEqual(adoptBundles({ soldrBinDir: bin, store }).linked, ["llvm-21.1.5"]);
+  assertRelativeAndResolving(bin);
+
+  const moved = path.join(root, "b");
+  fs.renameSync(before, moved);
+  const movedBin = path.join(moved, "soldr", "bin");
+  assert.ok(fs.existsSync(path.join(movedBin, "llvm-21.1.5", ".complete")), "link must still resolve after the move");
+});
+
+test("#713 adoptBundles drops a dangling absolute link from an old store path", unixOnly, () => {
+  const root = mkTmp("ss713-dangle-");
+  const store = toolCacheStorePath(path.join(root, "tc-new"), "bundles", process.platform, process.arch);
+  fs.mkdirSync(path.join(store, "llvm-21.1.5"), { recursive: true });
+  fs.writeFileSync(path.join(store, "llvm-21.1.5", ".complete"), "");
+  const bin = path.join(root, "bin");
+  fs.mkdirSync(bin, { recursive: true });
+  fs.symlinkSync(path.join(root, "tc-old", "zig-0.13.0"), path.join(bin, "zig-0.13.0"));
+  fs.symlinkSync(path.join(root, "tc-old", "llvm-21.1.5"), path.join(bin, "llvm-21.1.5"));
+
+  const result = adoptBundles({ soldrBinDir: bin, store });
+  assert.deepEqual(result.dropped, ["llvm-21.1.5", "zig-0.13.0"]);
+  assert.deepEqual(result.linked, ["llvm-21.1.5"]);
+  assert.equal(fs.existsSync(path.join(bin, "zig-0.13.0")), false);
+  assert.equal(fs.lstatSync(path.join(bin, "zig-0.13.0"), { throwIfNoEntry: false }), undefined);
+  assertRelativeAndResolving(bin);
+});
+
+test("#713 rustup store links are relative", unixOnly, () => {
+  const root = mkTmp("ss713-rustup-");
+  const entry = path.join(root, "tc", "soldr-rustup", "e");
+  fs.mkdirSync(path.join(entry, "toolchains"), { recursive: true });
+  fs.mkdirSync(path.join(entry, "update-hashes"), { recursive: true });
+  fs.writeFileSync(path.join(entry, ".complete"), "");
+  const home = path.join(root, "rustup-home");
+  fs.mkdirSync(home);
+  assert.equal(adoptRustupStore({ rustupHome: home, entry }), "adopted");
+  assertRelativeAndResolving(home);
 });

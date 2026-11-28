@@ -87,14 +87,19 @@ function lstatOrNull(p: string): fs.Stats | null {
  * example one setup-cache just restored) is left alone: it already holds the
  * content, and replacing it would discard it. An empty directory, a file, or
  * a link elsewhere is replaced.
+ *
+ * The link target is written relative to the link's directory (#713), so
+ * relocating a tree that holds both the link and the store keeps it
+ * resolving. An older absolute link to the same target is rewritten.
  */
 export function linkDir(input: { linkPath: string; target: string }): LinkStatus {
   const { linkPath, target } = input;
   fs.mkdirSync(target, { recursive: true });
   fs.mkdirSync(path.dirname(linkPath), { recursive: true });
+  const relTarget = path.relative(path.dirname(linkPath), target) || ".";
   const existing = lstatOrNull(linkPath);
   if (existing?.isSymbolicLink()) {
-    if (fs.readlinkSync(linkPath) === target) return "already-linked";
+    if (fs.readlinkSync(linkPath) === relTarget) return "already-linked";
     fs.unlinkSync(linkPath);
   } else if (existing?.isDirectory()) {
     if (fs.readdirSync(linkPath).length > 0) return "kept-existing-dir";
@@ -102,7 +107,7 @@ export function linkDir(input: { linkPath: string; target: string }): LinkStatus
   } else if (existing) {
     fs.unlinkSync(linkPath);
   }
-  fs.symlinkSync(target, linkPath, "dir");
+  fs.symlinkSync(relTarget, linkPath, "dir");
   return "linked";
 }
 
