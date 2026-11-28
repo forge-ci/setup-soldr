@@ -22,7 +22,8 @@
       "__tests__/log-utils.test.ts",
       "__tests__/phase-timing.test.ts",
       "__tests__/run-pipe.test.ts",
-      "__tests__/persistent-root.test.ts"
+      "__tests__/persistent-root.test.ts",
+      "__tests__/scope-lower.test.ts"
     ],
     "contract": [
       "__tests__/dylint-contract.test.ts",
