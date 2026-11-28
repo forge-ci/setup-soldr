@@ -26,10 +26,10 @@ import { createLogger } from "../src/lib/log-utils.js";
 import type { ActionContext, ResolveResult } from "../src/lib/types.js";
 
 // CommonJS views are mutable, so the network trap reaches every caller.
-const require = createRequire(path.join(process.cwd(), "noop.js"));
-const http = require("node:http") as typeof import("node:http");
-const https = require("node:https") as typeof import("node:https");
-const net = require("node:net") as typeof import("node:net");
+const cjsRequire = createRequire(path.join(process.cwd(), "noop.js"));
+const http = cjsRequire("node:http") as typeof import("node:http");
+const https = cjsRequire("node:https") as typeof import("node:https");
+const net = cjsRequire("node:net") as typeof import("node:net");
 
 const tmpDirs: string[] = [];
 after(() => {
