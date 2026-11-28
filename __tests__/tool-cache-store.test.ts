@@ -263,9 +263,9 @@ test("#713 adoptBundles links survive moving the tree that holds bin and store",
   assert.deepEqual(adoptBundles({ soldrBinDir: bin, store }).linked, ["llvm-21.1.5"]);
   assertRelativeAndResolving(bin);
 
-  const after = path.join(root, "b");
-  fs.renameSync(before, after);
-  const movedBin = path.join(after, "soldr", "bin");
+  const moved = path.join(root, "b");
+  fs.renameSync(before, moved);
+  const movedBin = path.join(moved, "soldr", "bin");
   assert.ok(fs.existsSync(path.join(movedBin, "llvm-21.1.5", ".complete")), "link must still resolve after the move");
 });
 
